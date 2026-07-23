@@ -1,14 +1,28 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Mail, BadgeCheck, Clock, ShieldCheck } from 'lucide-react-native';
 import { color } from '../theme';
-import { Txt, Button, TopAppBar, InfoBanner, Field } from '../components';
+import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
 
 export function InviteScreen({ onBack }: { onBack?: () => void }) {
-  const { s } = useLang();
+  const { s, lang } = useLang();
   const insets = useSafeAreaInsets();
+  const [role, setRole] = useState('employee');
+
+  const roleOptions: SelectOption[] =
+    lang === 'id'
+      ? [
+          { value: 'employee', label: 'Karyawan' },
+          { value: 'hr', label: 'HR' },
+          { value: 'head', label: 'Kepala Divisi' },
+        ]
+      : [
+          { value: 'employee', label: 'Employee' },
+          { value: 'hr', label: 'HR' },
+          { value: 'head', label: 'Division Head' },
+        ];
 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
@@ -25,7 +39,7 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
             <Field label={s.adm.fDept} value={s.adm.fDeptV} variant="select" />
           </View>
           <View style={{ flex: 1 }}>
-            <Field label={s.adm.fRole} value={s.adm.fRoleV} variant="select" />
+            <SelectField label={s.adm.fRole} value={role} options={roleOptions} onChange={setRole} />
           </View>
         </View>
 

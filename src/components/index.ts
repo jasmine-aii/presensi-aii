@@ -17,4 +17,5 @@ export { TabBar, type EmployeeNav, type AdminNav, type NavKey } from './TabBar';
 export { InfoBanner } from './InfoBanner';
 export { SearchField } from './SearchField';
 export { Field } from './Field';
+export { SelectField, type SelectOption } from './SelectField';
 export { SegmentedTabs } from './SegmentedTabs';
