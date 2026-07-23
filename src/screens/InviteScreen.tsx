@@ -16,12 +16,14 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
       ? [
           { value: 'employee', label: 'Karyawan' },
           { value: 'hr', label: 'HR' },
-          { value: 'head', label: 'Kepala Divisi' },
+          { value: 'head', label: 'Kepala Departemen' },
+          { value: 'owner', label: 'Owner' },
         ]
       : [
           { value: 'employee', label: 'Employee' },
           { value: 'hr', label: 'HR' },
-          { value: 'head', label: 'Division Head' },
+          { value: 'head', label: 'Department Head' },
+          { value: 'owner', label: 'Owner' },
         ];
 
   return (

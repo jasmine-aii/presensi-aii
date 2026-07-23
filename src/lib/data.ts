@@ -91,20 +91,30 @@ export interface RosterMember {
   name: string;
   role: string;
   id: string;
+  dept: string;
   st: RosterStatus;
   in: string;
+  out: string;
   initials: string;
 }
 
 /** Employee directory (sample). */
 export const roster: RosterMember[] = [
-  { name: 'Andi Pratama', role: 'AI Engineer', id: 'AII-2481', st: 'present', in: '08:41', initials: 'AP' },
-  { name: 'Rina Wijaya', role: 'Engineering Manager', id: 'AII-1120', st: 'present', in: '08:29', initials: 'RW' },
-  { name: 'Siti Rahma', role: 'Product Designer', id: 'AII-2390', st: 'present', in: '08:52', initials: 'SR' },
-  { name: 'Bagus Prakoso', role: 'Backend Engineer', id: 'AII-2201', st: 'late', in: '09:14', initials: 'BP' },
-  { name: 'Dewi Lestari', role: 'Data Analyst', id: 'AII-2337', st: 'leave', in: '—', initials: 'DL' },
-  { name: 'Fajar Nugroho', role: 'ML Engineer', id: 'AII-2455', st: 'not', in: '—', initials: 'FN' },
+  { name: 'Andi Pratama', role: 'AI Engineer', id: 'AII-2481', dept: 'Engineering', st: 'present', in: '08:41', out: '17:22', initials: 'AP' },
+  { name: 'Rina Wijaya', role: 'Engineering Manager', id: 'AII-1120', dept: 'Engineering', st: 'present', in: '08:29', out: '17:40', initials: 'RW' },
+  { name: 'Siti Rahma', role: 'Product Designer', id: 'AII-2390', dept: 'Product', st: 'present', in: '08:52', out: '17:10', initials: 'SR' },
+  { name: 'Bagus Prakoso', role: 'Backend Engineer', id: 'AII-2201', dept: 'Engineering', st: 'late', in: '09:14', out: '17:05', initials: 'BP' },
+  { name: 'Dewi Lestari', role: 'Data Analyst', id: 'AII-2337', dept: 'Data', st: 'leave', in: '—', out: '—', initials: 'DL' },
+  { name: 'Fajar Nugroho', role: 'ML Engineer', id: 'AII-2455', dept: 'Engineering', st: 'not', in: '—', out: '—', initials: 'FN' },
 ];
+
+/** Department the head persona manages (used by the Department Head view). */
+export const HEAD_DEPT = 'Engineering';
+
+/** Members of a department. */
+export function teamByDept(dept: string): RosterMember[] {
+  return roster.filter((r) => r.dept === dept);
+}
 
 /** Dashboard headline counts (derived from the roster). */
 export const adminStats = { present: 3, notyet: 1, late: 1, leave: 1, total: 6 };
@@ -130,4 +140,10 @@ export function approvalQueue(lang: Lang, s: Dict): ApprItem[] {
     { name: 'Fajar Nugroho', type: s.leaveTypes[1], dates: `8 ${may}`, days: 1, icon: Thermometer, initials: 'FN' },
     { name: 'Bagus Prakoso', type: attFix, dates: `7 ${may}`, days: 1, icon: Clock, initials: 'BP' },
   ];
+}
+
+/** Approval queue scoped to one department — the Department Head only approves their own team. */
+export function approvalsByDept(dept: string, lang: Lang, s: Dict): ApprItem[] {
+  const names = new Set(roster.filter((r) => r.dept === dept).map((r) => r.name));
+  return approvalQueue(lang, s).filter((a) => names.has(a.name));
 }

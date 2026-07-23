@@ -16,9 +16,10 @@ import {
   InviteScreen,
   ApprovalScreen,
   ReportsScreen,
+  DeptHeadScreen,
 } from '../screens';
 
-type Workspace = 'employee' | 'admin';
+type Workspace = 'employee' | 'admin' | 'deptHead';
 type EmpTab = 'home' | 'history' | 'leave' | 'profile';
 type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
 type Pushed = 'clockin' | 'clockout' | 'invite' | null;
@@ -47,6 +48,11 @@ export function AppNavigator() {
   }
   if (pushed === 'invite') {
     return <InviteScreen onBack={() => setPushed(null)} />;
+  }
+
+  // ── Department Head workspace — single view, no HR switcher ──
+  if (workspace === 'deptHead') {
+    return <DeptHeadScreen onExit={() => setWorkspace('employee')} />;
   }
 
   // ── Admin workspace ──
@@ -87,7 +93,12 @@ export function AppNavigator() {
         {empTab === 'home' && <HomeScreen onClockIn={() => empNavigate('clock')} />}
         {empTab === 'history' && <HistoryScreen />}
         {empTab === 'leave' && <LeaveScreen />}
-        {empTab === 'profile' && <ProfileScreen onOpenAdmin={() => { setWorkspace('admin'); setAdmTab('dashboard'); }} />}
+        {empTab === 'profile' && (
+          <ProfileScreen
+            onOpenAdmin={() => { setWorkspace('admin'); setAdmTab('dashboard'); }}
+            onOpenDeptHead={() => setWorkspace('deptHead')}
+          />
+        )}
       </View>
       <TabBar mode="employee" active={empTab} labels={s.nav} onNavigate={empNavigate} bottomInset={insets.bottom} />
     </View>

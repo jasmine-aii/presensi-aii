@@ -1,12 +1,18 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
-import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck } from 'lucide-react-native';
+import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, Users } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Avatar, Toggle, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { profileRows } from '../lib/data';
 
-export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
+export function ProfileScreen({
+  onOpenAdmin,
+  onOpenDeptHead,
+}: {
+  onOpenAdmin?: () => void;
+  onOpenDeptHead?: () => void;
+}) {
   const { s, lang, langName, toggleLang } = useLang();
   const [notif, setNotif] = useState(true);
   const rows = profileRows(lang);
@@ -94,6 +100,26 @@ export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
             </Txt>
           </View>
           <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
+        </Pressable>
+
+        {/* Department Head view (single view, no HR switch) */}
+        <Pressable
+          onPress={onOpenDeptHead}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
+        >
+          <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.anugrahBlue }} />
+          <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <Users size={22} color={color.anugrahBlue} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Txt w="bold" size={14} color={color.ink}>
+              {s.prof.switchDept}
+            </Txt>
+            <Txt size={12} color={color.muted}>
+              {s.prof.switchDeptDesc}
+            </Txt>
+          </View>
+          <ChevronRight size={20} color={color.muted} strokeWidth={2} />
         </Pressable>
 
         {/* Settings */}
