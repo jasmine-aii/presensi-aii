@@ -1,18 +1,32 @@
 import React from 'react';
 import { View, Pressable, Platform } from 'react-native';
-import { House, History, Clock, CalendarDays, User, type LucideIcon } from 'lucide-react-native';
+import {
+  House,
+  History,
+  Clock,
+  CalendarDays,
+  User,
+  LayoutDashboard,
+  Users,
+  UserPlus,
+  ClipboardList,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt } from './Txt';
 
 export type EmployeeNav = 'home' | 'history' | 'clock' | 'leave' | 'profile';
+export type AdminNav = 'dashboard' | 'team' | 'add' | 'approval' | 'report';
+export type NavKey = EmployeeNav | AdminNav;
 
 interface Item {
-  key: EmployeeNav;
+  key: NavKey;
   icon: LucideIcon;
   center?: boolean;
 }
 
-const ITEMS: Item[] = [
+const EMPLOYEE_ITEMS: Item[] = [
   { key: 'home', icon: House },
   { key: 'history', icon: History },
   { key: 'clock', icon: Clock, center: true },
@@ -20,16 +34,27 @@ const ITEMS: Item[] = [
   { key: 'profile', icon: User },
 ];
 
+const ADMIN_ITEMS: Item[] = [
+  { key: 'dashboard', icon: LayoutDashboard },
+  { key: 'team', icon: Users },
+  { key: 'add', icon: UserPlus, center: true },
+  { key: 'approval', icon: ClipboardList },
+  { key: 'report', icon: TrendingUp },
+];
+
 export interface TabBarProps {
-  active: EmployeeNav;
+  mode?: 'employee' | 'admin';
+  active: NavKey;
   labels: Record<string, string>;
-  onNavigate: (key: EmployeeNav) => void;
-  /** Extra bottom padding for the device safe-area inset. */
+  onNavigate: (key: NavKey) => void;
+  /** Count badges keyed by nav key (e.g. { approval: 3 }). */
+  badges?: Partial<Record<NavKey, number>>;
   bottomInset?: number;
 }
 
-/** Employee bottom navigation with a raised center FAB (the "Absen" action). */
-export function TabBar({ active, labels, onNavigate, bottomInset = 0 }: TabBarProps) {
+/** Bottom navigation with a raised center FAB. Employee & admin variants. */
+export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, bottomInset = 0 }: TabBarProps) {
+  const items = mode === 'admin' ? ADMIN_ITEMS : EMPLOYEE_ITEMS;
   return (
     <View
       style={{
@@ -44,10 +69,11 @@ export function TabBar({ active, labels, onNavigate, bottomInset = 0 }: TabBarPr
         borderTopColor: color.line,
       }}
     >
-      {ITEMS.map((item) => {
+      {items.map((item) => {
         const isActive = active === item.key;
         const Icon = item.icon;
         const label = labels[item.key] ?? item.key;
+        const badge = badges?.[item.key];
         if (item.center) {
           return (
             <Pressable
@@ -67,12 +93,7 @@ export function TabBar({ active, labels, onNavigate, bottomInset = 0 }: TabBarPr
                   justifyContent: 'center',
                   marginTop: -24,
                   ...Platform.select({
-                    ios: {
-                      shadowColor: color.anugrahBlue,
-                      shadowOffset: { width: 0, height: 8 },
-                      shadowOpacity: 0.34,
-                      shadowRadius: 10,
-                    },
+                    ios: { shadowColor: color.anugrahBlue, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.34, shadowRadius: 10 },
                     android: { elevation: 8 },
                   }),
                 }}
@@ -93,7 +114,29 @@ export function TabBar({ active, labels, onNavigate, bottomInset = 0 }: TabBarPr
             onPress={() => onNavigate(item.key)}
             style={{ alignItems: 'center', width: 58, gap: 5 }}
           >
-            <Icon size={24} color={isActive ? color.anugrahBlue : color.muted} strokeWidth={2} />
+            <View>
+              <Icon size={24} color={isActive ? color.anugrahBlue : color.muted} strokeWidth={2} />
+              {badge != null && badge > 0 && (
+                <View
+                  style={{
+                    position: 'absolute',
+                    top: -6,
+                    right: -10,
+                    minWidth: 16,
+                    height: 16,
+                    paddingHorizontal: 4,
+                    borderRadius: 999,
+                    backgroundColor: color.danger,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Txt w="bold" size={10} color={color.white}>
+                    {badge}
+                  </Txt>
+                </View>
+              )}
+            </View>
             <Txt w={isActive ? 'bold' : 'semibold'} size={11} color={isActive ? color.anugrahBlue : color.muted}>
               {label}
             </Txt>

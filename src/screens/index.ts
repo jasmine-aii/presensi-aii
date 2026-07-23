@@ -4,3 +4,8 @@ export { ClockOutScreen } from './ClockOutScreen';
 export { HistoryScreen } from './HistoryScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { LeaveScreen } from './LeaveScreen';
+export { HRDashboardScreen } from './HRDashboardScreen';
+export { DirectoryScreen } from './DirectoryScreen';
+export { InviteScreen } from './InviteScreen';
+export { ApprovalScreen } from './ApprovalScreen';
+export { ReportsScreen } from './ReportsScreen';

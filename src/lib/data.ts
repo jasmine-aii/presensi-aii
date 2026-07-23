@@ -11,6 +11,7 @@ import {
   CalendarDays,
   UserRound,
   MapPin,
+  Clock,
   type LucideIcon,
 } from 'lucide-react-native';
 import type { Lang, Dict } from '../i18n/strings';
@@ -79,5 +80,54 @@ export function leaveRequests(lang: Lang, s: Dict): LeaveRequest[] {
     { type: s.leaveTypes[0], dates: `12–13 ${may} 2025`, days: 2, st: 'pending', icon: Sun },
     { type: s.leaveTypes[1], dates: '28 Apr 2025', days: 1, st: 'approved', icon: Thermometer },
     { type: s.leaveTypes[2], dates: '15 Apr 2025', days: 1, st: 'rejected', icon: FileText },
+  ];
+}
+
+// ── HR / Admin ────────────────────────────────────────────────
+
+export type RosterStatus = 'present' | 'leave' | 'not' | 'late';
+
+export interface RosterMember {
+  name: string;
+  role: string;
+  id: string;
+  st: RosterStatus;
+  in: string;
+  initials: string;
+}
+
+/** Employee directory (sample). */
+export const roster: RosterMember[] = [
+  { name: 'Andi Pratama', role: 'AI Engineer', id: 'AII-2481', st: 'present', in: '08:41', initials: 'AP' },
+  { name: 'Rina Wijaya', role: 'Engineering Manager', id: 'AII-1120', st: 'present', in: '08:29', initials: 'RW' },
+  { name: 'Siti Rahma', role: 'Product Designer', id: 'AII-2390', st: 'present', in: '08:52', initials: 'SR' },
+  { name: 'Bagus Prakoso', role: 'Backend Engineer', id: 'AII-2201', st: 'late', in: '09:14', initials: 'BP' },
+  { name: 'Dewi Lestari', role: 'Data Analyst', id: 'AII-2337', st: 'leave', in: '—', initials: 'DL' },
+  { name: 'Fajar Nugroho', role: 'ML Engineer', id: 'AII-2455', st: 'not', in: '—', initials: 'FN' },
+];
+
+/** Dashboard headline counts (derived from the roster). */
+export const adminStats = { present: 3, notyet: 1, late: 1, leave: 1, total: 6 };
+
+/** Dashboard "not clocked in" list — roster rows that are late or absent. */
+export const notInList: RosterMember[] = roster.filter((r) => r.st === 'not' || r.st === 'late');
+
+export interface ApprItem {
+  name: string;
+  type: string;
+  dates: string;
+  days: number;
+  icon: LucideIcon;
+  initials: string;
+}
+
+/** Pending approval queue (sample). */
+export function approvalQueue(lang: Lang, s: Dict): ApprItem[] {
+  const may = lang === 'id' ? 'Mei' : 'May';
+  const attFix = lang === 'id' ? 'Koreksi absen' : 'Attendance fix';
+  return [
+    { name: 'Dewi Lestari', type: s.leaveTypes[0], dates: `12–13 ${may}`, days: 2, icon: Sun, initials: 'DL' },
+    { name: 'Fajar Nugroho', type: s.leaveTypes[1], dates: `8 ${may}`, days: 1, icon: Thermometer, initials: 'FN' },
+    { name: 'Bagus Prakoso', type: attFix, dates: `7 ${may}`, days: 1, icon: Clock, initials: 'BP' },
   ];
 }
