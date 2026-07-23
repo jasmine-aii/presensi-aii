@@ -16,10 +16,9 @@ import {
   InviteScreen,
   ApprovalScreen,
   ReportsScreen,
-  DeptHeadScreen,
 } from '../screens';
 
-type Workspace = 'employee' | 'admin' | 'deptHead';
+type Workspace = 'employee' | 'admin';
 type EmpTab = 'home' | 'history' | 'leave' | 'profile';
 type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
 type Pushed = 'clockin' | 'clockout' | 'invite' | null;
@@ -38,6 +37,9 @@ export function AppNavigator() {
   const [admTab, setAdmTab] = useState<AdmTab>('dashboard');
   const [pushed, setPushed] = useState<Pushed>(null);
   const [clockedIn, setClockedIn] = useState(false);
+  // A department head uses the SAME employee pages; only the Home page gains a
+  // team clock-in/out table + a team approval table. They cannot switch to HR.
+  const [asDeptHead, setAsDeptHead] = useState(false);
 
   // ── Pushed sub-views take over the whole screen (no tab bar) ──
   if (pushed === 'clockin') {
@@ -48,11 +50,6 @@ export function AppNavigator() {
   }
   if (pushed === 'invite') {
     return <InviteScreen onBack={() => setPushed(null)} />;
-  }
-
-  // ── Department Head workspace — single view, no HR switcher ──
-  if (workspace === 'deptHead') {
-    return <DeptHeadScreen onExit={() => setWorkspace('employee')} />;
   }
 
   // ── Admin workspace ──
@@ -90,13 +87,14 @@ export function AppNavigator() {
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <View style={{ flex: 1 }}>
-        {empTab === 'home' && <HomeScreen onClockIn={() => empNavigate('clock')} />}
+        {empTab === 'home' && <HomeScreen onClockIn={() => empNavigate('clock')} deptHead={asDeptHead} />}
         {empTab === 'history' && <HistoryScreen />}
         {empTab === 'leave' && <LeaveScreen />}
         {empTab === 'profile' && (
           <ProfileScreen
+            asDeptHead={asDeptHead}
+            onToggleDeptHead={() => setAsDeptHead((v) => !v)}
             onOpenAdmin={() => { setWorkspace('admin'); setAdmTab('dashboard'); }}
-            onOpenDeptHead={() => setWorkspace('deptHead')}
           />
         )}
       </View>

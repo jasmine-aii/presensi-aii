@@ -7,11 +7,13 @@ import { useLang } from '../i18n/LangContext';
 import { profileRows } from '../lib/data';
 
 export function ProfileScreen({
+  asDeptHead,
+  onToggleDeptHead,
   onOpenAdmin,
-  onOpenDeptHead,
 }: {
+  asDeptHead?: boolean;
+  onToggleDeptHead?: () => void;
   onOpenAdmin?: () => void;
-  onOpenDeptHead?: () => void;
 }) {
   const { s, lang, langName, toggleLang } = useLang();
   const [notif, setNotif] = useState(true);
@@ -82,29 +84,31 @@ export function ProfileScreen({
           </View>
         </View>
 
-        {/* Workspace switcher */}
-        <Pressable
-          onPress={onOpenAdmin}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.deepNavy, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
-        >
-          <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
-          <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-            <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Txt w="bold" size={14} color={color.white}>
-              {s.prof.switchTo}
-            </Txt>
-            <Txt size={12} color="rgba(255,255,255,0.72)">
-              {s.prof.switchDesc}
-            </Txt>
-          </View>
-          <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-        </Pressable>
+        {/* HR Admin switcher — hidden for a department head (single view, no HR switch) */}
+        {!asDeptHead && (
+          <Pressable
+            onPress={onOpenAdmin}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.deepNavy, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
+          >
+            <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+              <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Txt w="bold" size={14} color={color.white}>
+                {s.prof.switchTo}
+              </Txt>
+              <Txt size={12} color="rgba(255,255,255,0.72)">
+                {s.prof.switchDesc}
+              </Txt>
+            </View>
+            <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
+          </Pressable>
+        )}
 
-        {/* Department Head view (single view, no HR switch) */}
+        {/* Department Head mode toggle (same pages as employee; Home gains team tables) */}
         <Pressable
-          onPress={onOpenDeptHead}
+          onPress={onToggleDeptHead}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
         >
           <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.anugrahBlue }} />
@@ -113,10 +117,10 @@ export function ProfileScreen({
           </View>
           <View style={{ flex: 1 }}>
             <Txt w="bold" size={14} color={color.ink}>
-              {s.prof.switchDept}
+              {asDeptHead ? s.adm.switchEmp : s.prof.switchDept}
             </Txt>
             <Txt size={12} color={color.muted}>
-              {s.prof.switchDeptDesc}
+              {asDeptHead ? (lang === 'id' ? 'Keluar mode Kepala Departemen' : 'Exit Department Head mode') : s.prof.switchDeptDesc}
             </Txt>
           </View>
           <ChevronRight size={20} color={color.muted} strokeWidth={2} />

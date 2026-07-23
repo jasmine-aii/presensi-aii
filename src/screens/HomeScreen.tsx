@@ -1,14 +1,14 @@
-import React from 'react';
-import { View, ScrollView, useWindowDimensions } from 'react-native';
-import { Bell } from 'lucide-react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
+import { Bell, Check, X } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
-import { menuIcons } from '../lib/data';
+import { menuIcons, teamByDept, approvalsByDept, HEAD_DEPT, type ApprItem, type RosterStatus } from '../lib/data';
 
-export function HomeScreen({ onClockIn }: { onClockIn?: () => void }) {
+export function HomeScreen({ onClockIn, deptHead }: { onClockIn?: () => void; deptHead?: boolean }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const { width } = useWindowDimensions();
@@ -163,7 +163,124 @@ export function HomeScreen({ onClockIn }: { onClockIn?: () => void }) {
           </View>
         </View>
       </Section>
+
+      {deptHead && <DeptHeadPanels />}
     </ScrollView>
+  );
+}
+
+const DOT: Record<RosterStatus, string> = {
+  present: color.success,
+  late: color.danger,
+  leave: color.anugrahBlue,
+  not: color.muted,
+};
+
+/** Extra Home sections shown only for a department head: team clock-in/out table + team approvals. */
+function DeptHeadPanels() {
+  const { s, lang } = useLang();
+  const team = teamByDept(HEAD_DEPT);
+  const [appr, setAppr] = useState<ApprItem[]>(() => approvalsByDept(HEAD_DEPT, lang, s));
+  const [seedLang, setSeedLang] = useState(lang);
+  if (seedLang !== lang) {
+    setSeedLang(lang);
+    setAppr(approvalsByDept(HEAD_DEPT, lang, s));
+  }
+  const resolve = (name: string) => setAppr((prev) => prev.filter((a) => a.name !== name));
+
+  return (
+    <>
+      {/* Team clock-in / clock-out table */}
+      <View style={{ paddingHorizontal: 18, paddingTop: 22 }}>
+        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: 12 }}>
+          {s.dh.teamTitle}
+        </Txt>
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, overflow: 'hidden' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, backgroundColor: color.paper }}>
+            <Txt w="semibold" size={12} color={color.muted} style={{ flex: 1, marginLeft: 18 }}>
+              {lang === 'id' ? 'Karyawan' : 'Employee'}
+            </Txt>
+            <Txt w="semibold" size={12} color={color.muted} style={{ width: 56, textAlign: 'right' }}>
+              {s.out.inAt}
+            </Txt>
+            <Txt w="semibold" size={12} color={color.muted} style={{ width: 56, textAlign: 'right' }}>
+              {s.out.outAt}
+            </Txt>
+          </View>
+          {team.map((m) => (
+            <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 14, borderTopWidth: 1, borderTopColor: color.line }}>
+              <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: DOT[m.st], marginRight: 10 }} />
+              <Txt size={14} color={color.ink} style={{ flex: 1 }} numberOfLines={1}>
+                {m.name}
+              </Txt>
+              <Txt tabular size={13} color={m.in === '—' ? color.muted : color.ink} style={{ width: 56, textAlign: 'right' }}>
+                {m.in}
+              </Txt>
+              <Txt tabular size={13} color={m.out === '—' ? color.muted : color.ink} style={{ width: 56, textAlign: 'right' }}>
+                {m.out}
+              </Txt>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Team approvals */}
+      <View style={{ paddingHorizontal: 18, paddingTop: 22 }}>
+        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: 12 }}>
+          {s.dh.apprTitle}
+        </Txt>
+        {appr.length === 0 ? (
+          <View style={{ alignItems: 'center', paddingVertical: 24, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18 }}>
+            <Txt size={13} color={color.muted}>
+              {s.dh.noAppr}
+            </Txt>
+          </View>
+        ) : (
+          <View style={{ gap: 12 }}>
+            {appr.map((q) => {
+              const Icon = q.icon;
+              return (
+                <View key={q.name} style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+                    <Avatar name={q.name} size={40} />
+                    <View style={{ flex: 1 }}>
+                      <Txt w="semibold" size={14} color={color.ink}>
+                        {q.name}
+                      </Txt>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                        <Icon size={13} color={color.muted} strokeWidth={2} />
+                        <Txt size={12} color={color.muted}>
+                          {q.type}
+                        </Txt>
+                      </View>
+                    </View>
+                    <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: color.skyTint }}>
+                      <Txt w="semibold" size={12} color={color.anugrahBlue} tabular>
+                        {q.dates} · {q.days} {s.daysUnit}
+                      </Txt>
+                    </View>
+                  </View>
+                  <View style={{ flexDirection: 'row', gap: 10 }}>
+                    <Pressable onPress={() => resolve(q.name)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: 12, backgroundColor: color.success }}>
+                      <Check size={17} color={color.white} strokeWidth={2.5} />
+                      <Txt w="semibold" size={14} color={color.white}>
+                        {s.adm.approve}
+                      </Txt>
+                    </Pressable>
+                    <Pressable onPress={() => resolve(q.name)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line }}>
+                      <X size={17} color={color.danger} strokeWidth={2.5} />
+                      <Txt w="semibold" size={14} color={color.danger}>
+                        {s.adm.reject}
+                      </Txt>
+                    </Pressable>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
+    </>
   );
 }
 

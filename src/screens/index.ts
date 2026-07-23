@@ -9,4 +9,3 @@ export { DirectoryScreen } from './DirectoryScreen';
 export { InviteScreen } from './InviteScreen';
 export { ApprovalScreen } from './ApprovalScreen';
 export { ReportsScreen } from './ReportsScreen';
-export { DeptHeadScreen } from './DeptHeadScreen';
