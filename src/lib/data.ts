@@ -81,6 +81,3 @@ export function leaveRequests(lang: Lang, s: Dict): LeaveRequest[] {
     { type: s.leaveTypes[2], dates: '15 Apr 2025', days: 1, st: 'rejected', icon: FileText },
   ];
 }
-
-/** Sample geo used across Clock In / Clock Out. */
-export const SAMPLE_COORD = '-6.2255, 106.8272';

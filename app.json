@@ -23,7 +23,19 @@
       "bundler": "metro"
     },
     "plugins": [
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Izinkan Presensi Anugerah mengakses kamera untuk foto selfie bukti absensi."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Izinkan Presensi Anugerah membaca lokasi untuk verifikasi radius kantor (geofence 500 m)."
+        }
+      ]
     ]
   }
 }

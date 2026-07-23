@@ -1,19 +1,48 @@
-import React from 'react';
-import { View, ScrollView } from 'react-native';
+import React, { useRef } from 'react';
+import { View, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ShieldCheck } from 'lucide-react-native';
+import { ShieldCheck, RefreshCw } from 'lucide-react-native';
+import { CameraView } from 'expo-camera';
 import { color } from '../theme';
 import { Txt, Button, Badge, DataTag, TopAppBar, CameraViewfinder, MiniMap } from '../components';
+import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
 import { timeStr } from '../lib/format';
-import { SAMPLE_COORD } from '../lib/data';
+import { useLocation } from '../lib/useLocation';
+import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: () => void }) {
-  const { s } = useLang();
+  const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
   const insets = useSafeAreaInsets();
+  const loc = useLocation();
+  const cameraRef = useRef<CameraView>(null);
+
+  const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
+  const canConfirm = loc.inRadius === true;
+
+  const geo: { tone: BadgeTone; label: string } =
+    loc.status === 'locating'
+      ? { tone: 'neutral', label: s.loc.locating }
+      : loc.status === 'denied'
+        ? { tone: 'warning', label: s.loc.permGeo }
+        : loc.status === 'error'
+          ? { tone: 'neutral', label: s.loc.unavailable }
+          : loc.inRadius
+            ? { tone: 'success', label: s.loc.within }
+            : { tone: 'danger', label: s.loc.outside };
+
+  const onConfirmPress = async () => {
+    if (!canConfirm) return;
+    try {
+      await cameraRef.current?.takePictureAsync?.();
+    } catch {
+      // capture is best-effort; geofence is the hard gate
+    }
+    onConfirm?.();
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
@@ -23,42 +52,43 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
           {s.in.photoHint}
         </Txt>
 
-        <CameraViewfinder height={300} coord={SAMPLE_COORD} time={clock} placeholder={s.in.title} />
+        <CameraViewfinder height={300} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} />
         <Txt size={12} color={color.muted} style={{ marginTop: 10, textAlign: 'center' }}>
           {s.in.faceGuide}
         </Txt>
 
         {/* Location card */}
-        <View
-          style={{
-            marginTop: 18,
-            backgroundColor: color.white,
-            borderWidth: 1,
-            borderColor: color.line,
-            borderRadius: 22,
-            padding: 18,
-          }}
-        >
+        <View style={{ marginTop: 18, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 22, padding: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
             <Txt w="bold" size={14} color={color.ink}>
               {s.in.locTitle}
             </Txt>
-            <Badge tone="success" variant="soft" dot label={s.in.inRadius} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Badge tone={geo.tone} variant="soft" dot label={geo.label} />
+              <Pressable onPress={loc.refresh} hitSlop={8} accessibilityLabel={s.loc.retry}>
+                <RefreshCw size={16} color={color.muted} strokeWidth={2} />
+              </Pressable>
+            </View>
           </View>
 
           <MiniMap height={120} />
 
           <View style={{ marginTop: 14 }}>
             <Txt w="semibold" size={14} color={color.ink}>
-              {s.in.office}
+              {OFFICE.name[lang]}
             </Txt>
             <Txt size={13} color={color.muted} style={{ lineHeight: 19 }}>
-              {s.in.address}
+              {OFFICE.address[lang]}
             </Txt>
+            {loc.distanceM != null && (
+              <Txt size={12} color={loc.inRadius ? color.success : color.danger} tabular style={{ marginTop: 6 }}>
+                {formatDistance(loc.distanceM, lang)} {s.loc.away}
+              </Txt>
+            )}
           </View>
 
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-            <DataTag label={s.in.coord} value={SAMPLE_COORD} tone="brand" />
+            <DataTag label={s.in.coord} value={coordText} tone="brand" />
             <DataTag label={s.in.nowLabel} value={clock} tone="navy" />
           </View>
         </View>
@@ -66,12 +96,20 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
 
       {/* Confirm */}
       <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: color.paper }}>
-        <Button variant="primary" size="lg" fullWidth label={s.in.confirm} onPress={onConfirm} />
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12 }}>
-          <ShieldCheck size={14} color={color.muted} strokeWidth={2} />
-          <Txt size={12} color={color.muted}>
-            {s.in.required}
-          </Txt>
+        <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm} onPress={onConfirmPress} />
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingHorizontal: 8 }}>
+          {loc.status === 'ready' && !loc.inRadius ? (
+            <Txt size={12} color={color.danger} style={{ textAlign: 'center' }}>
+              {s.loc.outsideMsg}
+            </Txt>
+          ) : (
+            <>
+              <ShieldCheck size={14} color={color.muted} strokeWidth={2} />
+              <Txt size={12} color={color.muted}>
+                {s.in.required}
+              </Txt>
+            </>
+          )}
         </View>
       </View>
     </View>

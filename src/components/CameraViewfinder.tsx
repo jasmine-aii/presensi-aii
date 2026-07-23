@@ -1,48 +1,73 @@
-import React from 'react';
-import { View } from 'react-native';
-import { MapPin, Camera } from 'lucide-react-native';
+import React, { useEffect, type Ref } from 'react';
+import { View, StyleSheet } from 'react-native';
+import { MapPin, Camera, CameraOff } from 'lucide-react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import { color } from '../theme';
 import { Txt } from './Txt';
 
 export interface CameraViewfinderProps {
   height: number;
   oval?: { w: number; h: number };
+  /** Coordinate string for the glass overlay chip. */
   coord: string;
+  /** Time string (HH:MM:SS) for the overlay chip. */
   time: string;
-  placeholder?: string;
+  /** Ref to the live camera, so the screen can call takePictureAsync on confirm. */
+  cameraRef?: Ref<CameraView>;
+  /** Render the live camera (false to keep it off, e.g. inactive screen). */
+  active?: boolean;
+  /** Caption under the "grant camera" placeholder. */
+  permMessage?: string;
 }
 
 /**
- * Selfie viewfinder for Clock In / Clock Out: navy camera surface, dashed oval
- * face guide, and a frosted overlay chip with live coordinates + time. Swap the
- * navy fill for an `expo-camera` <CameraView> in production.
+ * Selfie viewfinder for Clock In / Clock Out. Shows the live FRONT camera
+ * (expo-camera) behind a dashed oval face guide and a frosted overlay chip with
+ * live coordinates + time. Falls back to a placeholder when the camera
+ * permission isn't granted (or camera is unavailable, e.g. some web contexts).
  */
 export function CameraViewfinder({
   height,
   oval = { w: 170, h: 210 },
   coord,
   time,
-  placeholder = 'Kamera selfie',
+  cameraRef,
+  active = true,
+  permMessage = 'Izinkan akses kamera',
 }: CameraViewfinderProps) {
+  const [permission, requestPermission] = useCameraPermissions();
+
+  useEffect(() => {
+    if (active && permission && !permission.granted && permission.canAskAgain) {
+      requestPermission();
+    }
+  }, [active, permission, requestPermission]);
+
+  const showCamera = active && permission?.granted;
+
   return (
-    <View
-      style={{
-        width: '100%',
-        height,
-        borderRadius: 24,
-        overflow: 'hidden',
-        backgroundColor: color.deepNavy,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      {/* Camera-feed placeholder */}
-      <View style={{ alignItems: 'center', gap: 8 }}>
-        <Camera size={30} color="rgba(255,255,255,0.5)" strokeWidth={1.75} />
-        <Txt size={12} color="rgba(255,255,255,0.5)">
-          {placeholder}
-        </Txt>
-      </View>
+    <View style={{ width: '100%', height, borderRadius: 24, overflow: 'hidden', backgroundColor: color.deepNavy, alignItems: 'center', justifyContent: 'center' }}>
+      {showCamera ? (
+        <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
+      ) : (
+        <View style={{ alignItems: 'center', gap: 8, paddingHorizontal: 24 }}>
+          {permission && !permission.granted && !permission.canAskAgain ? (
+            <>
+              <CameraOff size={30} color="rgba(255,255,255,0.5)" strokeWidth={1.75} />
+              <Txt size={12} color="rgba(255,255,255,0.5)" style={{ textAlign: 'center' }}>
+                {permMessage}
+              </Txt>
+            </>
+          ) : (
+            <>
+              <Camera size={30} color="rgba(255,255,255,0.5)" strokeWidth={1.75} />
+              <Txt size={12} color="rgba(255,255,255,0.5)">
+                {permMessage}
+              </Txt>
+            </>
+          )}
+        </View>
+      )}
 
       {/* Face-guide oval */}
       <View
