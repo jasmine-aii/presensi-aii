@@ -10,6 +10,7 @@ import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
+import { captureSelfie } from '../lib/camera';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
@@ -25,6 +26,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
   const cameraRef = useRef<CameraView>(null);
   const [result, setResult] = useState<ResultKind | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const confirmedTime = useRef<string>('');
   const clockIn = clockInTime ?? '08:41';
 
@@ -52,13 +54,8 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
     if (!canConfirm || submitting || alreadyDone) return;
     setSubmitting(true);
     confirmedTime.current = timeShort(now);
-    let photoBase64: string | null = null;
-    try {
-      const photo = await cameraRef.current?.takePictureAsync?.({ base64: true, quality: 0.4 });
-      photoBase64 = photo?.base64 ?? null;
-    } catch {
-      // best-effort
-    }
+    const photoBase64 = await captureSelfie(cameraRef.current);
+    setCapturedUri(photoBase64 ? `data:image/jpeg;base64,${photoBase64}` : null);
     const ok = await onConfirm?.({ time: confirmedTime.current, lat: loc.coords?.lat ?? null, lng: loc.coords?.lng ?? null, photoBase64 });
     setSubmitting(false);
     setResult(ok === false ? 'fail' : 'success');
@@ -179,6 +176,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
         title={result === 'fail' ? s.dlg.failTitle : s.out.successTitle}
         message={result === 'fail' ? s.dlg.failMsg : s.out.successMsg}
         actionLabel={result === 'fail' ? s.dlg.retry : s.dlg.done}
+        imageUri={result === 'success' ? capturedUri : undefined}
         onClose={closeDialog}
       />
     </View>

@@ -49,11 +49,13 @@ export interface TabBarProps {
   onNavigate: (key: NavKey) => void;
   /** Count badges keyed by nav key (e.g. { approval: 3 }). */
   badges?: Partial<Record<NavKey, number>>;
+  /** Nav keys shown greyed-out and non-tappable (e.g. features under development). */
+  disabled?: NavKey[];
   bottomInset?: number;
 }
 
 /** Bottom navigation with a raised center FAB. Employee & admin variants. */
-export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, bottomInset = 0 }: TabBarProps) {
+export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, disabled, bottomInset = 0 }: TabBarProps) {
   const items = mode === 'admin' ? ADMIN_ITEMS : EMPLOYEE_ITEMS;
   return (
     <View
@@ -71,6 +73,7 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
     >
       {items.map((item) => {
         const isActive = active === item.key;
+        const isDisabled = disabled?.includes(item.key) ?? false;
         const Icon = item.icon;
         const label = labels[item.key] ?? item.key;
         const badge = badges?.[item.key];
@@ -106,16 +109,18 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
             </Pressable>
           );
         }
+        const iconColor = isDisabled ? color.line : isActive ? color.anugrahBlue : color.muted;
         return (
           <Pressable
             key={item.key}
             accessibilityRole="button"
-            accessibilityState={{ selected: isActive }}
+            accessibilityState={{ selected: isActive, disabled: isDisabled }}
+            disabled={isDisabled}
             onPress={() => onNavigate(item.key)}
-            style={{ alignItems: 'center', width: 58, gap: 5 }}
+            style={{ alignItems: 'center', width: 58, gap: 5, opacity: isDisabled ? 0.6 : 1 }}
           >
             <View>
-              <Icon size={24} color={isActive ? color.anugrahBlue : color.muted} strokeWidth={2} />
+              <Icon size={24} color={iconColor} strokeWidth={2} />
               {badge != null && badge > 0 && (
                 <View
                   style={{
@@ -137,7 +142,7 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
                 </View>
               )}
             </View>
-            <Txt w={isActive ? 'bold' : 'semibold'} size={11} color={isActive ? color.anugrahBlue : color.muted}>
+            <Txt w={isActive ? 'bold' : 'semibold'} size={11} color={isDisabled ? color.line : isActive ? color.anugrahBlue : color.muted}>
               {label}
             </Txt>
           </Pressable>

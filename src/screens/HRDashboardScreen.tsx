@@ -136,7 +136,7 @@ export function HRDashboardScreen({
         </Txt>
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <QuickAction icon={Users} label={s.adm.qDir} onPress={() => onNavigate?.('team')} />
-          <QuickAction icon={ClipboardList} label={s.adm.qAppr} badge={3} onPress={() => onNavigate?.('approval')} />
+          <QuickAction icon={ClipboardList} label={s.adm.qAppr} disabled />
           <QuickAction icon={TrendingUp} label={s.adm.qReport} onPress={() => onNavigate?.('report')} />
           <QuickAction icon={UserPlus} label={s.adm.qInvite} filled onPress={() => onNavigate?.('add')} />
         </View>
@@ -158,9 +158,9 @@ function NavyTile({ value, label, valueColor }: { value: number; label: string; 
   );
 }
 
-function QuickAction({ icon: Icon, label, badge, filled, onPress }: { icon: LucideIcon; label: string; badge?: number; filled?: boolean; onPress?: () => void }) {
+function QuickAction({ icon: Icon, label, badge, filled, disabled, onPress }: { icon: LucideIcon; label: string; badge?: number; filled?: boolean; disabled?: boolean; onPress?: () => void }) {
   return (
-    <Pressable onPress={onPress} style={{ flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 6, alignItems: 'center', gap: 8 }}>
+    <Pressable disabled={disabled} onPress={onPress} style={{ flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, paddingVertical: 14, paddingHorizontal: 6, alignItems: 'center', gap: 8, opacity: disabled ? 0.45 : 1 }}>
       {badge != null && (
         <View style={{ position: 'absolute', top: 8, right: 12, minWidth: 18, height: 18, paddingHorizontal: 5, borderRadius: 999, backgroundColor: color.danger, alignItems: 'center', justifyContent: 'center', zIndex: 1 }}>
           <Txt w="bold" size={11} color={color.white}>

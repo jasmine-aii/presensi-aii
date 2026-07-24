@@ -1,17 +1,20 @@
 import React, { useState } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, Mail, BadgeCheck, Clock, ShieldCheck } from 'lucide-react-native';
-import { color } from '../theme';
+import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, type LucideIcon } from 'lucide-react-native';
+import { color, interFamily } from '../theme';
 import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
 
 export function InviteScreen({ onBack }: { onBack?: () => void }) {
   const { s, lang } = useLang();
   const insets = useSafeAreaInsets();
-  const [role, setRole] = useState('employee');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [jobRole, setJobRole] = useState('');
+  const [access, setAccess] = useState('employee');
 
-  const roleOptions: SelectOption[] =
+  const accessOptions: SelectOption[] =
     lang === 'id'
       ? [
           { value: 'employee', label: 'Karyawan' },
@@ -22,40 +25,22 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
           { value: 'admin', label: 'Admin' },
         ];
 
-  // HR / Owner can add departments, so the department dropdown is functional.
-  const [depts, setDepts] = useState<string[]>(['Engineering', 'Product', 'Design', 'Data', 'Human Resources', 'Operations']);
-  const [dept, setDept] = useState('Engineering');
-  const deptOptions: SelectOption[] = depts.map((d) => ({ value: d, label: d }));
-  const addDept = (name: string) => {
-    setDepts((prev) => (prev.some((d) => d.toLowerCase() === name.toLowerCase()) ? prev : [...prev, name]));
-    setDept(name);
-  };
-
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.adm.invTitle} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 22 + insets.bottom, gap: 16 }}>
         <InfoBanner text={s.adm.invHint} />
 
-        <Field label={s.adm.fName} value={s.adm.fNameV} icon={User} variant="text" />
-        <Field label={s.adm.fEmail} value={s.adm.fEmailV} icon={Mail} variant="text" />
+        <TextField label={s.adm.fName} icon={User} value={name} onChangeText={setName} placeholder={s.adm.fNamePh} autoCapitalize="words" />
+        <TextField label={s.adm.fEmail} icon={Mail} value={email} onChangeText={setEmail} placeholder={s.adm.fEmailPh} keyboardType="email-address" autoCapitalize="none" />
         <Field label={s.adm.fId} value={s.adm.fIdV} icon={BadgeCheck} variant="readonly" />
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <SelectField
-              label={s.adm.fDept}
-              value={dept}
-              options={deptOptions}
-              onChange={setDept}
-              allowAdd
-              addLabel={s.adm.addDept}
-              addPlaceholder={s.adm.newDeptPh}
-              onAdd={addDept}
-            />
+            <TextField label={s.adm.fJobRole} icon={Briefcase} value={jobRole} onChangeText={setJobRole} placeholder={s.adm.fJobRolePh} autoCapitalize="words" />
           </View>
           <View style={{ flex: 1 }}>
-            <SelectField label={s.adm.fRole} value={role} options={roleOptions} onChange={setRole} />
+            <SelectField label={s.adm.fRole} value={access} options={accessOptions} onChange={setAccess} />
           </View>
         </View>
 
@@ -70,6 +55,29 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
 
         <Button variant="primary" size="lg" fullWidth label={s.adm.invSend} onPress={onBack} />
       </ScrollView>
+    </View>
+  );
+}
+
+/** Controlled labelled text input (matches the Field look). */
+function TextField({
+  label,
+  icon: Icon,
+  ...props
+}: { label: string; icon: LucideIcon } & React.ComponentProps<typeof TextInput>) {
+  return (
+    <View>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: 8 }}>
+        {label}
+      </Txt>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, padding: 14 }}>
+        <Icon size={20} color={color.anugrahBlue} strokeWidth={2} />
+        <TextInput
+          placeholderTextColor={color.muted}
+          style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
+          {...props}
+        />
+      </View>
     </View>
   );
 }

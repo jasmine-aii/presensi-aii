@@ -120,7 +120,7 @@ export function AppNavigator() {
           {admTab === 'approval' && <ApprovalScreen />}
           {admTab === 'report' && <ReportsScreen />}
         </View>
-        <TabBar mode="admin" active={admTab} labels={s.anav} onNavigate={admNavigate} badges={{ approval: 3 }} bottomInset={insets.bottom} />
+        <TabBar mode="admin" active={admTab} labels={s.anav} onNavigate={admNavigate} disabled={['approval']} bottomInset={insets.bottom} />
       </View>
     );
   }
