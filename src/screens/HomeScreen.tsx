@@ -29,11 +29,11 @@ export function HomeScreen({
   const { width } = useWindowDimensions();
   const tile = (width - 18 * 2 - 12 * 2) / 3;
 
-  // Status pill: yellow while the day's attendance is still pending (not clocked
-  // in, or clocked in but not yet out); teal once clocked out (complete).
+  // Status pill: yellow only while not clocked in yet; teal (human accent) once
+  // the employee has clocked in (and after clocking out).
   const done = !!clockOutTime;
   const statusLabel = done ? s.home.statusDone : clockInTime ? s.home.statusIn : s.home.statusOut;
-  const sc = done
+  const sc = clockInTime
     ? { fg: color.humanAccent, bg: 'rgba(149,252,246,0.14)', bd: 'rgba(149,252,246,0.4)' }
     : { fg: '#FFCB47', bg: 'rgba(255,203,71,0.16)', bd: 'rgba(255,203,71,0.45)' };
   // Primary action flips to Clock Out from 12:00 noon until midnight.
