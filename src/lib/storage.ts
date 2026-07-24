@@ -16,6 +16,13 @@ function todayKey(): string {
  * block the clock-in/out itself). `upsert` overwrites a re-take for the day.
  */
 export async function uploadClockPhoto(userId: string, kind: 'in' | 'out', base64: string): Promise<string | null> {
+  console.log('[uploadClockPhoto]', kind, 'base64 length:', base64?.length ?? 0);
+  // A too-small payload means the camera returned a blank/absent frame — skip
+  // the upload so History shows "no photo" rather than a blank grey image.
+  if (!base64 || base64.length < 1000) {
+    console.warn('[uploadClockPhoto] base64 empty/too small, skipping upload');
+    return null;
+  }
   const path = `${userId}/${todayKey()}-${kind}.jpg`;
   const { error } = await supabase.storage.from(PHOTO_BUCKET).upload(path, decode(base64), {
     contentType: 'image/jpeg',
@@ -25,6 +32,7 @@ export async function uploadClockPhoto(userId: string, kind: 'in' | 'out', base6
     console.warn('[uploadClockPhoto] error:', error.message);
     return null;
   }
+  console.log('[uploadClockPhoto] uploaded →', path);
   return path;
 }
 
