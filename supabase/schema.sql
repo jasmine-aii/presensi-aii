@@ -4,12 +4,24 @@
 -- Safe to re-run: uses IF NOT EXISTS / CREATE OR REPLACE / DROP POLICY IF EXISTS.
 -- ============================================================================
 
+-- Sequential employee numbers: AII001, AII002, AII003, …
+create sequence if not exists public.employee_id_seq start 1;
+
+-- Formats the next employee id as AII + zero-padded number (min 3 digits).
+create or replace function public.next_employee_id()
+returns text
+language sql
+volatile
+as $$
+  select 'AII' || lpad(nextval('public.employee_id_seq')::text, 3, '0');
+$$;
+
 -- ── profiles ────────────────────────────────────────────────────────────────
 -- One row per employee, keyed to the Supabase auth user.
 create table if not exists public.profiles (
   id           uuid primary key references auth.users (id) on delete cascade,
   full_name    text not null default '',
-  employee_id  text,
+  employee_id  text unique,
   department   text,
   role         text not null default 'employee' check (role in ('employee', 'admin')),
   shift        text,
@@ -45,7 +57,8 @@ begin
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
-    new.raw_user_meta_data ->> 'employee_id',
+    -- honour an explicit id if one was passed, otherwise auto-number AII001, AII002, …
+    coalesce(new.raw_user_meta_data ->> 'employee_id', public.next_employee_id()),
     new.raw_user_meta_data ->> 'department'
   )
   on conflict (id) do nothing;

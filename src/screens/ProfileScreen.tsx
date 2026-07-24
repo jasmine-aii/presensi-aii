@@ -58,7 +58,7 @@ export function ProfileScreen({
               }}
             >
               <Txt w="semibold" size={12} color={color.humanAccent} tabular>
-                {s.prof.empId} · {empId ?? 'AII-2481'}
+                {s.prof.empId} · {empId ?? 'AII001'}
               </Txt>
             </View>
           </View>
