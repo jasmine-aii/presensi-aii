@@ -52,10 +52,7 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
     },
     { onConflict: 'user_id,work_date' },
   );
-  if (error) {
-    const { data: u } = await supabase.auth.getUser();
-    console.warn('[clockIn] error:', error.message, '| sent user_id:', userId, '| server auth user:', u?.user?.id ?? '(none)', '| match:', u?.user?.id === userId);
-  }
+  if (error) console.warn('[clockIn] Supabase error:', error.message);
   return !error;
 }
 
