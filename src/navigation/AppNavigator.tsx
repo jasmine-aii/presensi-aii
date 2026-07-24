@@ -39,9 +39,6 @@ export function AppNavigator() {
   const [clockedIn, setClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
-  // A department head uses the SAME employee pages; only the Home page gains a
-  // team clock-in/out table + a team approval table. They cannot switch to HR.
-  const [asDeptHead, setAsDeptHead] = useState(false);
 
   // ── Pushed sub-views take over the whole screen (no tab bar) ──
   if (pushed === 'clockin') {
@@ -103,7 +100,6 @@ export function AppNavigator() {
         {empTab === 'home' && (
           <HomeScreen
             onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
-            deptHead={asDeptHead}
             clockInTime={clockInTime}
             clockOutTime={clockOutTime}
           />
@@ -111,11 +107,7 @@ export function AppNavigator() {
         {empTab === 'history' && <HistoryScreen />}
         {empTab === 'leave' && <LeaveScreen />}
         {empTab === 'profile' && (
-          <ProfileScreen
-            asDeptHead={asDeptHead}
-            onToggleDeptHead={() => setAsDeptHead((v) => !v)}
-            onOpenAdmin={() => { setWorkspace('admin'); setAdmTab('dashboard'); }}
-          />
+          <ProfileScreen onOpenAdmin={() => { setWorkspace('admin'); setAdmTab('dashboard'); }} />
         )}
       </View>
       <TabBar mode="employee" active={empTab} labels={s.nav} onNavigate={empNavigate} bottomInset={insets.bottom} />

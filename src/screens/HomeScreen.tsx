@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
-import { Bell, Check, X } from 'lucide-react-native';
+import React from 'react';
+import { View, ScrollView, useWindowDimensions } from 'react-native';
+import { Bell } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
-import { menuIcons, teamByDept, approvalsByDept, HEAD_DEPT, type ApprItem, type RosterStatus } from '../lib/data';
+import { menuIcons } from '../lib/data';
+
+// Quick-menu items disabled for now (Cuti, Sakit).
+const DISABLED_MENU = new Set([0, 1]);
 
 export function HomeScreen({
   onClock,
-  deptHead,
   clockInTime,
   clockOutTime,
 }: {
   onClock?: (mode: 'in' | 'out') => void;
-  deptHead?: boolean;
   clockInTime?: string | null;
   clockOutTime?: string | null;
 }) {
@@ -31,7 +32,6 @@ export function HomeScreen({
   const sc = done
     ? { fg: color.humanAccent, bg: 'rgba(149,252,246,0.14)', bd: 'rgba(149,252,246,0.4)' }
     : { fg: '#FFCB47', bg: 'rgba(255,203,71,0.16)', bd: 'rgba(255,203,71,0.45)' };
-  const work = workDuration(clockInTime, clockOutTime, lang, s.home.zero);
   // Primary action flips to Clock Out from 12:00 noon until midnight.
   const afterNoon = now.getHours() >= 12;
   const primaryMode: 'in' | 'out' = afterNoon ? 'out' : 'in';
@@ -137,44 +137,39 @@ export function HomeScreen({
         </View>
       </View>
 
-      {/* Clock In */}
+      {/* Primary clock action */}
       <View style={{ paddingHorizontal: 18, paddingTop: 18 }}>
         <Button variant="primary" size="lg" fullWidth label={afterNoon ? s.home.clockOut : s.home.clockIn} onPress={() => onClock?.(primaryMode)} />
       </View>
 
-      {/* Today summary */}
-      <Section title={s.home.todayTitle}>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
-          <SummaryCard label={s.home.inLabel} value={clockInTime ?? s.home.dash} />
-          <SummaryCard label={s.home.outLabel} value={clockOutTime ?? s.home.dash} />
-          <SummaryCard label={s.home.workLabel} value={work} valueColor={color.anugrahBlue} />
-        </View>
-      </Section>
-
       {/* Quick menu */}
       <Section title={s.home.menuTitle}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-          {s.menu.map((label, i) => (
-            <View
-              key={label}
-              style={{
-                width: tile,
-                backgroundColor: color.white,
-                borderWidth: 1,
-                borderColor: color.line,
-                borderRadius: 18,
-                paddingVertical: 14,
-                paddingHorizontal: 8,
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <IconTile icon={menuIcons[i]} />
-              <Txt w="semibold" size={12} color={color.ink} style={{ textAlign: 'center' }}>
-                {label}
-              </Txt>
-            </View>
-          ))}
+          {s.menu.map((label, i) => {
+            const disabled = DISABLED_MENU.has(i);
+            return (
+              <View
+                key={label}
+                style={{
+                  width: tile,
+                  backgroundColor: color.white,
+                  borderWidth: 1,
+                  borderColor: color.line,
+                  borderRadius: 18,
+                  paddingVertical: 14,
+                  paddingHorizontal: 8,
+                  alignItems: 'center',
+                  gap: 8,
+                  opacity: disabled ? 0.4 : 1,
+                }}
+              >
+                <IconTile icon={menuIcons[i]} bg={disabled ? color.paper : color.skyTint} fg={disabled ? color.muted : color.anugrahBlue} />
+                <Txt w="semibold" size={12} color={disabled ? color.muted : color.ink} style={{ textAlign: 'center' }}>
+                  {label}
+                </Txt>
+              </View>
+            );
+          })}
         </View>
       </Section>
 
@@ -206,124 +201,7 @@ export function HomeScreen({
           </View>
         </View>
       </Section>
-
-      {deptHead && <DeptHeadPanels />}
     </ScrollView>
-  );
-}
-
-const DOT: Record<RosterStatus, string> = {
-  present: color.success,
-  late: color.danger,
-  leave: color.anugrahBlue,
-  not: color.muted,
-};
-
-/** Extra Home sections shown only for a department head: team clock-in/out table + team approvals. */
-function DeptHeadPanels() {
-  const { s, lang } = useLang();
-  const team = teamByDept(HEAD_DEPT);
-  const [appr, setAppr] = useState<ApprItem[]>(() => approvalsByDept(HEAD_DEPT, lang, s));
-  const [seedLang, setSeedLang] = useState(lang);
-  if (seedLang !== lang) {
-    setSeedLang(lang);
-    setAppr(approvalsByDept(HEAD_DEPT, lang, s));
-  }
-  const resolve = (name: string) => setAppr((prev) => prev.filter((a) => a.name !== name));
-
-  return (
-    <>
-      {/* Team clock-in / clock-out table */}
-      <View style={{ paddingHorizontal: 18, paddingTop: 22 }}>
-        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: 12 }}>
-          {s.dh.teamTitle}
-        </Txt>
-        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, overflow: 'hidden' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 14, backgroundColor: color.paper }}>
-            <Txt w="semibold" size={12} color={color.muted} style={{ flex: 1, marginLeft: 18 }}>
-              {lang === 'id' ? 'Karyawan' : 'Employee'}
-            </Txt>
-            <Txt w="semibold" size={12} color={color.muted} style={{ width: 56, textAlign: 'right' }}>
-              {s.out.inAt}
-            </Txt>
-            <Txt w="semibold" size={12} color={color.muted} style={{ width: 56, textAlign: 'right' }}>
-              {s.out.outAt}
-            </Txt>
-          </View>
-          {team.map((m) => (
-            <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 14, borderTopWidth: 1, borderTopColor: color.line }}>
-              <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: DOT[m.st], marginRight: 10 }} />
-              <Txt size={14} color={color.ink} style={{ flex: 1 }} numberOfLines={1}>
-                {m.name}
-              </Txt>
-              <Txt tabular size={13} color={m.in === '—' ? color.muted : color.ink} style={{ width: 56, textAlign: 'right' }}>
-                {m.in}
-              </Txt>
-              <Txt tabular size={13} color={m.out === '—' ? color.muted : color.ink} style={{ width: 56, textAlign: 'right' }}>
-                {m.out}
-              </Txt>
-            </View>
-          ))}
-        </View>
-      </View>
-
-      {/* Team approvals */}
-      <View style={{ paddingHorizontal: 18, paddingTop: 22 }}>
-        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: 12 }}>
-          {s.dh.apprTitle}
-        </Txt>
-        {appr.length === 0 ? (
-          <View style={{ alignItems: 'center', paddingVertical: 24, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18 }}>
-            <Txt size={13} color={color.muted}>
-              {s.dh.noAppr}
-            </Txt>
-          </View>
-        ) : (
-          <View style={{ gap: 12 }}>
-            {appr.map((q) => {
-              const Icon = q.icon;
-              return (
-                <View key={q.name} style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 14 }}>
-                    <Avatar name={q.name} size={40} />
-                    <View style={{ flex: 1 }}>
-                      <Txt w="semibold" size={14} color={color.ink}>
-                        {q.name}
-                      </Txt>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                        <Icon size={13} color={color.muted} strokeWidth={2} />
-                        <Txt size={12} color={color.muted}>
-                          {q.type}
-                        </Txt>
-                      </View>
-                    </View>
-                    <View style={{ paddingVertical: 4, paddingHorizontal: 10, borderRadius: 999, backgroundColor: color.skyTint }}>
-                      <Txt w="semibold" size={12} color={color.anugrahBlue} tabular>
-                        {q.dates} · {q.days} {s.daysUnit}
-                      </Txt>
-                    </View>
-                  </View>
-                  <View style={{ flexDirection: 'row', gap: 10 }}>
-                    <Pressable onPress={() => resolve(q.name)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: 12, backgroundColor: color.success }}>
-                      <Check size={17} color={color.white} strokeWidth={2.5} />
-                      <Txt w="semibold" size={14} color={color.white}>
-                        {s.adm.approve}
-                      </Txt>
-                    </Pressable>
-                    <Pressable onPress={() => resolve(q.name)} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 11, borderRadius: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line }}>
-                      <X size={17} color={color.danger} strokeWidth={2.5} />
-                      <Txt w="semibold" size={14} color={color.danger}>
-                        {s.adm.reject}
-                      </Txt>
-                    </Pressable>
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-        )}
-      </View>
-    </>
   );
 }
 
@@ -338,31 +216,6 @@ function Section({ title, children }: { title: string | null; children: React.Re
       {children}
     </View>
   );
-}
-
-function SummaryCard({ label, value, valueColor }: { label: string; value: string; valueColor?: string }) {
-  return (
-    <View style={{ flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, padding: 14 }}>
-      <Txt size={12} color={color.muted}>
-        {label}
-      </Txt>
-      <Txt w="extrabold" size={20} color={valueColor ?? color.ink} tabular style={{ marginTop: 4 }}>
-        {value}
-      </Txt>
-    </View>
-  );
-}
-
-/** Worked hours between clock-in and clock-out (HH:MM strings), localized. */
-function workDuration(inT: string | null | undefined, outT: string | null | undefined, lang: string, zero: string): string {
-  if (!inT || !outT) return zero;
-  const [ih, im] = inT.split(':').map(Number);
-  const [oh, om] = outT.split(':').map(Number);
-  let mins = oh * 60 + om - (ih * 60 + im);
-  if (mins < 0) mins += 24 * 60;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return lang === 'id' ? `${h}j ${m}m` : `${h}h ${m}m`;
 }
 
 function BalanceCell({ label, value, bg, valueColor }: { label: string; value: string; bg: string; valueColor: string }) {

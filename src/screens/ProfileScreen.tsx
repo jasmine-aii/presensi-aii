@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
-import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, Users } from 'lucide-react-native';
+import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Avatar, Toggle, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { profileRows } from '../lib/data';
 
-export function ProfileScreen({
-  asDeptHead,
-  onToggleDeptHead,
-  onOpenAdmin,
-}: {
-  asDeptHead?: boolean;
-  onToggleDeptHead?: () => void;
-  onOpenAdmin?: () => void;
-}) {
+export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
   const { s, lang, langName, toggleLang } = useLang();
   const [notif, setNotif] = useState(true);
   const rows = profileRows(lang);
@@ -84,46 +76,24 @@ export function ProfileScreen({
           </View>
         </View>
 
-        {/* HR Admin switcher — hidden for a department head (single view, no HR switch) */}
-        {!asDeptHead && (
-          <Pressable
-            onPress={onOpenAdmin}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.deepNavy, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
-          >
-            <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
-            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-              <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Txt w="bold" size={14} color={color.white}>
-                {s.prof.switchTo}
-              </Txt>
-              <Txt size={12} color="rgba(255,255,255,0.72)">
-                {s.prof.switchDesc}
-              </Txt>
-            </View>
-            <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-          </Pressable>
-        )}
-
-        {/* Department Head mode toggle (same pages as employee; Home gains team tables) */}
+        {/* Admin view switcher (this account also has Admin access) */}
         <Pressable
-          onPress={onToggleDeptHead}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
+          onPress={onOpenAdmin}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.deepNavy, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
         >
-          <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.anugrahBlue }} />
-          <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
-            <Users size={22} color={color.anugrahBlue} strokeWidth={2} />
+          <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
+          <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+            <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
           </View>
           <View style={{ flex: 1 }}>
-            <Txt w="bold" size={14} color={color.ink}>
-              {asDeptHead ? s.adm.switchEmp : s.prof.switchDept}
+            <Txt w="bold" size={14} color={color.white}>
+              {s.prof.switchTo}
             </Txt>
-            <Txt size={12} color={color.muted}>
-              {asDeptHead ? (lang === 'id' ? 'Keluar mode Kepala Departemen' : 'Exit Department Head mode') : s.prof.switchDeptDesc}
+            <Txt size={12} color="rgba(255,255,255,0.72)">
+              {s.prof.switchDesc}
             </Txt>
           </View>
-          <ChevronRight size={20} color={color.muted} strokeWidth={2} />
+          <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
         </Pressable>
 
         {/* Settings */}

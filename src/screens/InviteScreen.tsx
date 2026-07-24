@@ -15,15 +15,11 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
     lang === 'id'
       ? [
           { value: 'employee', label: 'Karyawan' },
-          { value: 'hr', label: 'HR' },
-          { value: 'head', label: 'Kepala Departemen' },
-          { value: 'owner', label: 'Owner' },
+          { value: 'admin', label: 'Admin' },
         ]
       : [
           { value: 'employee', label: 'Employee' },
-          { value: 'hr', label: 'HR' },
-          { value: 'head', label: 'Department Head' },
-          { value: 'owner', label: 'Owner' },
+          { value: 'admin', label: 'Admin' },
         ];
 
   // HR / Owner can add departments, so the department dropdown is functional.
