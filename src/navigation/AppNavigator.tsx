@@ -81,6 +81,7 @@ export function AppNavigator() {
     return (
       <ClockOutScreen
         onBack={() => setPushed(null)}
+        name={displayName}
         clockInTime={clockInTime ?? undefined}
         onConfirm={async ({ time, lat, lng }) => {
           const ok = await recordClockOut(userId, { time, lat, lng });

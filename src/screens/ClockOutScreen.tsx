@@ -14,8 +14,9 @@ import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null }) => Promise<boolean> | boolean;
 
-export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string }) {
+export function ClockOutScreen({ onBack, onConfirm, clockInTime, name }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string }) {
   const { s, lang } = useLang();
+  const firstName = (name ?? s.home.name).trim().split(' ')[0];
   const now = useNow(1000);
   const clock = timeStr(now);
   const out = timeShort(now);
@@ -77,7 +78,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: ()
 
         <CameraViewfinder height={260} oval={{ w: 150, h: 185 }} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} />
         <Txt w="semibold" size={14} color={color.ink} style={{ marginTop: 12, textAlign: 'center' }}>
-          {s.out.good}
+          {s.out.good} {firstName}.
         </Txt>
 
         {/* Work summary card */}
