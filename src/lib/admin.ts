@@ -20,6 +20,7 @@ export interface AdminMember {
   email: string;
   employeeId: string;
   dept: string;
+  shift: string | null;
   st: RosterStatus; // present | late | not (leave needs a leave table — not modelled yet)
   in: string; // HH:MM or —
   out: string;
@@ -36,7 +37,7 @@ export interface AdminStats {
 /** All employees joined with today's attendance, ordered by name. */
 export async function fetchTeam(): Promise<AdminMember[]> {
   const [{ data: profiles }, { data: att }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, department, email').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, department, email, shift').order('full_name'),
     supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', todayKey()),
   ]);
 
@@ -58,11 +59,19 @@ export async function fetchTeam(): Promise<AdminMember[]> {
       email: (p.email as string) ?? '',
       employeeId: (p.employee_id as string) ?? '—',
       dept: (p.department as string) ?? '—',
+      shift: (p.shift as string) ?? null,
       st,
       in: inT ?? '—',
       out: outT ?? '—',
     };
   });
+}
+
+/** Assign / change an employee's shift (admin only, enforced by RLS). */
+export async function setMemberShift(userId: string, shift: string | null): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ shift }).eq('id', userId);
+  if (error) console.warn('[setMemberShift]', error.message);
+  return !error;
 }
 
 /** Headline counts derived from the team roster. */

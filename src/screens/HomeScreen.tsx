@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { Bell } from 'lucide-react-native';
 import { color } from '../theme';
@@ -30,7 +30,12 @@ export function HomeScreen({
   const userName = name ?? s.home.name;
   const now = useNow(1000);
   const { width } = useWindowDimensions();
-  const tile = (width - 18 * 2 - 12 * 2) / 3;
+  // Tile width derives from the actual quick-menu row width (measured on layout),
+  // not the window — on desktop the app is a narrow centered column, so the
+  // window width would over-size the tiles and wrap them to one per row.
+  const [rowW, setRowW] = useState(0);
+  const fallback = (Math.min(width, 440) - 18 * 2 - 12 * 2) / 3;
+  const tile = rowW > 0 ? (rowW - 12 * 2) / 3 : fallback;
 
   // Status pill: yellow only while not clocked in yet; teal (human accent) once
   // the employee has clocked in (and after clocking out).
@@ -176,7 +181,7 @@ export function HomeScreen({
 
       {/* Quick menu */}
       <Section title={s.home.menuTitle}>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
+        <View onLayout={(e) => setRowW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {s.menu.map((label, i) => {
             if (HIDDEN_MENU.has(i)) return null;
             const disabled = DISABLED_MENU.has(i);

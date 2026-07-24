@@ -101,13 +101,15 @@ alter table public.profiles   enable row level security;
 alter table public.attendance enable row level security;
 
 -- profiles: read your own; admins read everyone. Update your own basic fields.
-drop policy if exists "profiles read own"   on public.profiles;
-drop policy if exists "profiles read admin" on public.profiles;
-drop policy if exists "profiles update own" on public.profiles;
+drop policy if exists "profiles read own"    on public.profiles;
+drop policy if exists "profiles read admin"  on public.profiles;
+drop policy if exists "profiles update own"  on public.profiles;
+drop policy if exists "profiles update admin" on public.profiles;
 
-create policy "profiles read own"   on public.profiles for select using (auth.uid() = id);
-create policy "profiles read admin" on public.profiles for select using (public.is_admin());
-create policy "profiles update own" on public.profiles for update using (auth.uid() = id);
+create policy "profiles read own"    on public.profiles for select using (auth.uid() = id);
+create policy "profiles read admin"  on public.profiles for select using (public.is_admin());
+create policy "profiles update own"  on public.profiles for update using (auth.uid() = id);
+create policy "profiles update admin" on public.profiles for update using (public.is_admin()) with check (public.is_admin());
 
 -- attendance: full control over your own rows; admins can read all.
 -- A single FOR ALL policy (USING + WITH CHECK) is required so that upsert

@@ -1,19 +1,35 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal } from 'react-native';
-import { Camera, X } from 'lucide-react-native';
+import { Camera, X, Clock } from 'lucide-react-native';
 import { color } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar } from '../components';
+import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
+import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
+import { setMemberShift, type AdminMember } from '../lib/admin';
 import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
-import type { AdminMember } from '../lib/admin';
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
   const { s, lang } = useLang();
   const [rows, setRows] = useState<HistoryEntry[] | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<HistoryEntry | null>(null);
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shiftText, setShiftText] = useState<string | null>(member.shift);
+
+  useEffect(() => {
+    fetchShifts().then(setShifts);
+  }, []);
+
+  const onPickShift = (id: string) => {
+    const sh = shifts.find((x) => x.id === id);
+    if (!sh) return;
+    const label = shiftLabel(sh);
+    setShiftText(label); // optimistic
+    setMemberShift(member.id, label);
+  };
+  const currentShiftId = shifts.find((sh) => shiftLabel(sh) === shiftText)?.id ?? '';
 
   useEffect(() => {
     let alive = true;
@@ -58,6 +74,19 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             </View>
           </View>
         </View>
+
+        {/* Assign shift */}
+        {shifts.length > 0 && (
+          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16 }}>
+            <SelectField
+              label={s.adm.fShift}
+              value={currentShiftId}
+              options={shifts.map((sh) => ({ value: sh.id, label: shiftLabel(sh) }))}
+              onChange={onPickShift}
+              icon={Clock}
+            />
+          </View>
+        )}
 
         <Txt w="bold" size={14} color={color.ink} style={{ marginTop: 4 }}>
           {s.adm.recentAtt}

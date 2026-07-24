@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Pressable } from 'react-native';
-import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck } from 'lucide-react-native';
-import { color } from '../theme';
-import { Txt, Avatar, Toggle, GlowCircle } from '../components';
+import { View, ScrollView, Pressable, Modal, TextInput } from 'react-native';
+import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, KeyRound, X } from 'lucide-react-native';
+import { color, interFamily } from '../theme';
+import { Txt, Avatar, Toggle, Button, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { supabase } from '../lib/supabase';
 import { profileRows } from '../lib/data';
 
 export function ProfileScreen({
@@ -27,6 +28,35 @@ export function ProfileScreen({
   const [notif, setNotif] = useState(true);
   const rows = profileRows(lang);
   const userName = name ?? s.home.name;
+
+  // Change-password modal state
+  const [pwOpen, setPwOpen] = useState(false);
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [pwBusy, setPwBusy] = useState(false);
+  const [pwErr, setPwErr] = useState<string | null>(null);
+  const [pwDone, setPwDone] = useState(false);
+
+  const savePassword = async () => {
+    if (pwBusy) return;
+    if (newPw.length < 6) return setPwErr(s.prof.pwMin);
+    if (newPw !== confirmPw) return setPwErr(s.prof.pwMismatch);
+    setPwErr(null);
+    setPwBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: newPw });
+    setPwBusy(false);
+    if (error) return setPwErr(error.message);
+    setPwDone(true);
+    setNewPw('');
+    setConfirmPw('');
+  };
+  const closePw = () => {
+    setPwOpen(false);
+    setPwErr(null);
+    setPwDone(false);
+    setNewPw('');
+    setConfirmPw('');
+  };
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }}>
@@ -137,6 +167,13 @@ export function ProfileScreen({
               </Txt>
               <Toggle on={notif} onChange={setNotif} label={s.prof.sNotif} />
             </View>
+            <Pressable onPress={() => setPwOpen(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 15, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: color.line }}>
+              <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
+              <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
+                {s.prof.changePw}
+              </Txt>
+              <ChevronRight size={18} color={color.muted} strokeWidth={2} />
+            </Pressable>
             <Pressable onPress={onLogout} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 15, paddingHorizontal: 18 }}>
               <LogOut size={20} color={color.danger} strokeWidth={2} />
               <Txt w="semibold" size={14} color={color.danger} style={{ flex: 1 }}>
@@ -146,7 +183,59 @@ export function ProfileScreen({
           </View>
         </View>
       </View>
+
+      {/* Change-password modal */}
+      <Modal visible={pwOpen} transparent animationType="fade" onRequestClose={closePw}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <View style={{ width: '100%', maxWidth: 340, backgroundColor: color.white, borderRadius: 22, padding: 22 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <Txt w="bold" size={16} color={color.ink}>
+                {s.prof.changePw}
+              </Txt>
+              <Pressable onPress={closePw} hitSlop={10}>
+                <X size={20} color={color.muted} strokeWidth={2} />
+              </Pressable>
+            </View>
+
+            {pwDone ? (
+              <View style={{ alignItems: 'center', paddingVertical: 12, gap: 12 }}>
+                <CircleCheck size={40} color={color.success} strokeWidth={2} />
+                <Txt size={14} color={color.ink} style={{ textAlign: 'center' }}>
+                  {s.prof.pwSaved}
+                </Txt>
+                <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closePw} />
+              </View>
+            ) : (
+              <View style={{ gap: 12 }}>
+                <PwInput placeholder={s.prof.newPw} value={newPw} onChangeText={setNewPw} />
+                <PwInput placeholder={s.prof.confirmPw} value={confirmPw} onChangeText={setConfirmPw} />
+                {pwErr && (
+                  <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
+                    {pwErr}
+                  </Txt>
+                )}
+                <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={pwBusy} onPress={savePassword} />
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
+  );
+}
+
+function PwInput(props: React.ComponentProps<typeof TextInput>) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+      <KeyRound size={18} color={color.anugrahBlue} strokeWidth={2} />
+      <TextInput
+        secureTextEntry
+        autoCapitalize="none"
+        placeholderTextColor={color.muted}
+        style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
+        {...props}
+      />
+    </View>
   );
 }
 
