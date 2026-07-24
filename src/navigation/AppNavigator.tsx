@@ -37,16 +37,29 @@ export function AppNavigator() {
   const [admTab, setAdmTab] = useState<AdmTab>('dashboard');
   const [pushed, setPushed] = useState<Pushed>(null);
   const [clockedIn, setClockedIn] = useState(false);
+  const [clockInTime, setClockInTime] = useState<string | null>(null);
+  const [clockOutTime, setClockOutTime] = useState<string | null>(null);
   // A department head uses the SAME employee pages; only the Home page gains a
   // team clock-in/out table + a team approval table. They cannot switch to HR.
   const [asDeptHead, setAsDeptHead] = useState(false);
 
   // ── Pushed sub-views take over the whole screen (no tab bar) ──
   if (pushed === 'clockin') {
-    return <ClockInScreen onBack={() => setPushed(null)} onConfirm={() => { setClockedIn(true); setPushed(null); }} />;
+    return (
+      <ClockInScreen
+        onBack={() => setPushed(null)}
+        onConfirm={(time) => { setClockedIn(true); setClockInTime(time); setClockOutTime(null); setPushed(null); }}
+      />
+    );
   }
   if (pushed === 'clockout') {
-    return <ClockOutScreen onBack={() => setPushed(null)} onConfirm={() => { setClockedIn(false); setPushed(null); }} />;
+    return (
+      <ClockOutScreen
+        onBack={() => setPushed(null)}
+        clockInTime={clockInTime ?? undefined}
+        onConfirm={(time) => { setClockedIn(false); setClockOutTime(time); setPushed(null); }}
+      />
+    );
   }
   if (pushed === 'invite') {
     return <InviteScreen onBack={() => setPushed(null)} />;
@@ -87,7 +100,14 @@ export function AppNavigator() {
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <View style={{ flex: 1 }}>
-        {empTab === 'home' && <HomeScreen onClockIn={() => empNavigate('clock')} deptHead={asDeptHead} />}
+        {empTab === 'home' && (
+          <HomeScreen
+            onClockIn={() => empNavigate('clock')}
+            deptHead={asDeptHead}
+            clockInTime={clockInTime}
+            clockOutTime={clockOutTime}
+          />
+        )}
         {empTab === 'history' && <HistoryScreen />}
         {empTab === 'leave' && <LeaveScreen />}
         {empTab === 'profile' && (

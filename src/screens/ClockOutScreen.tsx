@@ -1,10 +1,10 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, RefreshCw } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
 import { color, elevation } from '../theme';
-import { Txt, Button, Badge, TopAppBar, CameraViewfinder } from '../components';
+import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
@@ -12,9 +12,7 @@ import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
-const CLOCK_IN_TIME = '08:41';
-
-export function ClockOutScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: () => void }) {
+export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: () => void; onConfirm?: (time: string) => void; clockInTime?: string }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
@@ -22,6 +20,9 @@ export function ClockOutScreen({ onBack, onConfirm }: { onBack?: () => void; onC
   const insets = useSafeAreaInsets();
   const loc = useLocation();
   const cameraRef = useRef<CameraView>(null);
+  const [result, setResult] = useState<ResultKind | null>(null);
+  const confirmedTime = useRef<string>('');
+  const clockIn = clockInTime ?? '08:41';
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
   const canConfirm = loc.inRadius === true;
@@ -45,12 +46,19 @@ export function ClockOutScreen({ onBack, onConfirm }: { onBack?: () => void; onC
 
   const onConfirmPress = async () => {
     if (!canConfirm) return;
+    confirmedTime.current = timeShort(now);
     try {
       await cameraRef.current?.takePictureAsync?.();
     } catch {
       // best-effort
     }
-    onConfirm?.();
+    setResult('success');
+  };
+
+  const closeDialog = () => {
+    const wasSuccess = result === 'success';
+    setResult(null);
+    if (wasSuccess) onConfirm?.(confirmedTime.current);
   };
 
   return (
@@ -79,7 +87,7 @@ export function ClockOutScreen({ onBack, onConfirm }: { onBack?: () => void; onC
                 {s.out.inAt}
               </Txt>
               <Txt w="extrabold" size={24} color={color.ink} tabular>
-                {CLOCK_IN_TIME}
+                {clockIn}
               </Txt>
             </View>
             <View style={{ width: 1, alignSelf: 'stretch', backgroundColor: color.line }} />
@@ -138,6 +146,15 @@ export function ClockOutScreen({ onBack, onConfirm }: { onBack?: () => void; onC
           </Txt>
         )}
       </View>
+
+      <ResultDialog
+        visible={result !== null}
+        kind={result ?? 'success'}
+        title={result === 'fail' ? s.dlg.failTitle : s.out.successTitle}
+        message={result === 'fail' ? s.dlg.failMsg : s.out.successMsg}
+        actionLabel={result === 'fail' ? s.dlg.retry : s.dlg.done}
+        onClose={closeDialog}
+      />
     </View>
   );
 }

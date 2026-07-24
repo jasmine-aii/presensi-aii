@@ -1,24 +1,26 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShieldCheck, RefreshCw } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
 import { color } from '../theme';
-import { Txt, Button, Badge, DataTag, TopAppBar, CameraViewfinder, MiniMap } from '../components';
+import { Txt, Button, Badge, DataTag, TopAppBar, CameraViewfinder, MiniMap, ResultDialog, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
-import { timeStr } from '../lib/format';
+import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
-export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: () => void }) {
+export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: (time: string) => void }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
   const insets = useSafeAreaInsets();
   const loc = useLocation();
   const cameraRef = useRef<CameraView>(null);
+  const [result, setResult] = useState<ResultKind | null>(null);
+  const confirmedTime = useRef<string>('');
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
   const canConfirm = loc.inRadius === true;
@@ -36,12 +38,19 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
 
   const onConfirmPress = async () => {
     if (!canConfirm) return;
+    confirmedTime.current = timeShort(now);
     try {
       await cameraRef.current?.takePictureAsync?.();
     } catch {
       // capture is best-effort; geofence is the hard gate
     }
-    onConfirm?.();
+    setResult('success');
+  };
+
+  const closeDialog = () => {
+    const wasSuccess = result === 'success';
+    setResult(null);
+    if (wasSuccess) onConfirm?.(confirmedTime.current);
   };
 
   return (
@@ -112,6 +121,15 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
           )}
         </View>
       </View>
+
+      <ResultDialog
+        visible={result !== null}
+        kind={result ?? 'success'}
+        title={result === 'fail' ? s.dlg.failTitle : s.in.successTitle}
+        message={result === 'fail' ? s.dlg.failMsg : s.in.successMsg}
+        actionLabel={result === 'fail' ? s.dlg.retry : s.dlg.done}
+        onClose={closeDialog}
+      />
     </View>
   );
 }

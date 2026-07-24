@@ -8,11 +8,30 @@ import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
 import { menuIcons, teamByDept, approvalsByDept, HEAD_DEPT, type ApprItem, type RosterStatus } from '../lib/data';
 
-export function HomeScreen({ onClockIn, deptHead }: { onClockIn?: () => void; deptHead?: boolean }) {
+export function HomeScreen({
+  onClockIn,
+  deptHead,
+  clockInTime,
+  clockOutTime,
+}: {
+  onClockIn?: () => void;
+  deptHead?: boolean;
+  clockInTime?: string | null;
+  clockOutTime?: string | null;
+}) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const { width } = useWindowDimensions();
   const tile = (width - 18 * 2 - 12 * 2) / 3;
+
+  // Status pill: yellow while the day's attendance is still pending (not clocked
+  // in, or clocked in but not yet out); teal once clocked out (complete).
+  const done = !!clockOutTime;
+  const statusLabel = done ? s.home.statusDone : clockInTime ? s.home.statusIn : s.home.statusOut;
+  const sc = done
+    ? { fg: color.humanAccent, bg: 'rgba(149,252,246,0.14)', bd: 'rgba(149,252,246,0.4)' }
+    : { fg: '#FFCB47', bg: 'rgba(255,203,71,0.16)', bd: 'rgba(255,203,71,0.45)' };
+  const work = workDuration(clockInTime, clockOutTime, lang, s.home.zero);
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -69,27 +88,48 @@ export function HomeScreen({ onClockIn, deptHead }: { onClockIn?: () => void; de
         <Txt size={14} color="rgba(255,255,255,0.7)" style={{ marginTop: 14 }}>
           {dateStr(now, lang)}
         </Txt>
-        <Txt w="extrabold" size={52} color={color.white} tabular style={{ marginTop: 4, letterSpacing: -1.5 }}>
+        <Txt w="extrabold" size={44} color={color.white} tabular style={{ marginTop: 4, letterSpacing: -1.5 }}>
           {timeStr(now)}
         </Txt>
+
+        {/* Clock In / Clock Out times */}
+        <View style={{ flexDirection: 'row', gap: 28, marginTop: 14 }}>
+          <View>
+            <Txt size={11} color="rgba(255,255,255,0.6)">
+              {s.home.inLabel}
+            </Txt>
+            <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: 2 }}>
+              {clockInTime ?? s.home.dash}
+            </Txt>
+          </View>
+          <View>
+            <Txt size={11} color="rgba(255,255,255,0.6)">
+              {s.home.outLabel}
+            </Txt>
+            <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: 2 }}>
+              {clockOutTime ?? s.home.dash}
+            </Txt>
+          </View>
+        </View>
+
         <View
           style={{
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
             alignSelf: 'flex-start',
-            marginTop: 16,
+            marginTop: 14,
             paddingVertical: 7,
             paddingHorizontal: 14,
             borderRadius: 999,
-            backgroundColor: 'rgba(149,252,246,0.14)',
+            backgroundColor: sc.bg,
             borderWidth: 1,
-            borderColor: 'rgba(149,252,246,0.4)',
+            borderColor: sc.bd,
           }}
         >
-          <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: color.humanAccent }} />
-          <Txt w="semibold" size={13} color={color.humanAccent}>
-            {s.home.statusOut}
+          <View style={{ width: 8, height: 8, borderRadius: 999, backgroundColor: sc.fg }} />
+          <Txt w="semibold" size={13} color={sc.fg}>
+            {statusLabel}
           </Txt>
         </View>
       </View>
@@ -102,9 +142,9 @@ export function HomeScreen({ onClockIn, deptHead }: { onClockIn?: () => void; de
       {/* Today summary */}
       <Section title={s.home.todayTitle}>
         <View style={{ flexDirection: 'row', gap: 12 }}>
-          <SummaryCard label={s.home.inLabel} value={s.home.dash} />
-          <SummaryCard label={s.home.outLabel} value={s.home.dash} />
-          <SummaryCard label={s.home.workLabel} value={s.home.zero} valueColor={color.anugrahBlue} />
+          <SummaryCard label={s.home.inLabel} value={clockInTime ?? s.home.dash} />
+          <SummaryCard label={s.home.outLabel} value={clockOutTime ?? s.home.dash} />
+          <SummaryCard label={s.home.workLabel} value={work} valueColor={color.anugrahBlue} />
         </View>
       </Section>
 
@@ -308,6 +348,18 @@ function SummaryCard({ label, value, valueColor }: { label: string; value: strin
       </Txt>
     </View>
   );
+}
+
+/** Worked hours between clock-in and clock-out (HH:MM strings), localized. */
+function workDuration(inT: string | null | undefined, outT: string | null | undefined, lang: string, zero: string): string {
+  if (!inT || !outT) return zero;
+  const [ih, im] = inT.split(':').map(Number);
+  const [oh, om] = outT.split(':').map(Number);
+  let mins = oh * 60 + om - (ih * 60 + im);
+  if (mins < 0) mins += 24 * 60;
+  const h = Math.floor(mins / 60);
+  const m = mins % 60;
+  return lang === 'id' ? `${h}j ${m}m` : `${h}h ${m}m`;
 }
 
 function BalanceCell({ label, value, bg, valueColor }: { label: string; value: string; bg: string; valueColor: string }) {

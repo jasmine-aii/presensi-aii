@@ -14,6 +14,8 @@ const id = {
     shift: 'Shift reguler',
     hours: '09:00 – 17:00',
     statusOut: 'Belum clock in',
+    statusIn: 'Sudah clock in',
+    statusDone: 'Sudah clock out',
     clockIn: 'Clock In sekarang',
     todayTitle: 'Ringkasan hari ini',
     inLabel: 'Clock In',
@@ -40,6 +42,8 @@ const id = {
     nowLabel: 'Waktu',
     confirm: 'Konfirmasi Clock In',
     required: 'Foto & lokasi wajib diverifikasi',
+    successTitle: 'Clock In berhasil',
+    successMsg: 'Kehadiran Anda hari ini tercatat. Selamat bekerja!',
   },
   out: {
     title: 'Clock Out',
@@ -52,6 +56,8 @@ const id = {
     confirm: 'Konfirmasi Clock Out',
     good: 'Kerja bagus hari ini, Andi.',
     photoHint: 'Ambil foto selfie sebagai bukti clock out',
+    successTitle: 'Clock Out berhasil',
+    successMsg: 'Jam kerja Anda tersimpan. Sampai jumpa besok!',
   },
   hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin' },
   prof: {
@@ -93,6 +99,12 @@ const id = {
     away: 'dari kantor',
     outsideMsg: 'Anda harus berada dalam 500 m dari kantor untuk absen.',
     retry: 'Coba lagi',
+  },
+  dlg: {
+    done: 'Selesai',
+    retry: 'Coba lagi',
+    failTitle: 'Gagal',
+    failMsg: 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.',
   },
   anav: { dashboard: 'Dasbor', team: 'Tim', add: 'Undang', approval: 'Approval', report: 'Laporan' },
   adm: {
@@ -162,6 +174,8 @@ const en = {
     shift: 'Regular shift',
     hours: '09:00 – 17:00',
     statusOut: 'Not clocked in',
+    statusIn: 'Clocked in',
+    statusDone: 'Clocked out',
     clockIn: 'Clock In now',
     todayTitle: "Today's summary",
     inLabel: 'Clock In',
@@ -188,6 +202,8 @@ const en = {
     nowLabel: 'Time',
     confirm: 'Confirm Clock In',
     required: 'Photo & location must be verified',
+    successTitle: 'Clock In successful',
+    successMsg: "Today's attendance is recorded. Have a great day!",
   },
   out: {
     title: 'Clock Out',
@@ -200,6 +216,8 @@ const en = {
     confirm: 'Confirm Clock Out',
     good: 'Great work today, Andi.',
     photoHint: 'Take a selfie as proof of clock out',
+    successTitle: 'Clock Out successful',
+    successMsg: 'Your work hours are saved. See you tomorrow!',
   },
   hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave' },
   prof: {
@@ -241,6 +259,12 @@ const en = {
     away: 'from office',
     outsideMsg: 'You must be within 500 m of the office to clock in/out.',
     retry: 'Retry',
+  },
+  dlg: {
+    done: 'Done',
+    retry: 'Try again',
+    failTitle: 'Failed',
+    failMsg: 'Something went wrong while saving. Please try again.',
   },
   anav: { dashboard: 'Dashboard', team: 'Team', add: 'Invite', approval: 'Approvals', report: 'Reports' },
   adm: {
