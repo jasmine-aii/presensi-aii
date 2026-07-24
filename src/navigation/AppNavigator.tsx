@@ -67,6 +67,7 @@ export function AppNavigator() {
     return (
       <ClockInScreen
         onBack={() => setPushed(null)}
+        alreadyDone={clockInTime != null}
         onSwitchMode={(m) => setPushed(m === 'out' ? 'clockout' : 'clockin')}
         onConfirm={async ({ time, lat, lng, photoBase64 }) => {
           const photo = photoBase64 ? await uploadClockPhoto(userId, 'in', photoBase64) : null;
@@ -84,6 +85,7 @@ export function AppNavigator() {
     return (
       <ClockOutScreen
         onBack={() => setPushed(null)}
+        alreadyDone={clockOutTime != null}
         onSwitchMode={(m) => setPushed(m === 'out' ? 'clockout' : 'clockin')}
         name={displayName}
         clockInTime={clockInTime ?? undefined}

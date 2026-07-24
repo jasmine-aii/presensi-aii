@@ -38,8 +38,20 @@ export async function fetchToday(userId: string): Promise<TodayAttendance> {
   return { clockInTime: hhmm(data?.clock_in_at), clockOutTime: hhmm(data?.clock_out_at) };
 }
 
-/** Insert (or overwrite) today's clock-in. Returns false on any DB error. */
+/**
+ * Record today's clock-in. Refuses if the user has already clocked in today
+ * (one clock-in per day). Only writes clock-in columns, so an existing
+ * clock-out is preserved. Returns false if already clocked in or on DB error.
+ */
 export async function recordClockIn(userId: string, p: ClockPayload): Promise<boolean> {
+  const { data: existing } = await supabase
+    .from('attendance')
+    .select('clock_in_at')
+    .eq('user_id', userId)
+    .eq('work_date', todayKey())
+    .maybeSingle();
+  if (existing?.clock_in_at) return false; // already clocked in today
+
   const { error } = await supabase.from('attendance').upsert(
     {
       user_id: userId,
@@ -48,10 +60,6 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
       clock_in_lat: p.lat,
       clock_in_lng: p.lng,
       clock_in_photo: p.photo ?? null,
-      clock_out_at: null,
-      clock_out_lat: null,
-      clock_out_lng: null,
-      clock_out_photo: null,
     },
     { onConflict: 'user_id,work_date' },
   );
@@ -60,12 +68,20 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
 }
 
 /**
- * Stamp clock-out onto today's row. Upserts on (user_id, work_date) so it
- * persists even if there is no clock-in row yet (update-only would silently
- * match zero rows). Only clock-out columns are written, so an existing
- * clock-in is preserved. Returns false on any DB error.
+ * Record today's clock-out. Refuses if already clocked out today (one
+ * clock-out per day). Upserts so it persists even without a prior clock-in
+ * row; only clock-out columns are written, so the clock-in is preserved.
+ * Returns false if already clocked out or on DB error.
  */
 export async function recordClockOut(userId: string, p: ClockPayload): Promise<boolean> {
+  const { data: existing } = await supabase
+    .from('attendance')
+    .select('clock_out_at')
+    .eq('user_id', userId)
+    .eq('work_date', todayKey())
+    .maybeSingle();
+  if (existing?.clock_out_at) return false; // already clocked out today
+
   const { error } = await supabase.from('attendance').upsert(
     {
       user_id: userId,

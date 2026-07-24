@@ -14,7 +14,7 @@ import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
-export function ClockInScreen({ onBack, onConfirm, onSwitchMode }: { onBack?: () => void; onConfirm?: ClockConfirm; onSwitchMode?: (mode: 'in' | 'out') => void }) {
+export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
@@ -40,7 +40,7 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode }: { onBack?: ()
             : { tone: 'danger', label: s.loc.outside };
 
   const onConfirmPress = async () => {
-    if (!canConfirm || submitting) return;
+    if (!canConfirm || submitting || alreadyDone) return;
     setSubmitting(true);
     confirmedTime.current = timeShort(now);
     let photoBase64: string | null = null;
@@ -124,9 +124,13 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode }: { onBack?: ()
 
       {/* Confirm */}
       <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: color.paper }}>
-        <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm || submitting} onPress={onConfirmPress} />
+        <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm || submitting || alreadyDone} onPress={onConfirmPress} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingHorizontal: 8 }}>
-          {loc.status === 'ready' && !loc.inRadius ? (
+          {alreadyDone ? (
+            <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center' }}>
+              {s.in.alreadyDone}
+            </Txt>
+          ) : loc.status === 'ready' && !loc.inRadius ? (
             <Txt size={12} color={color.danger} style={{ textAlign: 'center' }}>
               {s.loc.outsideMsg}
             </Txt>

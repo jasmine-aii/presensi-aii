@@ -62,6 +62,7 @@ const id = {
     required: 'Foto & lokasi wajib diverifikasi',
     successTitle: 'Clock In berhasil',
     successMsg: 'Kehadiran Anda hari ini tercatat. Selamat bekerja!',
+    alreadyDone: 'Anda sudah clock in hari ini.',
   },
   out: {
     title: 'Clock Out',
@@ -76,6 +77,7 @@ const id = {
     photoHint: 'Ambil foto selfie sebagai bukti clock out',
     successTitle: 'Clock Out berhasil',
     successMsg: 'Jam kerja Anda tersimpan. Sampai jumpa besok!',
+    alreadyDone: 'Anda sudah clock out hari ini.',
   },
   hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat absensi.', loading: 'Memuat…', photoTitle: 'Foto kehadiran', noPhoto: 'Tidak ada foto', close: 'Tutup' },
   prof: {
@@ -243,6 +245,7 @@ const en = {
     required: 'Photo & location must be verified',
     successTitle: 'Clock In successful',
     successMsg: "Today's attendance is recorded. Have a great day!",
+    alreadyDone: 'You have already clocked in today.',
   },
   out: {
     title: 'Clock Out',
@@ -257,6 +260,7 @@ const en = {
     photoHint: 'Take a selfie as proof of clock out',
     successTitle: 'Clock Out successful',
     successMsg: 'Your work hours are saved. See you tomorrow!',
+    alreadyDone: 'You have already clocked out today.',
   },
   hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave', empty: 'No attendance history yet.', loading: 'Loading…', photoTitle: 'Attendance photo', noPhoto: 'No photo', close: 'Close' },
   prof: {

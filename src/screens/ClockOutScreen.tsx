@@ -14,7 +14,7 @@ import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
-export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchMode }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; onSwitchMode?: (mode: 'in' | 'out') => void }) {
+export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
   const { s, lang } = useLang();
   const firstName = (name ?? s.home.name).trim().split(' ')[0];
   const now = useNow(1000);
@@ -49,7 +49,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
   };
 
   const onConfirmPress = async () => {
-    if (!canConfirm || submitting) return;
+    if (!canConfirm || submitting || alreadyDone) return;
     setSubmitting(true);
     confirmedTime.current = timeShort(now);
     let photoBase64: string | null = null;
@@ -159,11 +159,17 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
 
       {/* Confirm */}
       <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: color.paper }}>
-        <Button variant="primary" size="lg" fullWidth label={s.out.confirm} disabled={!canConfirm || submitting} onPress={onConfirmPress} />
-        {loc.status === 'ready' && !loc.inRadius && (
-          <Txt size={12} color={color.danger} style={{ textAlign: 'center', marginTop: 12, paddingHorizontal: 8 }}>
-            {s.loc.outsideMsg}
+        <Button variant="primary" size="lg" fullWidth label={s.out.confirm} disabled={!canConfirm || submitting || alreadyDone} onPress={onConfirmPress} />
+        {alreadyDone ? (
+          <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center', marginTop: 12, paddingHorizontal: 8 }}>
+            {s.out.alreadyDone}
           </Txt>
+        ) : (
+          loc.status === 'ready' && !loc.inRadius && (
+            <Txt size={12} color={color.danger} style={{ textAlign: 'center', marginTop: 12, paddingHorizontal: 8 }}>
+              {s.loc.outsideMsg}
+            </Txt>
+          )
         )}
       </View>
 
