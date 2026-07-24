@@ -6,7 +6,7 @@ import { Txt, Avatar, AdminStatusBadge, SearchField } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchTeam, type AdminMember } from '../lib/admin';
 
-export function DirectoryScreen({ onInvite }: { onInvite?: () => void }) {
+export function DirectoryScreen({ onInvite, onSelectMember }: { onInvite?: () => void; onSelectMember?: (m: AdminMember) => void }) {
   const { s } = useLang();
   const [q, setQ] = useState('');
   const [team, setTeam] = useState<AdminMember[] | null>(null);
@@ -54,7 +54,7 @@ export function DirectoryScreen({ onInvite }: { onInvite?: () => void }) {
           </View>
         ) : (
           list.map((m) => (
-            <View key={m.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }}>
+            <Pressable key={m.id} onPress={() => onSelectMember?.(m)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }}>
               <Avatar name={m.name} size={44} />
               <View style={{ flex: 1 }}>
                 <Txt w="semibold" size={14} color={color.ink}>
@@ -65,7 +65,7 @@ export function DirectoryScreen({ onInvite }: { onInvite?: () => void }) {
                 </Txt>
               </View>
               <AdminStatusBadge status={m.st} />
-            </View>
+            </Pressable>
           ))
         )}
       </ScrollView>

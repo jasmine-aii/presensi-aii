@@ -118,6 +118,29 @@ create policy "attendance all own" on public.attendance
 create policy "attendance select admin" on public.attendance
   for select using (public.is_admin());
 
+-- ── shifts ──────────────────────────────────────────────────────────────────
+-- Work-shift options managed by admins; everyone can read them for dropdowns.
+create table if not exists public.shifts (
+  id          uuid primary key default gen_random_uuid(),
+  name        text not null,
+  start_time  text not null,   -- "08:30"
+  end_time    text not null,   -- "17:30"
+  created_at  timestamptz not null default now()
+);
+
+alter table public.shifts enable row level security;
+
+drop policy if exists "shifts read all"   on public.shifts;
+drop policy if exists "shifts write admin" on public.shifts;
+create policy "shifts read all"   on public.shifts for select to authenticated using (true);
+create policy "shifts write admin" on public.shifts for all to authenticated
+  using (public.is_admin()) with check (public.is_admin());
+
+-- Seed one default shift if the table is empty.
+insert into public.shifts (name, start_time, end_time)
+select 'Reguler', '08:30', '17:30'
+where not exists (select 1 from public.shifts);
+
 -- ── Storage: selfie photos ──────────────────────────────────────────────────
 -- Private bucket; objects live under {user_id}/... so RLS scopes each user to
 -- their own folder. Admins can read everyone's photos.

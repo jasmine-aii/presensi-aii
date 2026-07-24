@@ -7,6 +7,7 @@ import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchToday, recordClockIn, recordClockOut } from '../lib/attendance';
 import { uploadClockPhoto } from '../lib/storage';
+import type { AdminMember } from '../lib/admin';
 import {
   HomeScreen,
   ClockInScreen,
@@ -17,6 +18,8 @@ import {
   HRDashboardScreen,
   DirectoryScreen,
   InviteScreen,
+  ShiftScreen,
+  EmployeeDetailScreen,
   ApprovalScreen,
   ReportsScreen,
 } from '../screens';
@@ -24,7 +27,7 @@ import {
 type Workspace = 'employee' | 'admin';
 type EmpTab = 'home' | 'history' | 'leave' | 'profile';
 type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
-type Pushed = 'clockin' | 'clockout' | 'invite' | null;
+type Pushed = 'clockin' | 'clockout' | 'invite' | 'shifts' | null;
 
 /**
  * State-based navigator. Two workspaces (employee ⇄ admin), each with a bottom
@@ -42,6 +45,7 @@ export function AppNavigator() {
   const [empTab, setEmpTab] = useState<EmpTab>('home');
   const [admTab, setAdmTab] = useState<AdmTab>('dashboard');
   const [pushed, setPushed] = useState<Pushed>(null);
+  const [viewMember, setViewMember] = useState<AdminMember | null>(null);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
   const clockedIn = !!clockInTime && !clockOutTime;
@@ -99,24 +103,31 @@ export function AppNavigator() {
     );
   }
   if (pushed === 'invite') {
-    return <InviteScreen onBack={() => setPushed(null)} />;
+    return <InviteScreen onBack={() => setPushed(null)} onManageShifts={() => setPushed('shifts')} />;
+  }
+  if (pushed === 'shifts') {
+    return <ShiftScreen onBack={() => setPushed('invite')} />;
   }
 
   // ── Admin workspace ──
   if (workspace === 'admin') {
+    if (viewMember) {
+      return <EmployeeDetailScreen member={viewMember} onBack={() => setViewMember(null)} />;
+    }
     const admNavigate = (key: NavKey) => {
       if (key === 'add') {
         setPushed('invite');
       } else if (key === 'dashboard' || key === 'team' || key === 'approval' || key === 'report') {
         setAdmTab(key);
         setPushed(null);
+        setViewMember(null);
       }
     };
     return (
       <View style={{ flex: 1, backgroundColor: color.paper }}>
         <View style={{ flex: 1 }}>
           {admTab === 'dashboard' && <HRDashboardScreen onNavigate={admNavigate} onSwitchEmployee={() => setWorkspace('employee')} />}
-          {admTab === 'team' && <DirectoryScreen onInvite={() => setPushed('invite')} />}
+          {admTab === 'team' && <DirectoryScreen onInvite={() => setPushed('invite')} onSelectMember={setViewMember} />}
           {admTab === 'approval' && <ApprovalScreen />}
           {admTab === 'report' && <ReportsScreen />}
         </View>

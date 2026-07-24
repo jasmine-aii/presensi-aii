@@ -1,18 +1,28 @@
-import React, { useState } from 'react';
-import { View, ScrollView, TextInput } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView, TextInput, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, type LucideIcon } from 'lucide-react-native';
+import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, Settings2, type LucideIcon } from 'lucide-react-native';
 import { color, interFamily } from '../theme';
 import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 
-export function InviteScreen({ onBack }: { onBack?: () => void }) {
+export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; onManageShifts?: () => void }) {
   const { s, lang } = useLang();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [jobRole, setJobRole] = useState('');
   const [access, setAccess] = useState('employee');
+  const [shifts, setShifts] = useState<Shift[]>([]);
+  const [shiftId, setShiftId] = useState('');
+
+  useEffect(() => {
+    fetchShifts().then((list) => {
+      setShifts(list);
+      setShiftId((cur) => cur || list[0]?.id || '');
+    });
+  }, []);
 
   const accessOptions: SelectOption[] =
     lang === 'id'
@@ -44,7 +54,24 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
           </View>
         </View>
 
-        <Field label={s.adm.fShift} value={s.adm.fShiftV} icon={Clock} variant="select" />
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <Txt w="semibold" size={13} color={color.muted}>
+              {s.adm.fShift}
+            </Txt>
+            <Pressable onPress={onManageShifts} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Settings2 size={14} color={color.anugrahBlue} strokeWidth={2} />
+              <Txt w="semibold" size={12} color={color.anugrahBlue}>
+                {s.adm.manageShift}
+              </Txt>
+            </Pressable>
+          </View>
+          {shifts.length > 0 ? (
+            <SelectField label="" value={shiftId} options={shifts.map((sh) => ({ value: sh.id, label: shiftLabel(sh) }))} onChange={setShiftId} icon={Clock} />
+          ) : (
+            <Field label="" value={s.adm.fShiftV} icon={Clock} variant="select" />
+          )}
+        </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <ShieldCheck size={15} color={color.muted} strokeWidth={2} />
