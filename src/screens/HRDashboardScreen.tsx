@@ -95,9 +95,11 @@ export function HRDashboardScreen({
           <Txt w="bold" size={14} color={color.ink}>
             {s.adm.notYetTitle}
           </Txt>
-          <Txt w="semibold" size={13} color={color.anugrahBlue}>
-            {s.adm.seeAll}
-          </Txt>
+          <Pressable onPress={() => onNavigate?.('team')} hitSlop={8}>
+            <Txt w="semibold" size={13} color={color.anugrahBlue}>
+              {s.adm.seeAll}
+            </Txt>
+          </Pressable>
         </View>
         <View style={{ gap: 10 }}>
           {team === null ? (

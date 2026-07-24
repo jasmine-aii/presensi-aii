@@ -48,7 +48,6 @@ export function AppNavigator() {
   const [viewMember, setViewMember] = useState<AdminMember | null>(null);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
-  const clockedIn = !!clockInTime && !clockOutTime;
 
   // Restore today's attendance so the hero shows the real clocked state.
   useEffect(() => {
@@ -89,7 +88,6 @@ export function AppNavigator() {
     return (
       <ClockOutScreen
         onBack={() => setPushed(null)}
-        alreadyDone={clockOutTime != null}
         onSwitchMode={(m) => setPushed(m === 'out' ? 'clockout' : 'clockin')}
         name={displayName}
         clockInTime={clockInTime ?? undefined}
@@ -139,7 +137,9 @@ export function AppNavigator() {
   // ── Employee workspace ──
   const empNavigate = (key: NavKey) => {
     if (key === 'clock') {
-      setPushed(clockedIn ? 'clockout' : 'clockin');
+      // Once clocked in (a one-time action), the FAB goes to clock-out, which
+      // is repeatable — the latest clock-out wins (e.g. overtime).
+      setPushed(clockInTime ? 'clockout' : 'clockin');
     } else if (key === 'home' || key === 'history' || key === 'leave' || key === 'profile') {
       setEmpTab(key);
       setPushed(null);

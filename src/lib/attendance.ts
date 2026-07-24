@@ -68,20 +68,12 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
 }
 
 /**
- * Record today's clock-out. Refuses if already clocked out today (one
- * clock-out per day). Upserts so it persists even without a prior clock-in
- * row; only clock-out columns are written, so the clock-in is preserved.
- * Returns false if already clocked out or on DB error.
+ * Record today's clock-out. Can be repeated — the latest clock-out overwrites
+ * the stored one (e.g. surprise overtime after already clocking out). Upserts
+ * so it persists even without a prior clock-in row; only clock-out columns are
+ * written, so the clock-in is preserved. Returns false on DB error.
  */
 export async function recordClockOut(userId: string, p: ClockPayload): Promise<boolean> {
-  const { data: existing } = await supabase
-    .from('attendance')
-    .select('clock_out_at')
-    .eq('user_id', userId)
-    .eq('work_date', todayKey())
-    .maybeSingle();
-  if (existing?.clock_out_at) return false; // already clocked out today
-
   const { error } = await supabase.from('attendance').upsert(
     {
       user_id: userId,
