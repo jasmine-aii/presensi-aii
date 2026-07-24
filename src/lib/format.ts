@@ -21,3 +21,12 @@ const mNames: Record<Lang, string[]> = {
 /** e.g. id "Rabu, 23 Jul 2026" · en "Wednesday, 23 Jul 2026". */
 export const dateStr = (d: Date, lang: Lang) =>
   `${dNames[lang][d.getDay()]}, ${d.getDate()} ${mNames[lang][d.getMonth()]} ${d.getFullYear()}`;
+
+/** Parse a 'YYYY-MM-DD' key as a local date (avoids UTC off-by-one). */
+export const parseYmd = (ymd: string) => new Date(`${ymd}T00:00:00`);
+
+/** Short weekday, e.g. id "Rab" · en "Wed". */
+export const weekdayShort = (d: Date, lang: Lang) => dNames[lang][d.getDay()].slice(0, 3);
+
+/** Short month + year, e.g. id "Jul 2026" · en "Jul 2026". */
+export const monthYear = (d: Date, lang: Lang) => `${mNames[lang][d.getMonth()]} ${d.getFullYear()}`;

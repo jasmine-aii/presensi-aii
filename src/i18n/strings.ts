@@ -76,7 +76,7 @@ const id = {
     successTitle: 'Clock Out berhasil',
     successMsg: 'Jam kerja Anda tersimpan. Sampai jumpa besok!',
   },
-  hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin' },
+  hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat absensi.', loading: 'Memuat…' },
   prof: {
     title: 'Profil',
     role: 'AI Engineer',
@@ -255,7 +255,7 @@ const en = {
     successTitle: 'Clock Out successful',
     successMsg: 'Your work hours are saved. See you tomorrow!',
   },
-  hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave' },
+  hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave', empty: 'No attendance history yet.', loading: 'Loading…' },
   prof: {
     title: 'Profile',
     role: 'AI Engineer',

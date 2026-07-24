@@ -55,12 +55,43 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
   return !error;
 }
 
-/** Stamp clock-out onto today's row. Returns false on any DB error. */
+/**
+ * Stamp clock-out onto today's row. Upserts on (user_id, work_date) so it
+ * persists even if there is no clock-in row yet (update-only would silently
+ * match zero rows). Only clock-out columns are written, so an existing
+ * clock-in is preserved. Returns false on any DB error.
+ */
 export async function recordClockOut(userId: string, p: ClockPayload): Promise<boolean> {
-  const { error } = await supabase
-    .from('attendance')
-    .update({ clock_out_at: new Date().toISOString(), clock_out_lat: p.lat, clock_out_lng: p.lng })
-    .eq('user_id', userId)
-    .eq('work_date', todayKey());
+  const { error } = await supabase.from('attendance').upsert(
+    {
+      user_id: userId,
+      work_date: todayKey(),
+      clock_out_at: new Date().toISOString(),
+      clock_out_lat: p.lat,
+      clock_out_lng: p.lng,
+    },
+    { onConflict: 'user_id,work_date' },
+  );
   return !error;
+}
+
+export interface HistoryEntry {
+  date: string; // YYYY-MM-DD
+  clockInTime: string | null; // HH:MM (local)
+  clockOutTime: string | null;
+}
+
+/** Recent attendance rows for the signed-in user, newest day first. */
+export async function fetchHistory(userId: string, limit = 60): Promise<HistoryEntry[]> {
+  const { data } = await supabase
+    .from('attendance')
+    .select('work_date, clock_in_at, clock_out_at')
+    .eq('user_id', userId)
+    .order('work_date', { ascending: false })
+    .limit(limit);
+  return (data ?? []).map((r) => ({
+    date: r.work_date as string,
+    clockInTime: hhmm(r.clock_in_at),
+    clockOutTime: hhmm(r.clock_out_at),
+  }));
 }
