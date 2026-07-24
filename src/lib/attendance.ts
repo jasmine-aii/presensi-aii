@@ -52,6 +52,7 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
     },
     { onConflict: 'user_id,work_date' },
   );
+  if (error) console.warn('[clockIn] Supabase error:', error.message, error);
   return !error;
 }
 
@@ -72,6 +73,7 @@ export async function recordClockOut(userId: string, p: ClockPayload): Promise<b
     },
     { onConflict: 'user_id,work_date' },
   );
+  if (error) console.warn('[clockOut] Supabase error:', error.message, error);
   return !error;
 }
 
