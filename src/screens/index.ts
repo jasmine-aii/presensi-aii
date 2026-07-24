@@ -1,3 +1,4 @@
+export { LoginScreen } from './LoginScreen';
 export { HomeScreen } from './HomeScreen';
 export { ClockInScreen } from './ClockInScreen';
 export { ClockOutScreen } from './ClockOutScreen';

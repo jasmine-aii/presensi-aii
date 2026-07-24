@@ -6,10 +6,27 @@ import { Txt, Avatar, Toggle, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { profileRows } from '../lib/data';
 
-export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
+export function ProfileScreen({
+  onOpenAdmin,
+  onLogout,
+  name,
+  role,
+  dept,
+  empId,
+  isAdmin,
+}: {
+  onOpenAdmin?: () => void;
+  onLogout?: () => void;
+  name?: string;
+  role?: string;
+  dept?: string;
+  empId?: string;
+  isAdmin?: boolean;
+}) {
   const { s, lang, langName, toggleLang } = useLang();
   const [notif, setNotif] = useState(true);
   const rows = profileRows(lang);
+  const userName = name ?? s.home.name;
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }}>
@@ -20,13 +37,13 @@ export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
           {s.prof.title}
         </Txt>
         <View style={{ flexDirection: 'row', gap: 16, alignItems: 'center' }}>
-          <Avatar name={s.home.name} size={72} ring="rgba(149,252,246,0.5)" />
+          <Avatar name={userName} size={72} ring="rgba(149,252,246,0.5)" />
           <View style={{ flex: 1 }}>
             <Txt w="extrabold" size={22} color={color.white}>
-              {s.home.name}
+              {userName}
             </Txt>
             <Txt size={14} color="rgba(255,255,255,0.72)" style={{ marginTop: 2, marginBottom: 8 }}>
-              {s.prof.role} · {s.prof.dept}
+              {(role ?? s.prof.role) + ' · ' + (dept ?? s.prof.dept)}
             </Txt>
             <View
               style={{
@@ -41,7 +58,7 @@ export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
               }}
             >
               <Txt w="semibold" size={12} color={color.humanAccent} tabular>
-                {s.prof.empId} · AII-2481
+                {s.prof.empId} · {empId ?? 'AII-2481'}
               </Txt>
             </View>
           </View>
@@ -76,25 +93,27 @@ export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
           </View>
         </View>
 
-        {/* Admin view switcher (this account also has Admin access) */}
-        <Pressable
-          onPress={onOpenAdmin}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.deepNavy, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
-        >
-          <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
-          <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-            <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <Txt w="bold" size={14} color={color.white}>
-              {s.prof.switchTo}
-            </Txt>
-            <Txt size={12} color="rgba(255,255,255,0.72)">
-              {s.prof.switchDesc}
-            </Txt>
-          </View>
-          <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
-        </Pressable>
+        {/* Admin view switcher — only for accounts with Admin access */}
+        {isAdmin && (
+          <Pressable
+            onPress={onOpenAdmin}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.deepNavy, borderRadius: 18, paddingVertical: 16, paddingHorizontal: 18, overflow: 'hidden' }}
+          >
+            <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
+            <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+              <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Txt w="bold" size={14} color={color.white}>
+                {s.prof.switchTo}
+              </Txt>
+              <Txt size={12} color="rgba(255,255,255,0.72)">
+                {s.prof.switchDesc}
+              </Txt>
+            </View>
+            <ChevronRight size={20} color="rgba(255,255,255,0.6)" strokeWidth={2} />
+          </Pressable>
+        )}
 
         {/* Settings */}
         <View>
@@ -118,12 +137,12 @@ export function ProfileScreen({ onOpenAdmin }: { onOpenAdmin?: () => void }) {
               </Txt>
               <Toggle on={notif} onChange={setNotif} label={s.prof.sNotif} />
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 15, paddingHorizontal: 18 }}>
+            <Pressable onPress={onLogout} style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 15, paddingHorizontal: 18 }}>
               <LogOut size={20} color={color.danger} strokeWidth={2} />
               <Txt w="semibold" size={14} color={color.danger} style={{ flex: 1 }}>
                 {s.prof.logout}
               </Txt>
-            </View>
+            </Pressable>
           </View>
         </View>
       </View>

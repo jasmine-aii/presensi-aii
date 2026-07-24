@@ -7,6 +7,22 @@
 export type Lang = 'id' | 'en';
 
 const id = {
+  auth: {
+    welcome: 'Selamat datang',
+    subtitle: 'Masuk untuk mencatat kehadiran Anda',
+    email: 'Email kerja',
+    emailPh: 'nama@anugerah.ai',
+    password: 'Kata sandi',
+    passwordPh: 'Masukkan kata sandi',
+    signIn: 'Masuk',
+    signingIn: 'Memproses…',
+    errEmpty: 'Email dan kata sandi wajib diisi.',
+    errInvalid: 'Email atau kata sandi salah.',
+    errGeneric: 'Gagal masuk. Coba lagi.',
+    footer: 'Akun dibuat oleh Admin — hubungi tim HR jika belum punya akses.',
+    setupTitle: 'Supabase belum dikonfigurasi',
+    setupMsg: 'Isi EXPO_PUBLIC_SUPABASE_URL dan EXPO_PUBLIC_SUPABASE_ANON_KEY di file .env, lalu jalankan ulang aplikasi.',
+  },
   nav: { home: 'Beranda', history: 'Riwayat', clock: 'Absen', leave: 'Izin', profile: 'Profil' },
   home: {
     greeting: 'Selamat pagi,',
@@ -170,6 +186,22 @@ const id = {
 };
 
 const en = {
+  auth: {
+    welcome: 'Welcome',
+    subtitle: 'Sign in to record your attendance',
+    email: 'Work email',
+    emailPh: 'name@anugerah.ai',
+    password: 'Password',
+    passwordPh: 'Enter your password',
+    signIn: 'Sign in',
+    signingIn: 'Signing in…',
+    errEmpty: 'Email and password are required.',
+    errInvalid: 'Incorrect email or password.',
+    errGeneric: 'Sign-in failed. Please try again.',
+    footer: 'Accounts are created by an Admin — contact HR if you don’t have access yet.',
+    setupTitle: 'Supabase not configured',
+    setupMsg: 'Set EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY in your .env file, then restart the app.',
+  },
   nav: { home: 'Home', history: 'History', clock: 'Clock', leave: 'Leave', profile: 'Profile' },
   home: {
     greeting: 'Good morning,',

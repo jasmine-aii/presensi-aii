@@ -14,17 +14,20 @@ const HIDDEN_MENU = new Set([2, 3, 4]); // Izin khusus, Lembur, Dinas luar — h
 const RIWAYAT_INDEX = 5; // opens the History page
 
 export function HomeScreen({
+  name,
   onClock,
   onOpenHistory,
   clockInTime,
   clockOutTime,
 }: {
+  name?: string;
   onClock?: (mode: 'in' | 'out') => void;
   onOpenHistory?: () => void;
   clockInTime?: string | null;
   clockOutTime?: string | null;
 }) {
   const { s, lang } = useLang();
+  const userName = name ?? s.home.name;
   const now = useNow(1000);
   const { width } = useWindowDimensions();
   const tile = (width - 18 * 2 - 12 * 2) / 3;
@@ -55,13 +58,13 @@ export function HomeScreen({
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-          <Avatar name={s.home.name} size={46} ring={color.skyTint} />
+          <Avatar name={userName} size={46} ring={color.skyTint} />
           <View>
             <Txt size={13} color={color.muted}>
               {s.home.greeting}
             </Txt>
             <Txt w="bold" size={17} color={color.ink}>
-              {s.home.name}
+              {userName}
             </Txt>
           </View>
         </View>

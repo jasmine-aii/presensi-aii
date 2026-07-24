@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { color } from '../theme';
 import { TabBar, type NavKey } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
+import { fetchToday, recordClockIn, recordClockOut } from '../lib/attendance';
 import {
   HomeScreen,
   ClockInScreen,
@@ -24,28 +26,54 @@ type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
 type Pushed = 'clockin' | 'clockout' | 'invite' | null;
 
 /**
- * State-based navigator. Two workspaces (employee ⇄ HR admin), each with a
- * bottom tab bar + raised FAB, plus pushed sub-views (clock flows, invite).
- * The WorkspaceSwitcher on Profile / the HR dashboard flips between them —
- * mirroring the design's multi-role account.
+ * State-based navigator. Two workspaces (employee ⇄ admin), each with a bottom
+ * tab bar + raised FAB, plus pushed sub-views (clock flows, invite). Clock
+ * in/out is persisted to Supabase; today's status is restored on mount.
  */
 export function AppNavigator() {
   const { s } = useLang();
   const insets = useSafeAreaInsets();
+  const { session, profile, signOut } = useAuth();
+  const userId = session?.user.id ?? '';
+  const isAdmin = profile?.role === 'admin';
+
   const [workspace, setWorkspace] = useState<Workspace>('employee');
   const [empTab, setEmpTab] = useState<EmpTab>('home');
   const [admTab, setAdmTab] = useState<AdmTab>('dashboard');
   const [pushed, setPushed] = useState<Pushed>(null);
-  const [clockedIn, setClockedIn] = useState(false);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
+  const clockedIn = !!clockInTime && !clockOutTime;
+
+  // Restore today's attendance so the hero shows the real clocked state.
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    fetchToday(userId).then((t) => {
+      if (!alive) return;
+      setClockInTime(t.clockInTime);
+      setClockOutTime(t.clockOutTime);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+  const displayName = profile?.full_name ?? s.home.name;
 
   // ── Pushed sub-views take over the whole screen (no tab bar) ──
   if (pushed === 'clockin') {
     return (
       <ClockInScreen
         onBack={() => setPushed(null)}
-        onConfirm={(time) => { setClockedIn(true); setClockInTime(time); setClockOutTime(null); setPushed(null); }}
+        onConfirm={async ({ time, lat, lng }) => {
+          const ok = await recordClockIn(userId, { time, lat, lng });
+          if (ok) {
+            setClockInTime(time);
+            setClockOutTime(null);
+          }
+          return ok;
+        }}
       />
     );
   }
@@ -54,7 +82,11 @@ export function AppNavigator() {
       <ClockOutScreen
         onBack={() => setPushed(null)}
         clockInTime={clockInTime ?? undefined}
-        onConfirm={(time) => { setClockedIn(false); setClockOutTime(time); setPushed(null); }}
+        onConfirm={async ({ time, lat, lng }) => {
+          const ok = await recordClockOut(userId, { time, lat, lng });
+          if (ok) setClockOutTime(time);
+          return ok;
+        }}
       />
     );
   }
@@ -99,6 +131,7 @@ export function AppNavigator() {
       <View style={{ flex: 1 }}>
         {empTab === 'home' && (
           <HomeScreen
+            name={displayName}
             onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
             onOpenHistory={() => setEmpTab('history')}
             clockInTime={clockInTime}
@@ -108,7 +141,18 @@ export function AppNavigator() {
         {empTab === 'history' && <HistoryScreen />}
         {empTab === 'leave' && <LeaveScreen />}
         {empTab === 'profile' && (
-          <ProfileScreen onOpenAdmin={() => { setWorkspace('admin'); setAdmTab('dashboard'); }} />
+          <ProfileScreen
+            name={displayName}
+            role={profile?.role === 'admin' ? s.adm.role : s.prof.role}
+            dept={profile?.department ?? s.prof.dept}
+            empId={profile?.employee_id ?? undefined}
+            isAdmin={isAdmin}
+            onOpenAdmin={() => {
+              setWorkspace('admin');
+              setAdmTab('dashboard');
+            }}
+            onLogout={signOut}
+          />
         )}
       </View>
       <TabBar mode="employee" active={empTab} labels={s.nav} onNavigate={empNavigate} bottomInset={insets.bottom} />

@@ -12,7 +12,9 @@ import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
-export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: () => void; onConfirm?: (time: string) => void; clockInTime?: string }) {
+type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null }) => Promise<boolean> | boolean;
+
+export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
@@ -21,6 +23,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: ()
   const loc = useLocation();
   const cameraRef = useRef<CameraView>(null);
   const [result, setResult] = useState<ResultKind | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const confirmedTime = useRef<string>('');
   const clockIn = clockInTime ?? '08:41';
 
@@ -45,20 +48,23 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: ()
   };
 
   const onConfirmPress = async () => {
-    if (!canConfirm) return;
+    if (!canConfirm || submitting) return;
+    setSubmitting(true);
     confirmedTime.current = timeShort(now);
     try {
       await cameraRef.current?.takePictureAsync?.();
     } catch {
       // best-effort
     }
-    setResult('success');
+    const ok = await onConfirm?.({ time: confirmedTime.current, lat: loc.coords?.lat ?? null, lng: loc.coords?.lng ?? null });
+    setSubmitting(false);
+    setResult(ok === false ? 'fail' : 'success');
   };
 
   const closeDialog = () => {
     const wasSuccess = result === 'success';
     setResult(null);
-    if (wasSuccess) onConfirm?.(confirmedTime.current);
+    if (wasSuccess) onBack?.(); // pop back to Home; navigator already recorded the clock-out
   };
 
   return (
@@ -139,7 +145,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime }: { onBack?: ()
 
       {/* Confirm */}
       <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: color.paper }}>
-        <Button variant="primary" size="lg" fullWidth label={s.out.confirm} disabled={!canConfirm} onPress={onConfirmPress} />
+        <Button variant="primary" size="lg" fullWidth label={s.out.confirm} disabled={!canConfirm || submitting} onPress={onConfirmPress} />
         {loc.status === 'ready' && !loc.inRadius && (
           <Txt size={12} color={color.danger} style={{ textAlign: 'center', marginTop: 12, paddingHorizontal: 8 }}>
             {s.loc.outsideMsg}

@@ -12,7 +12,9 @@ import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
-export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: (time: string) => void }) {
+type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null }) => Promise<boolean> | boolean;
+
+export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: ClockConfirm }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
@@ -20,6 +22,7 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
   const loc = useLocation();
   const cameraRef = useRef<CameraView>(null);
   const [result, setResult] = useState<ResultKind | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const confirmedTime = useRef<string>('');
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
@@ -37,20 +40,23 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
             : { tone: 'danger', label: s.loc.outside };
 
   const onConfirmPress = async () => {
-    if (!canConfirm) return;
+    if (!canConfirm || submitting) return;
+    setSubmitting(true);
     confirmedTime.current = timeShort(now);
     try {
       await cameraRef.current?.takePictureAsync?.();
     } catch {
       // capture is best-effort; geofence is the hard gate
     }
-    setResult('success');
+    const ok = await onConfirm?.({ time: confirmedTime.current, lat: loc.coords?.lat ?? null, lng: loc.coords?.lng ?? null });
+    setSubmitting(false);
+    setResult(ok === false ? 'fail' : 'success');
   };
 
   const closeDialog = () => {
     const wasSuccess = result === 'success';
     setResult(null);
-    if (wasSuccess) onConfirm?.(confirmedTime.current);
+    if (wasSuccess) onBack?.(); // pop back to Home; navigator already recorded the clock-in
   };
 
   return (
@@ -105,7 +111,7 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
 
       {/* Confirm */}
       <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: color.paper }}>
-        <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm} onPress={onConfirmPress} />
+        <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm || submitting} onPress={onConfirmPress} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingHorizontal: 8 }}>
           {loc.status === 'ready' && !loc.inRadius ? (
             <Txt size={12} color={color.danger} style={{ textAlign: 'center' }}>
