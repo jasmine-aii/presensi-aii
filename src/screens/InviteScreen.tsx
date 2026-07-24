@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, Settings2, type LucideIcon } from 'lucide-react-native';
+import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, Lock, Settings2, TriangleAlert, type LucideIcon } from 'lucide-react-native';
 import { color, interFamily } from '../theme';
-import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, type SelectOption } from '../components';
+import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, ResultDialog, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { supabase } from '../lib/supabase';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 
 export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; onManageShifts?: () => void }) {
@@ -12,10 +13,14 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [jobRole, setJobRole] = useState('');
   const [access, setAccess] = useState('employee');
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftId, setShiftId] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     fetchShifts().then((list) => {
@@ -35,6 +40,33 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
           { value: 'admin', label: 'Admin' },
         ];
 
+  const submit = async () => {
+    if (busy) return;
+    if (!name.trim() || !email.trim() || !password) {
+      setError(s.adm.createFillReq);
+      return;
+    }
+    setError(null);
+    setBusy(true);
+    const shiftSel = shifts.find((x) => x.id === shiftId);
+    const { data, error: fnErr } = await supabase.functions.invoke('create-employee', {
+      body: {
+        email: email.trim(),
+        password,
+        full_name: name.trim(),
+        job_role: jobRole.trim(),
+        access_role: access,
+        shift: shiftSel ? shiftLabel(shiftSel) : null,
+      },
+    });
+    setBusy(false);
+    if (fnErr || data?.error) {
+      setError(data?.error || fnErr?.message || s.adm.createGeneric);
+    } else {
+      setDone(true);
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.adm.invTitle} onBack={onBack} />
@@ -42,7 +74,8 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         <InfoBanner text={s.adm.invHint} />
 
         <TextField label={s.adm.fName} icon={User} value={name} onChangeText={setName} placeholder={s.adm.fNamePh} autoCapitalize="words" />
-        <TextField label={s.adm.fEmail} icon={Mail} value={email} onChangeText={setEmail} placeholder={s.adm.fEmailPh} keyboardType="email-address" autoCapitalize="none" />
+        <TextField label={s.adm.fEmail} icon={Mail} value={email} onChangeText={setEmail} placeholder={s.adm.fEmailPh} keyboardType="email-address" autoCapitalize="none" autoComplete="off" />
+        <TextField label={s.adm.fPassword} icon={Lock} value={password} onChangeText={setPassword} placeholder={s.adm.fPasswordPh} secureTextEntry autoCapitalize="none" autoComplete="off" />
         <Field label={s.adm.fId} value={s.adm.fIdV} icon={BadgeCheck} variant="readonly" />
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -80,8 +113,29 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
           </Txt>
         </View>
 
-        <Button variant="primary" size="lg" fullWidth label={s.adm.invSend} onPress={onBack} />
+        {error && (
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
+            <TriangleAlert size={16} color={color.danger} strokeWidth={2} style={{ marginTop: 1 }} />
+            <Txt size={13} color={color.danger} style={{ flex: 1, lineHeight: 18 }}>
+              {error}
+            </Txt>
+          </View>
+        )}
+
+        <Button variant="primary" size="lg" fullWidth label={busy ? s.adm.creating : s.adm.invSend} disabled={busy} onPress={submit} />
       </ScrollView>
+
+      <ResultDialog
+        visible={done}
+        kind="success"
+        title={s.adm.created}
+        message={`${name} · ${email}`}
+        actionLabel={s.dlg.done}
+        onClose={() => {
+          setDone(false);
+          onBack?.();
+        }}
+      />
     </View>
   );
 }

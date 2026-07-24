@@ -48,6 +48,18 @@ export function HomeScreen({
   const greetKey = h < 5 ? 'night' : h < 11 ? 'morning' : h < 15 ? 'noon' : h < 19 ? 'afternoon' : 'night';
   const greeting = s.home.greet[greetKey];
 
+  // Total work hours: clock-out − clock-in, or live (now − clock-in) if still in.
+  const toMin = (t: string) => {
+    const [hh, mm] = t.split(':').map(Number);
+    return hh * 60 + mm;
+  };
+  let workStr = s.home.dash;
+  if (clockInTime) {
+    const endMin = clockOutTime ? toMin(clockOutTime) : now.getHours() * 60 + now.getMinutes();
+    const diff = Math.max(0, endMin - toMin(clockInTime));
+    workStr = `${Math.floor(diff / 60)}${lang === 'id' ? 'j' : 'h'} ${diff % 60}m`;
+  }
+
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 24 }}>
       {/* Header */}
@@ -107,8 +119,8 @@ export function HomeScreen({
           {timeStr(now)}
         </Txt>
 
-        {/* Clock In / Clock Out times */}
-        <View style={{ flexDirection: 'row', gap: 28, marginTop: 14 }}>
+        {/* Clock In / Clock Out / total work hours */}
+        <View style={{ flexDirection: 'row', gap: 22, marginTop: 14 }}>
           <View>
             <Txt size={11} color="rgba(255,255,255,0.6)">
               {s.home.inLabel}
@@ -123,6 +135,14 @@ export function HomeScreen({
             </Txt>
             <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: 2 }}>
               {clockOutTime ?? s.home.dash}
+            </Txt>
+          </View>
+          <View>
+            <Txt size={11} color="rgba(255,255,255,0.6)">
+              {s.home.workLabel}
+            </Txt>
+            <Txt w="bold" size={17} color={color.humanAccent} tabular style={{ marginTop: 2 }}>
+              {workStr}
             </Txt>
           </View>
         </View>
