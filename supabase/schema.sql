@@ -5,15 +5,18 @@
 -- ============================================================================
 
 -- Sequential employee numbers: AII001, AII002, AII003, …
-create sequence if not exists public.employee_id_seq start 1;
-
--- Formats the next employee id as AII + zero-padded number (min 3 digits).
+-- Derived from the highest existing employee_id (not a sequence) so that failed
+-- or deleted account attempts don't permanently burn numbers / cause gaps.
 create or replace function public.next_employee_id()
 returns text
 language sql
 volatile
 as $$
-  select 'AII' || lpad(nextval('public.employee_id_seq')::text, 3, '0');
+  select 'AII' || lpad(
+    (coalesce(max(nullif(regexp_replace(employee_id, '\D', '', 'g'), ''))::int, 0) + 1)::text,
+    3, '0')
+  from public.profiles
+  where employee_id ~ '^AII[0-9]+$';
 $$;
 
 -- ── profiles ────────────────────────────────────────────────────────────────
