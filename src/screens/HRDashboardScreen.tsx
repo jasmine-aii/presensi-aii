@@ -1,13 +1,14 @@
-import React from 'react';
-import { View, ScrollView, Pressable } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, type LucideIcon } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, GlowCircle } from '../components';
 import type { AdminNav } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
 import { useNow } from '../lib/useNow';
 import { dateStr } from '../lib/format';
-import { adminStats, notInList } from '../lib/data';
+import { fetchTeam, deriveStats, type AdminMember } from '../lib/admin';
 
 export function HRDashboardScreen({
   onNavigate,
@@ -17,21 +18,35 @@ export function HRDashboardScreen({
   onSwitchEmployee?: () => void;
 }) {
   const { s, lang } = useLang();
+  const { profile } = useAuth();
   const now = useNow(60000);
+  const [team, setTeam] = useState<AdminMember[] | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    fetchTeam().then((t) => alive && setTeam(t));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const stats = team ? deriveStats(team) : { present: 0, late: 0, notyet: 0, leave: 0, total: 0 };
+  const notInList = (team ?? []).filter((m) => m.st === 'not' || m.st === 'late');
+  const adminName = profile?.full_name ?? s.adm.name;
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }}>
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 22, paddingTop: 16, paddingBottom: 14, backgroundColor: color.white }}>
         <View style={{ flexDirection: 'row', gap: 12, flex: 1 }}>
-          <Avatar name={s.adm.name} size={46} />
+          <Avatar name={adminName} size={46} />
           <View style={{ flex: 1 }}>
             <Txt size={13} color={color.muted}>
               {s.adm.greeting}
             </Txt>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Txt w="bold" size={17} color={color.ink}>
-                {s.adm.name}
+                {adminName}
               </Txt>
               <View style={{ paddingVertical: 3, paddingHorizontal: 9, borderRadius: 999, backgroundColor: color.humanTint }}>
                 <Txt w="bold" size={11} color="#0F766E">
@@ -66,10 +81,10 @@ export function HRDashboardScreen({
             </Txt>
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <NavyTile value={adminStats.present} label={s.adm.present} valueColor="#5EE0A0" />
-            <NavyTile value={adminStats.notyet} label={s.adm.notyet} valueColor={color.white} />
-            <NavyTile value={adminStats.late} label={s.adm.late} valueColor="#FF9D9D" />
-            <NavyTile value={adminStats.leave} label={s.adm.leave} valueColor={color.humanAccent} />
+            <NavyTile value={stats.present} label={s.adm.present} valueColor="#5EE0A0" />
+            <NavyTile value={stats.notyet} label={s.adm.notyet} valueColor={color.white} />
+            <NavyTile value={stats.late} label={s.adm.late} valueColor="#FF9D9D" />
+            <NavyTile value={stats.leave} label={s.adm.leave} valueColor={color.humanAccent} />
           </View>
         </View>
       </View>
@@ -85,20 +100,32 @@ export function HRDashboardScreen({
           </Txt>
         </View>
         <View style={{ gap: 10 }}>
-          {notInList.map((p) => (
-            <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 14 }}>
-              <Avatar name={p.name} size={40} />
-              <View style={{ flex: 1 }}>
-                <Txt w="semibold" size={14} color={color.ink}>
-                  {p.name}
-                </Txt>
-                <Txt size={12} color={color.muted}>
-                  {p.role}
-                </Txt>
-              </View>
-              <AdminStatusBadge status={p.st} />
+          {team === null ? (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <ActivityIndicator color={color.anugrahBlue} />
             </View>
-          ))}
+          ) : notInList.length === 0 ? (
+            <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+              <Txt size={13} color={color.muted}>
+                {s.adm.allIn}
+              </Txt>
+            </View>
+          ) : (
+            notInList.map((p) => (
+              <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 14 }}>
+                <Avatar name={p.name} size={40} />
+                <View style={{ flex: 1 }}>
+                  <Txt w="semibold" size={14} color={color.ink}>
+                    {p.name}
+                  </Txt>
+                  <Txt size={12} color={color.muted}>
+                    {p.dept}
+                  </Txt>
+                </View>
+                <AdminStatusBadge status={p.st} />
+              </View>
+            ))
+          )}
         </View>
       </View>
 

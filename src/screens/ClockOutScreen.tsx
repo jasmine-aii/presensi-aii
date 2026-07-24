@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, RefreshCw } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
 import { color, elevation } from '../theme';
-import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, type ResultKind } from '../components';
+import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, SelectField, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
@@ -14,7 +14,7 @@ import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
-export function ClockOutScreen({ onBack, onConfirm, clockInTime, name }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string }) {
+export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchMode }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; onSwitchMode?: (mode: 'in' | 'out') => void }) {
   const { s, lang } = useLang();
   const firstName = (name ?? s.home.name).trim().split(' ')[0];
   const now = useNow(1000);
@@ -74,6 +74,17 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name }: { onBac
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.out.title} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: 18 }}>
+        <View style={{ marginBottom: 16 }}>
+          <SelectField
+            label={s.home.actionType}
+            value="out"
+            options={[
+              { value: 'in', label: 'Clock In' },
+              { value: 'out', label: 'Clock Out' },
+            ]}
+            onChange={(v) => v === 'in' && onSwitchMode?.('in')}
+          />
+        </View>
         <Txt size={13} color={color.muted} style={{ marginBottom: 14 }}>
           {s.out.photoHint}
         </Txt>

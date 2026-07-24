@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ShieldCheck, RefreshCw } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
 import { color } from '../theme';
-import { Txt, Button, Badge, DataTag, TopAppBar, CameraViewfinder, MiniMap, ResultDialog, type ResultKind } from '../components';
+import { Txt, Button, Badge, DataTag, TopAppBar, CameraViewfinder, MiniMap, ResultDialog, SelectField, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
@@ -14,7 +14,7 @@ import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
-export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: ClockConfirm }) {
+export function ClockInScreen({ onBack, onConfirm, onSwitchMode }: { onBack?: () => void; onConfirm?: ClockConfirm; onSwitchMode?: (mode: 'in' | 'out') => void }) {
   const { s, lang } = useLang();
   const now = useNow(1000);
   const clock = timeStr(now);
@@ -65,6 +65,17 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.in.title} onBack={onBack} />
       <ScrollView contentContainerStyle={{ padding: 18 }}>
+        <View style={{ marginBottom: 16 }}>
+          <SelectField
+            label={s.home.actionType}
+            value="in"
+            options={[
+              { value: 'in', label: 'Clock In' },
+              { value: 'out', label: 'Clock Out' },
+            ]}
+            onChange={(v) => v === 'out' && onSwitchMode?.('out')}
+          />
+        </View>
         <Txt size={13} color={color.muted} style={{ marginBottom: 14 }}>
           {s.in.photoHint}
         </Txt>
