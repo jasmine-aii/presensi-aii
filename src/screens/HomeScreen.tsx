@@ -9,12 +9,12 @@ import { timeStr, dateStr } from '../lib/format';
 import { menuIcons, teamByDept, approvalsByDept, HEAD_DEPT, type ApprItem, type RosterStatus } from '../lib/data';
 
 export function HomeScreen({
-  onClockIn,
+  onClock,
   deptHead,
   clockInTime,
   clockOutTime,
 }: {
-  onClockIn?: () => void;
+  onClock?: (mode: 'in' | 'out') => void;
   deptHead?: boolean;
   clockInTime?: string | null;
   clockOutTime?: string | null;
@@ -32,6 +32,9 @@ export function HomeScreen({
     ? { fg: color.humanAccent, bg: 'rgba(149,252,246,0.14)', bd: 'rgba(149,252,246,0.4)' }
     : { fg: '#FFCB47', bg: 'rgba(255,203,71,0.16)', bd: 'rgba(255,203,71,0.45)' };
   const work = workDuration(clockInTime, clockOutTime, lang, s.home.zero);
+  // Primary action flips to Clock Out from 12:00 noon until midnight.
+  const afterNoon = now.getHours() >= 12;
+  const primaryMode: 'in' | 'out' = afterNoon ? 'out' : 'in';
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -136,7 +139,7 @@ export function HomeScreen({
 
       {/* Clock In */}
       <View style={{ paddingHorizontal: 18, paddingTop: 18 }}>
-        <Button variant="primary" size="lg" fullWidth label={s.home.clockIn} onPress={onClockIn} />
+        <Button variant="primary" size="lg" fullWidth label={afterNoon ? s.home.clockOut : s.home.clockIn} onPress={() => onClock?.(primaryMode)} />
       </View>
 
       {/* Today summary */}

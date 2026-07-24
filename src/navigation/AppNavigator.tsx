@@ -102,7 +102,7 @@ export function AppNavigator() {
       <View style={{ flex: 1 }}>
         {empTab === 'home' && (
           <HomeScreen
-            onClockIn={() => empNavigate('clock')}
+            onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
             deptHead={asDeptHead}
             clockInTime={clockInTime}
             clockOutTime={clockOutTime}
