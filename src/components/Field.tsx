@@ -41,10 +41,10 @@ export function Field({ label, value, icon: Icon, variant = 'text' }: FieldProps
         {variant === 'text' ? (
           <TextInput
             defaultValue={value}
-            style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 14, color: color.ink, padding: 0 }}
+            style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
           />
         ) : (
-          <Txt w="semibold" size={14} color={readonly ? color.muted : color.ink} tabular={readonly} style={{ flex: 1 }}>
+          <Txt w="regular" size={14} color={readonly ? color.muted : color.ink} tabular={readonly} style={{ flex: 1 }}>
             {value}
           </Txt>
         )}

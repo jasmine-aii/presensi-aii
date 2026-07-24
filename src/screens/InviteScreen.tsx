@@ -26,6 +26,15 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
           { value: 'owner', label: 'Owner' },
         ];
 
+  // HR / Owner can add departments, so the department dropdown is functional.
+  const [depts, setDepts] = useState<string[]>(['Engineering', 'Product', 'Design', 'Data', 'Human Resources', 'Operations']);
+  const [dept, setDept] = useState('Engineering');
+  const deptOptions: SelectOption[] = depts.map((d) => ({ value: d, label: d }));
+  const addDept = (name: string) => {
+    setDepts((prev) => (prev.some((d) => d.toLowerCase() === name.toLowerCase()) ? prev : [...prev, name]));
+    setDept(name);
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.adm.invTitle} onBack={onBack} />
@@ -38,7 +47,16 @@ export function InviteScreen({ onBack }: { onBack?: () => void }) {
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <Field label={s.adm.fDept} value={s.adm.fDeptV} variant="select" />
+            <SelectField
+              label={s.adm.fDept}
+              value={dept}
+              options={deptOptions}
+              onChange={setDept}
+              allowAdd
+              addLabel={s.adm.addDept}
+              addPlaceholder={s.adm.newDeptPh}
+              onAdd={addDept}
+            />
           </View>
           <View style={{ flex: 1 }}>
             <SelectField label={s.adm.fRole} value={role} options={roleOptions} onChange={setRole} />

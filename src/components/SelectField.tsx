@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { View, Pressable, Modal, ScrollView } from 'react-native';
-import { ChevronDown, Check, type LucideIcon } from 'lucide-react-native';
-import { color, elevation } from '../theme';
+import { View, Pressable, Modal, ScrollView, TextInput } from 'react-native';
+import { ChevronDown, Check, Plus, type LucideIcon } from 'lucide-react-native';
+import { color, elevation, interFamily } from '../theme';
 import { Txt } from './Txt';
 
 export interface SelectOption {
@@ -15,24 +15,45 @@ export interface SelectFieldProps {
   options: SelectOption[];
   onChange: (value: string) => void;
   icon?: LucideIcon;
+  /** Show an "add new" row at the bottom of the dropdown (e.g. HR adding a department). */
+  allowAdd?: boolean;
+  addLabel?: string;
+  addPlaceholder?: string;
+  onAdd?: (name: string) => void;
 }
 
 /**
- * Anchored dropdown: tapping the field opens a popover positioned directly
- * below it (not a bottom sheet), listing options with a check on the current
- * one. Used for the Invite form's role selector.
+ * Anchored dropdown: opens a popover directly below the field. Optionally lets
+ * an authorized user add a new option inline (`allowAdd`).
  */
-export function SelectField({ label, value, options, onChange, icon: Icon }: SelectFieldProps) {
+export function SelectField({ label, value, options, onChange, icon: Icon, allowAdd, addLabel, addPlaceholder, onAdd }: SelectFieldProps) {
   const triggerRef = useRef<View>(null);
   const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [draft, setDraft] = useState('');
   const [anchor, setAnchor] = useState({ x: 0, y: 0, w: 0, h: 0 });
   const selected = options.find((o) => o.value === value);
 
-  const openMenu = () => {
+  const measure = () => {
     triggerRef.current?.measureInWindow((x, y, w, h) => {
-      setAnchor({ x, y, w, h });
-      setOpen(true);
+      if (w > 0) setAnchor({ x, y, w, h });
     });
+  };
+
+  const openMenu = () => {
+    measure(); // refine position; anchor is also cached on layout for a reliable first open
+    setAdding(false);
+    setDraft('');
+    setOpen(true);
+  };
+
+  const submitAdd = () => {
+    const name = draft.trim();
+    if (!name) return;
+    onAdd?.(name);
+    setDraft('');
+    setAdding(false);
+    setOpen(false);
   };
 
   return (
@@ -44,10 +65,11 @@ export function SelectField({ label, value, options, onChange, icon: Icon }: Sel
         ref={triggerRef}
         accessibilityRole="button"
         onPress={openMenu}
+        onLayout={measure}
         style={{ flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: color.white, borderWidth: 1, borderColor: open ? color.anugrahBlue : color.line, borderRadius: 12, padding: 14 }}
       >
         {Icon && <Icon size={20} color={color.anugrahBlue} strokeWidth={2} />}
-        <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
+        <Txt w="regular" size={14} color={color.ink} style={{ flex: 1 }}>
           {selected?.label ?? ''}
         </Txt>
         <ChevronDown size={16} color={color.muted} strokeWidth={2} />
@@ -61,7 +83,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon }: Sel
               top: anchor.y + anchor.h + 4,
               left: anchor.x,
               width: anchor.w,
-              maxHeight: 240,
+              maxHeight: 260,
               backgroundColor: color.white,
               borderWidth: 1,
               borderColor: color.line,
@@ -70,26 +92,54 @@ export function SelectField({ label, value, options, onChange, icon: Icon }: Sel
               ...elevation('card'),
             }}
           >
-            <ScrollView bounces={false}>
-              {options.map((o, i) => {
-                const active = o.value === value;
-                return (
+            {adding ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, padding: 12 }}>
+                <TextInput
+                  autoFocus
+                  value={draft}
+                  onChangeText={setDraft}
+                  onSubmitEditing={submitAdd}
+                  placeholder={addPlaceholder}
+                  placeholderTextColor={color.muted}
+                  style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, borderWidth: 1, borderColor: color.line, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10 }}
+                />
+                <Pressable onPress={submitAdd} style={{ width: 40, height: 40, borderRadius: 10, backgroundColor: color.anugrahBlue, alignItems: 'center', justifyContent: 'center' }}>
+                  <Check size={18} color={color.white} strokeWidth={2.5} />
+                </Pressable>
+              </View>
+            ) : (
+              <ScrollView bounces={false}>
+                {options.map((o, i) => {
+                  const active = o.value === value;
+                  return (
+                    <Pressable
+                      key={o.value}
+                      onPress={() => {
+                        onChange(o.value);
+                        setOpen(false);
+                      }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: color.line, backgroundColor: active ? color.skyTint : color.white }}
+                    >
+                      <Txt w={active ? 'semibold' : 'regular'} size={14} color={active ? color.anugrahBlue : color.ink} style={{ flex: 1 }}>
+                        {o.label}
+                      </Txt>
+                      {active && <Check size={16} color={color.anugrahBlue} strokeWidth={2.5} />}
+                    </Pressable>
+                  );
+                })}
+                {allowAdd && (
                   <Pressable
-                    key={o.value}
-                    onPress={() => {
-                      onChange(o.value);
-                      setOpen(false);
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, paddingVertical: 13, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: color.line, backgroundColor: active ? color.skyTint : color.white }}
+                    onPress={() => { setDraft(''); setAdding(true); }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 13, borderTopWidth: 1, borderTopColor: color.line, backgroundColor: color.white }}
                   >
-                    <Txt w={active ? 'semibold' : 'regular'} size={14} color={active ? color.anugrahBlue : color.ink} style={{ flex: 1 }}>
-                      {o.label}
+                    <Plus size={16} color={color.anugrahBlue} strokeWidth={2.5} />
+                    <Txt w="semibold" size={14} color={color.anugrahBlue}>
+                      {addLabel}
                     </Txt>
-                    {active && <Check size={16} color={color.anugrahBlue} strokeWidth={2.5} />}
                   </Pressable>
-                );
-              })}
-            </ScrollView>
+                )}
+              </ScrollView>
+            )}
           </View>
         </Pressable>
       </Modal>
