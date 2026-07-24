@@ -39,7 +39,7 @@ export function LoginScreen() {
         <View style={{ backgroundColor: color.deepNavy, paddingHorizontal: 26, paddingTop: insets.top + 32, paddingBottom: 40, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden' }}>
           <GlowCircle size={220} top={-80} right={-60} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <LogoMark height={30} />
+            <LogoMark height={30} fill={color.white} />
             <LangSwitch />
           </View>
           <Txt w="extrabold" size={30} color={color.white} style={{ marginTop: 40, letterSpacing: -0.5 }}>
