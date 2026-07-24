@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, useWindowDimensions } from 'react-native';
+import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { Bell } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
@@ -8,15 +8,19 @@ import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
 
-// Quick-menu items disabled for now (Cuti, Sakit).
-const DISABLED_MENU = new Set([0, 1]);
+// Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
+const DISABLED_MENU = new Set([0, 1]); // Cuti, Sakit — shown but disabled
+const HIDDEN_MENU = new Set([2, 3, 4]); // Izin khusus, Lembur, Dinas luar — hidden for now
+const RIWAYAT_INDEX = 5; // opens the History page
 
 export function HomeScreen({
   onClock,
+  onOpenHistory,
   clockInTime,
   clockOutTime,
 }: {
   onClock?: (mode: 'in' | 'out') => void;
+  onOpenHistory?: () => void;
   clockInTime?: string | null;
   clockOutTime?: string | null;
 }) {
@@ -146,27 +150,35 @@ export function HomeScreen({
       <Section title={s.home.menuTitle}>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
           {s.menu.map((label, i) => {
+            if (HIDDEN_MENU.has(i)) return null;
             const disabled = DISABLED_MENU.has(i);
-            return (
-              <View
-                key={label}
-                style={{
-                  width: tile,
-                  backgroundColor: color.white,
-                  borderWidth: 1,
-                  borderColor: color.line,
-                  borderRadius: 18,
-                  paddingVertical: 14,
-                  paddingHorizontal: 8,
-                  alignItems: 'center',
-                  gap: 8,
-                  opacity: disabled ? 0.4 : 1,
-                }}
-              >
+            const tileStyle = {
+              width: tile,
+              backgroundColor: color.white,
+              borderWidth: 1,
+              borderColor: color.line,
+              borderRadius: 18,
+              paddingVertical: 14,
+              paddingHorizontal: 8,
+              alignItems: 'center' as const,
+              gap: 8,
+              opacity: disabled ? 0.4 : 1,
+            };
+            const inner = (
+              <>
                 <IconTile icon={menuIcons[i]} bg={disabled ? color.paper : color.skyTint} fg={disabled ? color.muted : color.anugrahBlue} />
                 <Txt w="semibold" size={12} color={disabled ? color.muted : color.ink} style={{ textAlign: 'center' }}>
                   {label}
                 </Txt>
+              </>
+            );
+            return i === RIWAYAT_INDEX ? (
+              <Pressable key={label} onPress={onOpenHistory} style={tileStyle}>
+                {inner}
+              </Pressable>
+            ) : (
+              <View key={label} style={tileStyle}>
+                {inner}
               </View>
             );
           })}

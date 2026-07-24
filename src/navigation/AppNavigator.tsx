@@ -100,6 +100,7 @@ export function AppNavigator() {
         {empTab === 'home' && (
           <HomeScreen
             onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
+            onOpenHistory={() => setEmpTab('history')}
             clockInTime={clockInTime}
             clockOutTime={clockOutTime}
           />
