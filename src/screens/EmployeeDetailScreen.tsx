@@ -45,6 +45,11 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             <Txt size={12} color={color.muted} tabular style={{ marginTop: 2 }}>
               {member.dept} · {member.employeeId}
             </Txt>
+            {!!member.email && (
+              <Txt size={12} color={color.muted} numberOfLines={1} style={{ marginTop: 1 }}>
+                {member.email}
+              </Txt>
+            )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
               <AdminStatusBadge status={member.st} />
               <Txt size={12} color={color.muted} tabular>

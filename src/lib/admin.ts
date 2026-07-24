@@ -17,6 +17,7 @@ function hhmm(iso: string | null | undefined): string | null {
 export interface AdminMember {
   id: string; // auth user id
   name: string;
+  email: string;
   employeeId: string;
   dept: string;
   st: RosterStatus; // present | late | not (leave needs a leave table — not modelled yet)
@@ -35,7 +36,7 @@ export interface AdminStats {
 /** All employees joined with today's attendance, ordered by name. */
 export async function fetchTeam(): Promise<AdminMember[]> {
   const [{ data: profiles }, { data: att }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, department').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, department, email').order('full_name'),
     supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', todayKey()),
   ]);
 
@@ -54,6 +55,7 @@ export async function fetchTeam(): Promise<AdminMember[]> {
     return {
       id: p.id as string,
       name: (p.full_name as string) || '—',
+      email: (p.email as string) ?? '',
       employeeId: (p.employee_id as string) ?? '—',
       dept: (p.department as string) ?? '—',
       st,

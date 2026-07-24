@@ -19,8 +19,9 @@ export function DirectoryScreen({ onInvite, onSelectMember }: { onInvite?: () =>
     };
   }, []);
 
+  const ql = q.toLowerCase();
   const list = (team ?? []).filter(
-    (r) => r.name.toLowerCase().includes(q.toLowerCase()) || r.employeeId.toLowerCase().includes(q.toLowerCase()),
+    (r) => r.name.toLowerCase().includes(ql) || r.employeeId.toLowerCase().includes(ql) || r.email.toLowerCase().includes(ql),
   );
 
   return (
@@ -63,6 +64,11 @@ export function DirectoryScreen({ onInvite, onSelectMember }: { onInvite?: () =>
                 <Txt size={12} color={color.muted} tabular>
                   {m.dept} · {m.employeeId}
                 </Txt>
+                {!!m.email && (
+                  <Txt size={12} color={color.muted} numberOfLines={1}>
+                    {m.email}
+                  </Txt>
+                )}
               </View>
               <AdminStatusBadge status={m.st} />
             </Pressable>

@@ -21,12 +21,15 @@ $$;
 create table if not exists public.profiles (
   id           uuid primary key references auth.users (id) on delete cascade,
   full_name    text not null default '',
+  email        text,
   employee_id  text unique,
   department   text,
   role         text not null default 'employee' check (role in ('employee', 'admin')),
   shift        text,
   created_at   timestamptz not null default now()
 );
+
+alter table public.profiles add column if not exists email text;
 
 -- ── attendance ──────────────────────────────────────────────────────────────
 -- One row per employee per calendar day (work_date). Clock-out fills in later.
@@ -59,10 +62,11 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, employee_id, department)
+  insert into public.profiles (id, full_name, email, employee_id, department)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
+    new.email,
     -- honour an explicit id if one was passed, otherwise auto-number AII001, AII002, …
     coalesce(new.raw_user_meta_data ->> 'employee_id', public.next_employee_id()),
     new.raw_user_meta_data ->> 'department'
