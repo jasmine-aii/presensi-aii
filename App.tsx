@@ -26,7 +26,9 @@ import { LoginScreen } from './src/screens';
  */
 function Frame({ children }: { children: React.ReactNode }) {
   const { width } = useWindowDimensions();
-  if (width <= 480) return <>{children}</>;
+  // Full-bleed on phones (and landscape phones); only tablets/desktops (≥768px)
+  // get the centered phone-width column.
+  if (width < 768) return <>{children}</>;
   return (
     <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'center', backgroundColor: color.deepNavy }}>
       <View style={{ flex: 1, maxWidth: 440, backgroundColor: color.paper, borderLeftWidth: 1, borderRightWidth: 1, borderColor: 'rgba(0,0,0,0.12)', overflow: 'hidden' }}>

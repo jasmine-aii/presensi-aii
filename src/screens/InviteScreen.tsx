@@ -6,6 +6,7 @@ import { color, interFamily } from '../theme';
 import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, ResultDialog, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { supabase } from '../lib/supabase';
+import { nextEmployeeIdPreview } from '../lib/admin';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 
 export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; onManageShifts?: () => void }) {
@@ -18,6 +19,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
   const [access, setAccess] = useState('employee');
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftId, setShiftId] = useState('');
+  const [nextId, setNextId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
@@ -27,7 +29,10 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
       setShifts(list);
       setShiftId((cur) => cur || list[0]?.id || '');
     });
+    nextEmployeeIdPreview().then(setNextId);
   }, []);
+
+  const idValue = nextId ? `${nextId} · ${lang === 'id' ? 'otomatis' : 'auto'}` : s.adm.fIdV;
 
   const accessOptions: SelectOption[] =
     lang === 'id'
@@ -76,7 +81,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         <TextField label={s.adm.fName} icon={User} value={name} onChangeText={setName} placeholder={s.adm.fNamePh} autoCapitalize="words" />
         <TextField label={s.adm.fEmail} icon={Mail} value={email} onChangeText={setEmail} placeholder={s.adm.fEmailPh} keyboardType="email-address" autoCapitalize="none" autoComplete="off" />
         <TextField label={s.adm.fPassword} icon={Lock} value={password} onChangeText={setPassword} placeholder={s.adm.fPasswordPh} secureTextEntry autoCapitalize="none" autoComplete="off" />
-        <Field label={s.adm.fId} value={s.adm.fIdV} icon={BadgeCheck} variant="readonly" />
+        <Field label={s.adm.fId} value={idValue} icon={BadgeCheck} variant="readonly" />
 
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1 }}>

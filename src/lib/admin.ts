@@ -67,6 +67,19 @@ export async function fetchTeam(): Promise<AdminMember[]> {
   });
 }
 
+/**
+ * Preview the employee id the next created account will get: AII{max+1}, based
+ * on the highest existing id. Matches the server-side next_employee_id().
+ */
+export async function nextEmployeeIdPreview(): Promise<string> {
+  const { data } = await supabase.from('profiles').select('employee_id');
+  const max = (data ?? []).reduce((m, r) => {
+    const n = parseInt(String(r.employee_id ?? '').replace(/\D/g, ''), 10);
+    return Number.isNaN(n) ? m : Math.max(m, n);
+  }, 0);
+  return 'AII' + String(max + 1).padStart(3, '0');
+}
+
 /** Assign / change an employee's shift (admin only, enforced by RLS). */
 export async function setMemberShift(userId: string, shift: string | null): Promise<boolean> {
   const { error } = await supabase.from('profiles').update({ shift }).eq('id', userId);
