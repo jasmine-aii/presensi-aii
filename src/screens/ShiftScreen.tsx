@@ -17,6 +17,7 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const load = () => fetchShifts().then(setShifts);
   useEffect(() => {
@@ -28,6 +29,7 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
     setName('');
     setStart('');
     setEnd('');
+    setError(null);
     setShowForm(true);
   };
   const openEdit = (sh: Shift) => {
@@ -35,15 +37,23 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
     setName(sh.name);
     setStart(sh.start_time);
     setEnd(sh.end_time);
+    setError(null);
     setShowForm(true);
   };
   const save = async () => {
-    if (!name.trim() || !start.trim() || !end.trim() || saving) return;
+    if (saving) return;
+    if (!name.trim() || !start.trim() || !end.trim()) {
+      setError(s.adm.shiftFillAll);
+      return;
+    }
+    setError(null);
     setSaving(true);
     const payload = { name: name.trim(), start_time: start.trim(), end_time: end.trim() };
-    const ok = editingId ? await updateShift(editingId, payload) : await addShift(payload);
+    const err = editingId ? await updateShift(editingId, payload) : await addShift(payload);
     setSaving(false);
-    if (ok) {
+    if (err) {
+      setError(err);
+    } else {
       setShowForm(false);
       await load();
     }
@@ -88,6 +98,11 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
                 <LabeledInput label={s.adm.shiftEnd} value={end} onChangeText={setEnd} placeholder="17:30" />
               </View>
             </View>
+            {error && (
+              <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
+                {error}
+              </Txt>
+            )}
             <Button variant="primary" size="md" fullWidth label={s.adm.shiftSave} disabled={saving} onPress={save} />
           </View>
         )}

@@ -15,25 +15,25 @@ export async function fetchShifts(): Promise<Shift[]> {
   return (data ?? []) as Shift[];
 }
 
-/** Create a shift (admin only, enforced by RLS). */
-export async function addShift(s: ShiftInput): Promise<boolean> {
+/** Create a shift (admin only, enforced by RLS). Returns an error message or null. */
+export async function addShift(s: ShiftInput): Promise<string | null> {
   const { error } = await supabase.from('shifts').insert(s);
   if (error) console.warn('[addShift]', error.message);
-  return !error;
+  return error?.message ?? null;
 }
 
-/** Update a shift (admin only). */
-export async function updateShift(id: string, s: ShiftInput): Promise<boolean> {
+/** Update a shift (admin only). Returns an error message or null. */
+export async function updateShift(id: string, s: ShiftInput): Promise<string | null> {
   const { error } = await supabase.from('shifts').update(s).eq('id', id);
   if (error) console.warn('[updateShift]', error.message);
-  return !error;
+  return error?.message ?? null;
 }
 
-/** Delete a shift (admin only). */
-export async function deleteShift(id: string): Promise<boolean> {
+/** Delete a shift (admin only). Returns an error message or null. */
+export async function deleteShift(id: string): Promise<string | null> {
   const { error } = await supabase.from('shifts').delete().eq('id', id);
   if (error) console.warn('[deleteShift]', error.message);
-  return !error;
+  return error?.message ?? null;
 }
 
 /** "Nama · 08:30–17:30" label for dropdowns. */
