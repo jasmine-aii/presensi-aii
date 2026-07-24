@@ -40,9 +40,15 @@ create table if not exists public.attendance (
   clock_out_at   timestamptz,
   clock_out_lat  double precision,
   clock_out_lng  double precision,
+  clock_in_photo  text,               -- storage object path of the clock-in selfie
+  clock_out_photo text,               -- storage object path of the clock-out selfie
   created_at     timestamptz not null default now(),
   unique (user_id, work_date)          -- lets the app upsert on (user_id, work_date)
 );
+
+-- Add the photo columns to an already-created table (safe to re-run).
+alter table public.attendance add column if not exists clock_in_photo  text;
+alter table public.attendance add column if not exists clock_out_photo text;
 
 create index if not exists attendance_user_date_idx on public.attendance (user_id, work_date desc);
 
@@ -111,6 +117,25 @@ create policy "attendance all own" on public.attendance
   with check (auth.uid() = user_id);
 create policy "attendance select admin" on public.attendance
   for select using (public.is_admin());
+
+-- ── Storage: selfie photos ──────────────────────────────────────────────────
+-- Private bucket; objects live under {user_id}/... so RLS scopes each user to
+-- their own folder. Admins can read everyone's photos.
+insert into storage.buckets (id, name, public)
+values ('attendance-photos', 'attendance-photos', false)
+on conflict (id) do nothing;
+
+drop policy if exists "att photos all own"      on storage.objects;
+drop policy if exists "att photos select admin" on storage.objects;
+
+create policy "att photos all own" on storage.objects
+  for all to authenticated
+  using (bucket_id = 'attendance-photos' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'attendance-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "att photos select admin" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'attendance-photos' and public.is_admin());
 
 -- ============================================================================
 -- After the first user signs up, promote them to admin (run once, replace email):

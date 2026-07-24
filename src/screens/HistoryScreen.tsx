@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
-import { ChevronDown } from 'lucide-react-native';
+import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal } from 'react-native';
+import { ChevronDown, Camera, X } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, StatusBadge } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
-import { parseYmd, weekdayShort, monthYear } from '../lib/format';
+import { signedUrlsFor } from '../lib/storage';
+import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
 import type { AttendanceStatus } from '../lib/data';
 
 const SHIFT_START_MIN = 8 * 60 + 30; // 08:30
@@ -23,12 +24,20 @@ export function HistoryScreen() {
   const { session } = useAuth();
   const userId = session?.user.id ?? '';
   const [rows, setRows] = useState<HistoryEntry[] | null>(null);
+  const [urls, setUrls] = useState<Record<string, string>>({});
+  const [sel, setSel] = useState<HistoryEntry | null>(null);
 
   useEffect(() => {
     if (!userId) return;
     let alive = true;
-    fetchHistory(userId).then((r) => {
-      if (alive) setRows(r);
+    fetchHistory(userId).then(async (r) => {
+      if (!alive) return;
+      setRows(r);
+      const paths = r.flatMap((e) => [e.clockInPhoto, e.clockOutPhoto]).filter((p): p is string => !!p);
+      if (paths.length) {
+        const map = await signedUrlsFor(paths);
+        if (alive) setUrls(map);
+      }
     });
     return () => {
       alive = false;
@@ -38,8 +47,7 @@ export function HistoryScreen() {
   const loading = rows === null;
   const stats = (rows ?? []).reduce(
     (acc, r) => {
-      const st = statusOf(r.clockInTime);
-      acc[st] += 1;
+      acc[statusOf(r.clockInTime)] += 1;
       return acc;
     },
     { ontime: 0, late: 0, leave: 0 } as Record<AttendanceStatus, number>,
@@ -104,9 +112,12 @@ export function HistoryScreen() {
           <View style={{ gap: 10, paddingHorizontal: 18, paddingTop: 20 }}>
             {rows.map((r) => {
               const d = parseYmd(r.date);
+              const thumb = r.clockInPhoto ? urls[r.clockInPhoto] : undefined;
+              const hasPhoto = !!(r.clockInPhoto || r.clockOutPhoto);
               return (
-                <View
+                <Pressable
                   key={r.date}
+                  onPress={hasPhoto ? () => setSel(r) : undefined}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -147,13 +158,78 @@ export function HistoryScreen() {
                     </Txt>
                   </View>
 
+                  {/* Selfie thumbnail (clock-in), if present */}
+                  {hasPhoto &&
+                    (thumb ? (
+                      <Image source={{ uri: thumb }} style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: color.line }} />
+                    ) : (
+                      <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                        <Camera size={16} color={color.anugrahBlue} strokeWidth={2} />
+                      </View>
+                    ))}
+
                   <StatusBadge status={statusOf(r.clockInTime)} />
-                </View>
+                </Pressable>
               );
             })}
           </View>
         )}
       </ScrollView>
+
+      {/* Photo viewer */}
+      <Modal visible={sel !== null} transparent animationType="fade" onRequestClose={() => setSel(null)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(10,17,40,0.82)', justifyContent: 'center', padding: 24 }}>
+          <View style={{ backgroundColor: color.white, borderRadius: 24, padding: 20 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+              <View>
+                <Txt w="bold" size={16} color={color.ink}>
+                  {s.hist.photoTitle}
+                </Txt>
+                {sel && (
+                  <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+                    {dateStr(parseYmd(sel.date), lang)}
+                  </Txt>
+                )}
+              </View>
+              <Pressable onPress={() => setSel(null)} hitSlop={10} accessibilityLabel={s.hist.close}>
+                <X size={22} color={color.muted} strokeWidth={2} />
+              </Pressable>
+            </View>
+
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <PhotoCell label={s.out.inAt} time={sel?.clockInTime ?? null} uri={sel?.clockInPhoto ? urls[sel.clockInPhoto] : undefined} noPhoto={s.hist.noPhoto} />
+              <PhotoCell label={s.out.outAt} time={sel?.clockOutTime ?? null} uri={sel?.clockOutPhoto ? urls[sel.clockOutPhoto] : undefined} noPhoto={s.hist.noPhoto} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+}
+
+function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string | null; uri?: string; noPhoto: string }) {
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+        <Txt w="semibold" size={12} color={color.muted}>
+          {label}
+        </Txt>
+        {time && (
+          <Txt w="semibold" size={12} color={color.ink} tabular>
+            {time}
+          </Txt>
+        )}
+      </View>
+      {uri ? (
+        <Image source={{ uri }} style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: 14, backgroundColor: color.line }} resizeMode="cover" />
+      ) : (
+        <View style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: 14, backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+          <Camera size={22} color={color.muted} strokeWidth={2} />
+          <Txt size={11} color={color.muted}>
+            {noPhoto}
+          </Txt>
+        </View>
+      )}
     </View>
   );
 }

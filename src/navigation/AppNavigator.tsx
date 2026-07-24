@@ -6,6 +6,7 @@ import { TabBar, type NavKey } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchToday, recordClockIn, recordClockOut } from '../lib/attendance';
+import { uploadClockPhoto } from '../lib/storage';
 import {
   HomeScreen,
   ClockInScreen,
@@ -66,8 +67,9 @@ export function AppNavigator() {
     return (
       <ClockInScreen
         onBack={() => setPushed(null)}
-        onConfirm={async ({ time, lat, lng }) => {
-          const ok = await recordClockIn(userId, { time, lat, lng });
+        onConfirm={async ({ time, lat, lng, photoBase64 }) => {
+          const photo = photoBase64 ? await uploadClockPhoto(userId, 'in', photoBase64) : null;
+          const ok = await recordClockIn(userId, { time, lat, lng, photo });
           if (ok) {
             setClockInTime(time);
             setClockOutTime(null);
@@ -83,8 +85,9 @@ export function AppNavigator() {
         onBack={() => setPushed(null)}
         name={displayName}
         clockInTime={clockInTime ?? undefined}
-        onConfirm={async ({ time, lat, lng }) => {
-          const ok = await recordClockOut(userId, { time, lat, lng });
+        onConfirm={async ({ time, lat, lng, photoBase64 }) => {
+          const photo = photoBase64 ? await uploadClockPhoto(userId, 'out', photoBase64) : null;
+          const ok = await recordClockOut(userId, { time, lat, lng, photo });
           if (ok) setClockOutTime(time);
           return ok;
         }}

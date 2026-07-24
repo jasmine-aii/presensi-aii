@@ -12,7 +12,7 @@ import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
-type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null }) => Promise<boolean> | boolean;
+type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
 export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onConfirm?: ClockConfirm }) {
   const { s, lang } = useLang();
@@ -43,12 +43,14 @@ export function ClockInScreen({ onBack, onConfirm }: { onBack?: () => void; onCo
     if (!canConfirm || submitting) return;
     setSubmitting(true);
     confirmedTime.current = timeShort(now);
+    let photoBase64: string | null = null;
     try {
-      await cameraRef.current?.takePictureAsync?.();
+      const photo = await cameraRef.current?.takePictureAsync?.({ base64: true, quality: 0.4 });
+      photoBase64 = photo?.base64 ?? null;
     } catch {
       // capture is best-effort; geofence is the hard gate
     }
-    const ok = await onConfirm?.({ time: confirmedTime.current, lat: loc.coords?.lat ?? null, lng: loc.coords?.lng ?? null });
+    const ok = await onConfirm?.({ time: confirmedTime.current, lat: loc.coords?.lat ?? null, lng: loc.coords?.lng ?? null, photoBase64 });
     setSubmitting(false);
     setResult(ok === false ? 'fail' : 'success');
   };
