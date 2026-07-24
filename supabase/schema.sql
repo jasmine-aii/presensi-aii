@@ -97,15 +97,20 @@ create policy "profiles read admin" on public.profiles for select using (public.
 create policy "profiles update own" on public.profiles for update using (auth.uid() = id);
 
 -- attendance: full control over your own rows; admins can read all.
+-- A single FOR ALL policy (USING + WITH CHECK) is required so that upsert
+-- (INSERT ... ON CONFLICT DO UPDATE) satisfies both the insert and update paths.
 drop policy if exists "attendance select own"   on public.attendance;
 drop policy if exists "attendance select admin" on public.attendance;
 drop policy if exists "attendance insert own"   on public.attendance;
 drop policy if exists "attendance update own"   on public.attendance;
+drop policy if exists "attendance all own"      on public.attendance;
 
-create policy "attendance select own"   on public.attendance for select using (auth.uid() = user_id);
-create policy "attendance select admin" on public.attendance for select using (public.is_admin());
-create policy "attendance insert own"   on public.attendance for insert with check (auth.uid() = user_id);
-create policy "attendance update own"   on public.attendance for update using (auth.uid() = user_id);
+create policy "attendance all own" on public.attendance
+  for all
+  using (auth.uid() = user_id)
+  with check (auth.uid() = user_id);
+create policy "attendance select admin" on public.attendance
+  for select using (public.is_admin());
 
 -- ============================================================================
 -- After the first user signs up, promote them to admin (run once, replace email):
