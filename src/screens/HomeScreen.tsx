@@ -43,6 +43,11 @@ export function HomeScreen({
   const afterNoon = now.getHours() >= 12;
   const primaryMode: 'in' | 'out' = afterNoon ? 'out' : 'in';
 
+  // Time-of-day greeting: pagi 05–10 · siang 11–14 · sore 15–18 · malam 19–04.
+  const h = now.getHours();
+  const greetKey = h < 5 ? 'night' : h < 11 ? 'morning' : h < 15 ? 'noon' : h < 19 ? 'afternoon' : 'night';
+  const greeting = s.home.greet[greetKey];
+
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 24 }}>
       {/* Header */}
@@ -61,7 +66,7 @@ export function HomeScreen({
           <Avatar name={userName} size={46} ring={color.skyTint} />
           <View>
             <Txt size={13} color={color.muted}>
-              {s.home.greeting}
+              {greeting}
             </Txt>
             <Txt w="bold" size={17} color={color.ink}>
               {userName}
@@ -188,34 +193,6 @@ export function HomeScreen({
         </View>
       </Section>
 
-      {/* Leave balance */}
-      <Section title={null}>
-        <View
-          style={{
-            backgroundColor: color.white,
-            borderWidth: 1,
-            borderColor: color.line,
-            borderRadius: 22,
-            padding: 18,
-            overflow: 'hidden',
-          }}
-        >
-          <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: color.humanAccent }} />
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <Txt w="bold" size={14} color={color.ink}>
-              {s.home.leaveTitle}
-            </Txt>
-            <Txt w="semibold" size={13} color={color.anugrahBlue}>
-              {s.home.seeAll}
-            </Txt>
-          </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
-            <BalanceCell label={s.home.entitle} value="12" bg={color.skyTint} valueColor={color.deepNavy} />
-            <BalanceCell label={s.home.taken} value="4" bg={color.dangerBg} valueColor={color.danger} />
-            <BalanceCell label={s.home.balance} value="8" bg={color.successBg} valueColor={color.success} />
-          </View>
-        </View>
-      </Section>
     </ScrollView>
   );
 }
@@ -229,19 +206,6 @@ function Section({ title, children }: { title: string | null; children: React.Re
         </Txt>
       )}
       {children}
-    </View>
-  );
-}
-
-function BalanceCell({ label, value, bg, valueColor }: { label: string; value: string; bg: string; valueColor: string }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', paddingVertical: 10, paddingHorizontal: 4, borderRadius: 14, backgroundColor: bg }}>
-      <Txt w="extrabold" size={22} color={valueColor} tabular>
-        {value}
-      </Txt>
-      <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
-        {label}
-      </Txt>
     </View>
   );
 }

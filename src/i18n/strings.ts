@@ -26,6 +26,7 @@ const id = {
   nav: { home: 'Beranda', history: 'Riwayat', clock: 'Absen', leave: 'Izin', profile: 'Profil' },
   home: {
     greeting: 'Selamat pagi,',
+    greet: { morning: 'Selamat pagi,', noon: 'Selamat siang,', afternoon: 'Selamat sore,', night: 'Selamat malam,' },
     name: 'Andi Pratama',
     shift: 'Shift reguler',
     hours: '08:30 – 17:30',
@@ -209,6 +210,7 @@ const en = {
   nav: { home: 'Home', history: 'History', clock: 'Clock', leave: 'Leave', profile: 'Profile' },
   home: {
     greeting: 'Good morning,',
+    greet: { morning: 'Good morning,', noon: 'Good afternoon,', afternoon: 'Good evening,', night: 'Good night,' },
     name: 'Andi Pratama',
     shift: 'Regular shift',
     hours: '08:30 – 17:30',
