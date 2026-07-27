@@ -21,3 +21,4 @@ export { SearchField } from './SearchField';
 export { Field } from './Field';
 export { SelectField, type SelectOption } from './SelectField';
 export { SegmentedTabs } from './SegmentedTabs';
+export { Stepper } from './Stepper';

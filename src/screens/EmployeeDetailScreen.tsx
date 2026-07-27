@@ -3,7 +3,7 @@ import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from
 import * as Clipboard from 'expo-clipboard';
 import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog } from '../components';
+import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
@@ -23,7 +23,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   // Annual-leave quota (accrual + manual adjustment)
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
   const [joinDraft, setJoinDraft] = useState('');
-  const [adjustDraft, setAdjustDraft] = useState('0');
+  const [adjustVal, setAdjustVal] = useState(0);
   const [quotaBusy, setQuotaBusy] = useState(false);
   const [quotaSaved, setQuotaSaved] = useState(false);
 
@@ -78,7 +78,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     const b = await fetchLeaveBalance(member.id);
     setBalance(b);
     setJoinDraft(b.joinDate ?? '');
-    setAdjustDraft(String(b.adjust));
+    setAdjustVal(b.adjust);
   };
 
   useEffect(() => {
@@ -107,10 +107,9 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   };
 
   const saveAdjust = async () => {
-    const n = parseInt(adjustDraft, 10);
-    if (Number.isNaN(n) || quotaBusy) return;
+    if (quotaBusy) return;
     setQuotaBusy(true);
-    const ok = await setLeaveQuotaAdjust(member.id, n);
+    const ok = await setLeaveQuotaAdjust(member.id, adjustVal);
     if (ok) await loadBalance();
     setQuotaBusy(false);
     if (ok) flashSaved();
@@ -247,28 +246,18 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               ))}
             </View>
 
-            {/* Manual adjustment */}
+            {/* Manual adjustment — stepper */}
             <View>
               <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
                 {s.adm.adjustLabel}
               </Txt>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
-                  <TextInput
-                    value={adjustDraft}
-                    onChangeText={(t) => setAdjustDraft(t.replace(/[^0-9-]/g, ''))}
-                    keyboardType="numbers-and-punctuation"
-                    style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 16, color: color.ink, padding: 0 }}
-                  />
-                  <Txt size={12} color={color.muted}>
-                    {s.adm.adjustUnit}
-                  </Txt>
-                </View>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md }}>
+                <Stepper value={adjustVal} onChange={setAdjustVal} min={-30} max={30} step={1} units={s.adm.adjustUnit} signed />
                 <Button
                   variant="secondary"
                   size="md"
                   label={s.prof.save}
-                  disabled={quotaBusy || adjustDraft === '' || adjustDraft === '-' || parseInt(adjustDraft, 10) === balance.adjust}
+                  disabled={quotaBusy || adjustVal === balance.adjust}
                   onPress={saveAdjust}
                 />
               </View>

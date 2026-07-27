@@ -277,7 +277,7 @@ const id = {
     accrued: 'Terkumpul',
     carryOver: 'Carry-over',
     adjustLabel: 'Penyesuaian manual',
-    adjustUnit: 'hari (+/−)',
+    adjustUnit: 'hari',
     accrualNote: '+1 hari/bulan sejak bergabung · maks 12/tahun · sisa carry-over berlaku 6 bulan',
   },
   dh: {
@@ -565,7 +565,7 @@ const en = {
     accrued: 'Accrued',
     carryOver: 'Carry-over',
     adjustLabel: 'Manual adjustment',
-    adjustUnit: 'days (+/−)',
+    adjustUnit: 'days',
     accrualNote: '+1 day/month since joining · max 12/year · carry-over valid 6 months',
   },
   dh: {
