@@ -62,8 +62,8 @@ export function HistoryScreen() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: space[20],
-          paddingVertical: space[16],
+          paddingHorizontal: space.lg,
+          paddingVertical: space.lg,
           backgroundColor: color.white,
           borderBottomWidth: 1,
           borderBottomColor: color.line,
@@ -76,9 +76,9 @@ export function HistoryScreen() {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: space[4],
-            paddingVertical: space[7],
-            paddingHorizontal: space[12],
+            gap: space.xs,
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
             backgroundColor: color.skyTint,
             borderRadius: radius.pill,
           }}
@@ -90,26 +90,26 @@ export function HistoryScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: space[22] }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: space.xl }}>
         {/* Stat cells */}
-        <View style={{ flexDirection: 'row', gap: space[10], paddingHorizontal: space[18], paddingTop: space[18] }}>
+        <View style={{ flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingTop: space.lg }}>
           <HistStat value={String(stats.ontime)} label={s.hist.present} valueColor={color.success} />
           <HistStat value={String(stats.late)} label={s.hist.late} valueColor={color.danger} />
           <HistStat value={String(stats.leave)} label={s.hist.leave} valueColor={color.anugrahBlue} />
         </View>
 
         {loading ? (
-          <View style={{ paddingTop: space[48], alignItems: 'center' }}>
+          <View style={{ paddingTop: space['2xl'], alignItems: 'center' }}>
             <ActivityIndicator color={color.anugrahBlue} />
           </View>
         ) : rows.length === 0 ? (
-          <View style={{ paddingTop: space[48], paddingHorizontal: space[18], alignItems: 'center' }}>
+          <View style={{ paddingTop: space['2xl'], paddingHorizontal: space.lg, alignItems: 'center' }}>
             <Txt size={14} color={color.muted} style={{ textAlign: 'center' }}>
               {s.hist.empty}
             </Txt>
           </View>
         ) : (
-          <View style={{ gap: space[10], paddingHorizontal: space[18], paddingTop: space[20] }}>
+          <View style={{ gap: space.md, paddingHorizontal: space.lg, paddingTop: space.lg }}>
             {rows.map((r) => {
               const d = parseYmd(r.date);
               const thumb = r.clockInPhoto ? urls[r.clockInPhoto] : undefined;
@@ -121,15 +121,15 @@ export function HistoryScreen() {
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
-                    gap: space[14],
+                    gap: space.md,
                     backgroundColor: color.white,
                     borderWidth: 1,
                     borderColor: color.line,
-                    borderRadius: radius[18],
-                    padding: space[14],
+                    borderRadius: radius.md,
+                    padding: space.md,
                   }}
                 >
-                  <View style={{ width: 46, height: 46, borderRadius: radius[14], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ width: 46, height: 46, borderRadius: radius.md, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                     <Txt w="semibold" size={11} color={color.muted} style={{ textTransform: 'uppercase' }}>
                       {weekdayShort(d, lang)}
                     </Txt>
@@ -139,7 +139,7 @@ export function HistoryScreen() {
                   </View>
 
                   <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', gap: space[14] }}>
+                    <View style={{ flexDirection: 'row', gap: space.md }}>
                       <Txt size={14} color={color.ink} tabular>
                         <Txt size={12} color={color.muted}>
                           {s.out.inAt}{'  '}
@@ -153,7 +153,7 @@ export function HistoryScreen() {
                         {r.clockOutTime ?? '—'}
                       </Txt>
                     </View>
-                    <Txt size={12} color={color.muted} style={{ marginTop: space[3] }}>
+                    <Txt size={12} color={color.muted} style={{ marginTop: space.xs }}>
                       {monthYear(d, lang)}
                     </Txt>
                   </View>
@@ -161,9 +161,9 @@ export function HistoryScreen() {
                   {/* Selfie thumbnail (clock-in), if present */}
                   {hasPhoto &&
                     (thumb ? (
-                      <Image source={{ uri: thumb }} style={{ width: 38, height: 38, borderRadius: radius[10], backgroundColor: color.line }} />
+                      <Image source={{ uri: thumb }} style={{ width: 38, height: 38, borderRadius: radius.sm, backgroundColor: color.line }} />
                     ) : (
-                      <View style={{ width: 38, height: 38, borderRadius: radius[10], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                      <View style={{ width: 38, height: 38, borderRadius: radius.sm, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                         <Camera size={16} color={color.anugrahBlue} strokeWidth={2} />
                       </View>
                     ))}
@@ -185,7 +185,7 @@ export function HistoryScreen() {
                 {s.hist.photoTitle}
               </Txt>
               {sel && (
-                <Txt size={12} color={color.muted} style={{ marginTop: space[2] }}>
+                <Txt size={12} color={color.muted} style={{ marginTop: space.xs }}>
                   {dateStr(parseYmd(sel.date), lang)}
                 </Txt>
               )}
@@ -208,7 +208,7 @@ export function HistoryScreen() {
 function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string | null; uri?: string; noPhoto: string }) {
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space[6] }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm }}>
         <Txt w="semibold" size={12} color={color.muted}>
           {label}
         </Txt>
@@ -219,9 +219,9 @@ function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string 
         )}
       </View>
       {uri ? (
-        <Image source={{ uri }} style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius[14], backgroundColor: color.line }} resizeMode="cover" />
+        <Image source={{ uri }} style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius.md, backgroundColor: color.line }} resizeMode="cover" />
       ) : (
-        <View style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius[14], backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, alignItems: 'center', justifyContent: 'center', gap: space[6] }}>
+        <View style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius.md, backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, alignItems: 'center', justifyContent: 'center', gap: space.sm }}>
           <Camera size={22} color={color.muted} strokeWidth={2} />
           <Txt size={11} color={color.muted}>
             {noPhoto}
@@ -234,11 +234,11 @@ function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string 
 
 function HistStat({ value, label, valueColor }: { value: string; label: string; valueColor: string }) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[16], paddingVertical: space[12], paddingHorizontal: space[4] }}>
+    <View style={{ flex: 1, alignItems: 'center', backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.xs }}>
       <Txt w="extrabold" size={22} color={valueColor} tabular>
         {value}
       </Txt>
-      <Txt size={12} color={color.muted} style={{ marginTop: space[2] }}>
+      <Txt size={12} color={color.muted} style={{ marginTop: space.xs }}>
         {label}
       </Txt>
     </View>

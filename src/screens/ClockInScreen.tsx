@@ -61,8 +61,8 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.in.title} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: space[18] }}>
-        <View style={{ marginBottom: space[16] }}>
+      <ScrollView contentContainerStyle={{ padding: space.lg }}>
+        <View style={{ marginBottom: space.lg }}>
           <SelectField
             label={s.home.actionType}
             value="in"
@@ -73,22 +73,22 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
             onChange={(v) => v === 'out' && onSwitchMode?.('out')}
           />
         </View>
-        <Txt size={13} color={color.muted} style={{ marginBottom: space[14] }}>
+        <Txt size={13} color={color.muted} style={{ marginBottom: space.md }}>
           {s.in.photoHint}
         </Txt>
 
         <CameraViewfinder height={300} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} busy={submitting} busyMessage={s.dlg.processing} />
-        <Txt size={12} color={color.muted} style={{ marginTop: space[10], textAlign: 'center' }}>
+        <Txt size={12} color={color.muted} style={{ marginTop: space.md, textAlign: 'center' }}>
           {s.in.faceGuide}
         </Txt>
 
         {/* Location card */}
-        <View style={{ marginTop: space[18], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[22], padding: space[18] }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space[12] }}>
+        <View style={{ marginTop: space.lg, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.lg, padding: space.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
             <Txt w="bold" size={14} color={color.ink}>
               {s.in.locTitle}
             </Txt>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[8] }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
               <Badge tone={geo.tone} variant="soft" dot label={geo.label} />
               <Pressable onPress={loc.refresh} hitSlop={8} accessibilityLabel={s.loc.retry}>
                 <RefreshCw size={16} color={color.muted} strokeWidth={2} />
@@ -98,7 +98,7 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
 
           <MiniMap height={120} />
 
-          <View style={{ marginTop: space[14] }}>
+          <View style={{ marginTop: space.md }}>
             <Txt w="semibold" size={14} color={color.ink}>
               {OFFICE.name[lang]}
             </Txt>
@@ -106,13 +106,13 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
               {OFFICE.address[lang]}
             </Txt>
             {loc.distanceM != null && (
-              <Txt size={12} color={loc.inRadius ? color.success : color.danger} tabular style={{ marginTop: space[6] }}>
+              <Txt size={12} color={loc.inRadius ? color.success : color.danger} tabular style={{ marginTop: space.sm }}>
                 {formatDistance(loc.distanceM, lang)} {s.loc.away}
               </Txt>
             )}
           </View>
 
-          <View style={{ flexDirection: 'row', gap: space[8], marginTop: space[12], flexWrap: 'wrap' }}>
+          <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.md, flexWrap: 'wrap' }}>
             <DataTag label={s.in.coord} value={coordText} tone="brand" />
             <DataTag label={s.in.nowLabel} value={clock} tone="navy" />
           </View>
@@ -120,9 +120,9 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
       </ScrollView>
 
       {/* Confirm */}
-      <View style={{ paddingHorizontal: space[18], paddingTop: space[16], paddingBottom: space[16] + insets.bottom, backgroundColor: color.paper }}>
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.lg + insets.bottom, backgroundColor: color.paper }}>
         <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm || submitting || alreadyDone} onPress={onConfirmPress} />
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[6], marginTop: space[12], paddingHorizontal: space[8] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, marginTop: space.md, paddingHorizontal: space.sm }}>
           {alreadyDone ? (
             <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center' }}>
               {s.in.alreadyDone}

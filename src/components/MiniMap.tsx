@@ -13,7 +13,7 @@ export function MiniMap({ height = 120 }: { height?: number }) {
     <View
       style={{
         height,
-        borderRadius: radius[16],
+        borderRadius: radius.md,
         overflow: 'hidden',
         backgroundColor: color.skyTint,
         alignItems: 'center',
@@ -33,7 +33,7 @@ export function MiniMap({ height = 120 }: { height?: number }) {
         }}
       />
       {/* Pin — nudged up so its tip sits at the circle centre */}
-      <View style={{ marginBottom: space[20] }}>
+      <View style={{ marginBottom: space.lg }}>
         <MapPin size={26} color={color.anugrahBlue} fill={color.skyTint} strokeWidth={2} />
       </View>
     </View>

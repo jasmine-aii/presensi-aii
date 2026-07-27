@@ -20,8 +20,8 @@ export function LeaveScreen() {
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: space[20],
-          paddingVertical: space[16],
+          paddingHorizontal: space.lg,
+          paddingVertical: space.lg,
           backgroundColor: color.white,
           borderBottomWidth: 1,
           borderBottomColor: color.line,
@@ -34,9 +34,9 @@ export function LeaveScreen() {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: space[5],
-            paddingVertical: space[7],
-            paddingHorizontal: space[12],
+            gap: space.xs,
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
             backgroundColor: color.anugrahBlue,
             borderRadius: radius.pill,
           }}
@@ -48,12 +48,12 @@ export function LeaveScreen() {
         </View>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: space[18], paddingBottom: space[22] }}>
+      <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl }}>
         {/* Type grid */}
-        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space[10] }}>
+        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space.md }}>
           {s.leave.typeTitle}
         </Txt>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[12] }}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
           {s.leaveTypes.map((label, i) => (
             <View
               key={label}
@@ -62,11 +62,11 @@ export function LeaveScreen() {
                 backgroundColor: color.white,
                 borderWidth: 1,
                 borderColor: color.line,
-                borderRadius: radius[18],
-                paddingVertical: space[16],
-                paddingHorizontal: space[8],
+                borderRadius: radius.md,
+                paddingVertical: space.lg,
+                paddingHorizontal: space.sm,
                 alignItems: 'center',
-                gap: space[9],
+                gap: space.sm,
               }}
             >
               <IconTile icon={leaveTypeIcons[i]} />
@@ -78,7 +78,7 @@ export function LeaveScreen() {
         </View>
 
         {/* Recent requests */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space[22], marginBottom: space[10] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xl, marginBottom: space.md }}>
           <Txt w="bold" size={14} color={color.ink}>
             {s.leave.reqTitle}
           </Txt>
@@ -86,19 +86,19 @@ export function LeaveScreen() {
             {s.home.seeAll}
           </Txt>
         </View>
-        <View style={{ gap: space[10] }}>
+        <View style={{ gap: space.md }}>
           {reqs.map((q) => (
             <View
               key={q.type + q.dates}
               style={{
                 flexDirection: 'row',
                 alignItems: 'center',
-                gap: space[14],
+                gap: space.md,
                 backgroundColor: color.white,
                 borderWidth: 1,
                 borderColor: color.line,
-                borderRadius: radius[18],
-                padding: space[15],
+                borderRadius: radius.md,
+                padding: space.lg,
               }}
             >
               <IconTile icon={q.icon} size={42} radius={12} iconSize={22} />
@@ -106,7 +106,7 @@ export function LeaveScreen() {
                 <Txt w="semibold" size={14} color={color.ink}>
                   {q.type}
                 </Txt>
-                <Txt size={12} color={color.muted} tabular style={{ marginTop: space[2] }}>
+                <Txt size={12} color={color.muted} tabular style={{ marginTop: space.xs }}>
                   {q.dates} · {q.days} {s.daysUnit}
                 </Txt>
               </View>

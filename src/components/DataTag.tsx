@@ -30,8 +30,8 @@ export function DataTag({ label, value, tone = 'default' }: DataTagProps) {
     borderWidth: 1,
     borderColor: t.border,
     borderRadius: radius.sm,
-    paddingVertical: space[5],
-    paddingHorizontal: space[10],
+    paddingVertical: space.xs,
+    paddingHorizontal: space.md,
   };
   return (
     <View style={container}>

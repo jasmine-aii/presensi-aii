@@ -52,11 +52,11 @@ export function CameraViewfinder({
   const showCamera = active && permission?.granted;
 
   return (
-    <View style={{ width: '100%', height, borderRadius: radius[24], overflow: 'hidden', backgroundColor: color.deepNavy, alignItems: 'center', justifyContent: 'center' }}>
+    <View style={{ width: '100%', height, borderRadius: radius.lg, overflow: 'hidden', backgroundColor: color.deepNavy, alignItems: 'center', justifyContent: 'center' }}>
       {showCamera ? (
         <CameraView ref={cameraRef} style={StyleSheet.absoluteFill} facing="front" />
       ) : (
-        <View style={{ alignItems: 'center', gap: space[8], paddingHorizontal: space[24] }}>
+        <View style={{ alignItems: 'center', gap: space.sm, paddingHorizontal: space.xl }}>
           {permission && !permission.granted && !permission.canAskAgain ? (
             <>
               <CameraOff size={30} color="rgba(255,255,255,0.5)" strokeWidth={1.75} />
@@ -102,11 +102,11 @@ export function CameraViewfinder({
           bottom: 12,
           flexDirection: 'row',
           alignItems: 'center',
-          gap: space[6],
-          paddingVertical: space[8],
-          paddingHorizontal: space[12],
+          gap: space.sm,
+          paddingVertical: space.sm,
+          paddingHorizontal: space.md,
           backgroundColor: 'rgba(14,17,22,0.55)',
-          borderRadius: radius[12],
+          borderRadius: radius.sm,
         }}
       >
         <MapPin size={15} color={color.humanAccent} strokeWidth={2} />
@@ -117,7 +117,7 @@ export function CameraViewfinder({
 
       {/* Processing overlay — masks the frozen frame during capture/upload */}
       {busy && (
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,17,40,0.6)', alignItems: 'center', justifyContent: 'center', gap: space[10] }]}>
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,17,40,0.6)', alignItems: 'center', justifyContent: 'center', gap: space.md }]}>
           <ActivityIndicator color={color.humanAccent} size="large" />
           {busyMessage ? (
             <Txt w="semibold" size={13} color={color.white}>

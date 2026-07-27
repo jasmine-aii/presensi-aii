@@ -58,7 +58,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
 
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space.sm }}>
         {label}
       </Txt>
       <Pressable
@@ -66,7 +66,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
         accessibilityRole="button"
         onPress={openMenu}
         onLayout={measure}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: space[8], backgroundColor: color.white, borderWidth: 1, borderColor: open ? color.anugrahBlue : color.line, borderRadius: radius[12], padding: space[14] }}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: color.white, borderWidth: 1, borderColor: open ? color.anugrahBlue : color.line, borderRadius: radius.sm, padding: space.md }}
       >
         {Icon && <Icon size={20} color={color.anugrahBlue} strokeWidth={2} />}
         <Txt w="regular" size={14} color={color.ink} style={{ flex: 1 }}>
@@ -87,13 +87,13 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
               backgroundColor: color.white,
               borderWidth: 1,
               borderColor: color.line,
-              borderRadius: radius[12],
+              borderRadius: radius.sm,
               overflow: 'hidden',
               ...elevation('card'),
             }}
           >
             {adding ? (
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[8], padding: space[12] }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, padding: space.md }}>
                 <TextInput
                   autoFocus
                   value={draft}
@@ -101,9 +101,9 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
                   onSubmitEditing={submitAdd}
                   placeholder={addPlaceholder}
                   placeholderTextColor={color.muted}
-                  style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, borderWidth: 1, borderColor: color.line, borderRadius: radius[10], paddingHorizontal: space[12], paddingVertical: space[10] }}
+                  style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}
                 />
-                <Pressable onPress={submitAdd} style={{ width: 40, height: 40, borderRadius: radius[10], backgroundColor: color.anugrahBlue, alignItems: 'center', justifyContent: 'center' }}>
+                <Pressable onPress={submitAdd} style={{ width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.anugrahBlue, alignItems: 'center', justifyContent: 'center' }}>
                   <Check size={18} color={color.white} strokeWidth={2.5} />
                 </Pressable>
               </View>
@@ -118,7 +118,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
                         onChange(o.value);
                         setOpen(false);
                       }}
-                      style={{ flexDirection: 'row', alignItems: 'center', gap: space[12], paddingHorizontal: space[14], paddingVertical: space[13], borderTopWidth: i === 0 ? 0 : 1, borderTopColor: color.line, backgroundColor: active ? color.skyTint : color.white }}
+                      style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingHorizontal: space.md, paddingVertical: space.md, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: color.line, backgroundColor: active ? color.skyTint : color.white }}
                     >
                       <Txt w={active ? 'semibold' : 'regular'} size={14} color={active ? color.anugrahBlue : color.ink} style={{ flex: 1 }}>
                         {o.label}
@@ -130,7 +130,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
                 {allowAdd && (
                   <Pressable
                     onPress={() => { setDraft(''); setAdding(true); }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: space[8], paddingHorizontal: space[14], paddingVertical: space[13], borderTopWidth: 1, borderTopColor: color.line, backgroundColor: color.white }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.md, paddingVertical: space.md, borderTopWidth: 1, borderTopColor: color.line, backgroundColor: color.white }}
                   >
                     <Plus size={16} color={color.anugrahBlue} strokeWidth={2.5} />
                     <Txt w="semibold" size={14} color={color.anugrahBlue}>

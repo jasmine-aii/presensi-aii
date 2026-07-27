@@ -16,7 +16,7 @@ export function LangSwitch() {
         accessibilityRole="button"
         accessibilityState={{ selected: active }}
         onPress={() => setLang(value)}
-        style={{ paddingVertical: space[8], paddingHorizontal: space[18], borderRadius: radius.pill, backgroundColor: active ? color.anugrahBlue : 'transparent' }}
+        style={{ paddingVertical: space.sm, paddingHorizontal: space.lg, borderRadius: radius.pill, backgroundColor: active ? color.anugrahBlue : 'transparent' }}
       >
         <Txt w="bold" size={14} color={active ? color.white : color.muted}>
           {text}
@@ -28,8 +28,8 @@ export function LangSwitch() {
     <View
       style={{
         flexDirection: 'row',
-        gap: space[4],
-        padding: space[4],
+        gap: space.xs,
+        padding: space.xs,
         borderRadius: radius.pill,
         backgroundColor: color.white,
         borderWidth: 1,

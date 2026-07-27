@@ -17,11 +17,11 @@ export interface SegmentedTabsProps {
 /** Underlined segmented control (e.g. Approval queue's Pending · 3 / History). */
 export function SegmentedTabs({ tabs, active, onChange }: SegmentedTabsProps) {
   return (
-    <View style={{ flexDirection: 'row', gap: space[24] }}>
+    <View style={{ flexDirection: 'row', gap: space.xl }}>
       {tabs.map((t) => {
         const isActive = t.key === active;
         return (
-          <Pressable key={t.key} onPress={() => onChange(t.key)} style={{ paddingBottom: space[12], borderBottomWidth: 2, borderBottomColor: isActive ? color.anugrahBlue : 'transparent' }}>
+          <Pressable key={t.key} onPress={() => onChange(t.key)} style={{ paddingBottom: space.md, borderBottomWidth: 2, borderBottomColor: isActive ? color.anugrahBlue : 'transparent' }}>
             <Txt w={isActive ? 'bold' : 'semibold'} size={14} color={isActive ? color.anugrahBlue : color.muted}>
               {t.label}
             </Txt>

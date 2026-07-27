@@ -75,20 +75,20 @@ export function HomeScreen({
   const rem = useClockReminders(shift, clockInTime, clockOutTime);
 
   return (
-    <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: space[24] }}>
+    <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: space.xl }}>
       {/* Header */}
       <View
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-between',
-          paddingHorizontal: space[22],
-          paddingTop: space[16],
-          paddingBottom: space[14],
+          paddingHorizontal: space.xl,
+          paddingTop: space.lg,
+          paddingBottom: space.md,
           backgroundColor: color.white,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[12] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
           <Avatar name={userName} size={46} ring={color.skyTint} />
           <View>
             <Txt size={13} color={color.muted}>
@@ -99,7 +99,7 @@ export function HomeScreen({
             </Txt>
           </View>
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[14] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
           <Bell size={22} color={color.muted} strokeWidth={2} />
           <LogoMark height={26} />
         </View>
@@ -108,11 +108,11 @@ export function HomeScreen({
       {/* Navy hero */}
       <View
         style={{
-          marginHorizontal: space[18],
-          marginTop: space[16],
-          padding: space[22],
-          paddingBottom: space[24],
-          borderRadius: radius[26],
+          marginHorizontal: space.lg,
+          marginTop: space.lg,
+          padding: space.xl,
+          paddingBottom: space.xl,
+          borderRadius: radius.lg,
           backgroundColor: color.deepNavy,
           overflow: 'hidden',
         }}
@@ -126,20 +126,20 @@ export function HomeScreen({
             {win.startStr} – {win.endStr}
           </Txt>
         </View>
-        <Txt size={14} color="rgba(255,255,255,0.7)" style={{ marginTop: space[14] }}>
+        <Txt size={14} color="rgba(255,255,255,0.7)" style={{ marginTop: space.md }}>
           {dateStr(now, lang)}
         </Txt>
-        <Txt w="extrabold" size={44} color={color.white} tabular style={{ marginTop: space[4], letterSpacing: -1.5 }}>
+        <Txt w="extrabold" size={44} color={color.white} tabular style={{ marginTop: space.xs, letterSpacing: -1.5 }}>
           {timeStr(now)}
         </Txt>
 
         {/* Clock In / Clock Out / total work hours */}
-        <View style={{ flexDirection: 'row', gap: space[22], marginTop: space[14] }}>
+        <View style={{ flexDirection: 'row', gap: space.xl, marginTop: space.md }}>
           <View>
             <Txt size={11} color="rgba(255,255,255,0.6)">
               {s.home.inLabel}
             </Txt>
-            <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: space[2] }}>
+            <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: space.xs }}>
               {clockInTime ?? s.home.dash}
             </Txt>
           </View>
@@ -147,7 +147,7 @@ export function HomeScreen({
             <Txt size={11} color="rgba(255,255,255,0.6)">
               {s.home.outLabel}
             </Txt>
-            <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: space[2] }}>
+            <Txt w="bold" size={17} color={color.white} tabular style={{ marginTop: space.xs }}>
               {clockOutTime ?? s.home.dash}
             </Txt>
           </View>
@@ -155,7 +155,7 @@ export function HomeScreen({
             <Txt size={11} color="rgba(255,255,255,0.6)">
               {s.home.workLabel}
             </Txt>
-            <Txt w="bold" size={17} color={color.humanAccent} tabular style={{ marginTop: space[2] }}>
+            <Txt w="bold" size={17} color={color.humanAccent} tabular style={{ marginTop: space.xs }}>
               {workStr}
             </Txt>
           </View>
@@ -165,11 +165,11 @@ export function HomeScreen({
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            gap: space[8],
+            gap: space.sm,
             alignSelf: 'flex-start',
-            marginTop: space[14],
-            paddingVertical: space[7],
-            paddingHorizontal: space[14],
+            marginTop: space.md,
+            paddingVertical: space.sm,
+            paddingHorizontal: space.md,
             borderRadius: radius.pill,
             backgroundColor: sc.bg,
             borderWidth: 1,
@@ -184,15 +184,15 @@ export function HomeScreen({
       </View>
 
       {/* Primary clock action */}
-      <View style={{ paddingHorizontal: space[18], paddingTop: space[18] }}>
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
         <Button variant="primary" size="lg" fullWidth label={afterNoon ? s.home.clockOut : s.home.clockIn} onPress={() => onClock?.(primaryMode)} />
       </View>
 
       {/* Attendance reminders */}
       <Section title={s.home.remindTitle}>
-        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[18], padding: space[16] }}>
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg }}>
           {/* Notification status / enable */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[10], paddingBottom: space[12], marginBottom: space[12], borderBottomWidth: 1, borderBottomColor: color.line }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingBottom: space.md, marginBottom: space.md, borderBottomWidth: 1, borderBottomColor: color.line }}>
             {rem.permission === 'granted' ? (
               <>
                 <BellRing size={18} color={color.success} strokeWidth={2} />
@@ -206,7 +206,7 @@ export function HomeScreen({
                 <Txt size={13} color={color.muted} style={{ flex: 1 }}>
                   {s.home.remindNote}
                 </Txt>
-                <Pressable onPress={rem.requestPermission} style={{ paddingVertical: space[7], paddingHorizontal: space[12], borderRadius: radius.pill, backgroundColor: color.anugrahBlue }}>
+                <Pressable onPress={rem.requestPermission} style={{ paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: radius.pill, backgroundColor: color.anugrahBlue }}>
                   <Txt w="semibold" size={12} color={color.white}>
                     {s.home.enableNotif}
                   </Txt>
@@ -224,8 +224,8 @@ export function HomeScreen({
 
           {/* Reminder rows */}
           {rem.items.map((it) => (
-            <View key={it.kind} style={{ flexDirection: 'row', alignItems: 'center', gap: space[12], paddingVertical: space[6] }}>
-              <View style={{ width: 34, height: 34, borderRadius: radius[10], backgroundColor: it.done ? color.successBg : color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <View key={it.kind} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm }}>
+              <View style={{ width: 34, height: 34, borderRadius: radius.sm, backgroundColor: it.done ? color.successBg : color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                 {it.done ? <Check size={18} color={color.success} strokeWidth={2.5} /> : <ClockIcon size={17} color={color.anugrahBlue} strokeWidth={2} />}
               </View>
               <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
@@ -247,7 +247,7 @@ export function HomeScreen({
 
       {/* Quick menu */}
       <Section title={s.home.menuTitle}>
-        <View onLayout={(e) => setRowW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space[12] }}>
+        <View onLayout={(e) => setRowW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
           {s.menu.map((label, i) => {
             if (HIDDEN_MENU.has(i)) return null;
             const disabled = DISABLED_MENU.has(i);
@@ -256,11 +256,11 @@ export function HomeScreen({
               backgroundColor: color.white,
               borderWidth: 1,
               borderColor: color.line,
-              borderRadius: radius[18],
-              paddingVertical: space[14],
-              paddingHorizontal: space[8],
+              borderRadius: radius.md,
+              paddingVertical: space.md,
+              paddingHorizontal: space.sm,
               alignItems: 'center' as const,
-              gap: space[8],
+              gap: space.sm,
               opacity: disabled ? 0.4 : 1,
             };
             const inner = (
@@ -290,9 +290,9 @@ export function HomeScreen({
 
 function Section({ title, children }: { title: string | null; children: React.ReactNode }) {
   return (
-    <View style={{ paddingHorizontal: space[18], paddingTop: space[22] }}>
+    <View style={{ paddingHorizontal: space.lg, paddingTop: space.xl }}>
       {title != null && (
-        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space[12] }}>
+        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space.md }}>
           {title}
         </Txt>
       )}

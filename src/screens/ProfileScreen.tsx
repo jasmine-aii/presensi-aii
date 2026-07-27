@@ -61,26 +61,26 @@ export function ProfileScreen({
   return (
     <ScrollView style={{ backgroundColor: color.paper }}>
       {/* Navy header */}
-      <View style={{ backgroundColor: color.deepNavy, paddingHorizontal: space[20], paddingTop: space[20], paddingBottom: space[26], overflow: 'hidden' }}>
+      <View style={{ backgroundColor: color.deepNavy, paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.xl, overflow: 'hidden' }}>
         <GlowCircle size={200} top={-70} right={-50} />
-        <Txt w="bold" size={17} color={color.white} style={{ marginBottom: space[18] }}>
+        <Txt w="bold" size={17} color={color.white} style={{ marginBottom: space.lg }}>
           {s.prof.title}
         </Txt>
-        <View style={{ flexDirection: 'row', gap: space[16], alignItems: 'center' }}>
+        <View style={{ flexDirection: 'row', gap: space.lg, alignItems: 'center' }}>
           <Avatar name={userName} size={72} ring="rgba(149,252,246,0.5)" />
           <View style={{ flex: 1 }}>
             <Txt w="extrabold" size={22} color={color.white}>
               {userName}
             </Txt>
-            <Txt size={14} color="rgba(255,255,255,0.72)" style={{ marginTop: space[2], marginBottom: space[8] }}>
+            <Txt size={14} color="rgba(255,255,255,0.72)" style={{ marginTop: space.xs, marginBottom: space.sm }}>
               {(role ?? s.prof.role) + ' · ' + (dept ?? s.prof.dept)}
             </Txt>
             <View
               style={{
                 flexDirection: 'row',
                 alignSelf: 'flex-start',
-                paddingVertical: space[5],
-                paddingHorizontal: space[11],
+                paddingVertical: space.xs,
+                paddingHorizontal: space.md,
                 backgroundColor: 'rgba(149,252,246,0.14)',
                 borderWidth: 1,
                 borderColor: 'rgba(149,252,246,0.4)',
@@ -95,13 +95,13 @@ export function ProfileScreen({
         </View>
       </View>
 
-      <View style={{ padding: space[18], gap: space[18] }}>
+      <View style={{ padding: space.lg, gap: space.lg }}>
         {/* Detail list */}
-        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[22], overflow: 'hidden' }}>
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.lg, overflow: 'hidden' }}>
           {rows.map((r) => {
             const Icon = r.icon;
             return (
-              <View key={r.label} style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], paddingVertical: space[15], paddingHorizontal: space[18], borderBottomWidth: 1, borderBottomColor: color.line }}>
+              <View key={r.label} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: color.line }}>
                 <Icon size={20} color={color.muted} strokeWidth={2} />
                 <Txt size={13} color={color.muted} style={{ width: 96 }}>
                   {r.label}
@@ -112,7 +112,7 @@ export function ProfileScreen({
               </View>
             );
           })}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], paddingVertical: space[15], paddingHorizontal: space[18] }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg }}>
             <CircleCheck size={20} color={color.success} strokeWidth={2} />
             <Txt size={13} color={color.muted} style={{ width: 96 }}>
               {s.prof.rate}
@@ -127,10 +127,10 @@ export function ProfileScreen({
         {isAdmin && (
           <Pressable
             onPress={onOpenAdmin}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], backgroundColor: color.deepNavy, borderRadius: radius[18], paddingVertical: space[16], paddingHorizontal: space[18], overflow: 'hidden' }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.deepNavy, borderRadius: radius.md, paddingVertical: space.lg, paddingHorizontal: space.lg, overflow: 'hidden' }}
           >
             <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
-            <View style={{ width: 42, height: 42, borderRadius: radius[12], backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 42, height: 42, borderRadius: radius.sm, backgroundColor: 'rgba(149,252,246,0.16)', alignItems: 'center', justifyContent: 'center' }}>
               <ArrowLeftRight size={22} color={color.humanAccent} strokeWidth={2} />
             </View>
             <View style={{ flex: 1 }}>
@@ -147,11 +147,11 @@ export function ProfileScreen({
 
         {/* Settings */}
         <View>
-          <Txt w="bold" size={13} color={color.muted} style={{ letterSpacing: 1.6, textTransform: 'uppercase', marginHorizontal: space[4], marginBottom: space[12], marginTop: space[6] }}>
+          <Txt w="bold" size={13} color={color.muted} style={{ letterSpacing: 1.6, textTransform: 'uppercase', marginHorizontal: space.xs, marginBottom: space.md, marginTop: space.sm }}>
             {s.prof.settings}
           </Txt>
-          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[22], overflow: 'hidden' }}>
-            <Pressable onPress={toggleLang} style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], paddingVertical: space[15], paddingHorizontal: space[18], borderBottomWidth: 1, borderBottomColor: color.line }}>
+          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.lg, overflow: 'hidden' }}>
+            <Pressable onPress={toggleLang} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: color.line }}>
               <Globe size={20} color={color.anugrahBlue} strokeWidth={2} />
               <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
                 {s.prof.sLang}
@@ -160,21 +160,21 @@ export function ProfileScreen({
                 {langName}
               </Txt>
             </Pressable>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], paddingVertical: space[15], paddingHorizontal: space[18], borderBottomWidth: 1, borderBottomColor: color.line }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: color.line }}>
               <Bell size={20} color={color.anugrahBlue} strokeWidth={2} />
               <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
                 {s.prof.sNotif}
               </Txt>
               <Toggle on={notif} onChange={setNotif} label={s.prof.sNotif} />
             </View>
-            <Pressable onPress={() => setPwOpen(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], paddingVertical: space[15], paddingHorizontal: space[18], borderBottomWidth: 1, borderBottomColor: color.line }}>
+            <Pressable onPress={() => setPwOpen(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: color.line }}>
               <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
               <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
                 {s.prof.changePw}
               </Txt>
               <ChevronRight size={18} color={color.muted} strokeWidth={2} />
             </Pressable>
-            <Pressable onPress={onLogout} style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], paddingVertical: space[15], paddingHorizontal: space[18] }}>
+            <Pressable onPress={onLogout} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg }}>
               <LogOut size={20} color={color.danger} strokeWidth={2} />
               <Txt w="semibold" size={14} color={color.danger} style={{ flex: 1 }}>
                 {s.prof.logout}
@@ -222,7 +222,7 @@ export function ProfileScreen({
 
 function PwInput(props: React.ComponentProps<typeof TextInput>) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[10], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[12], paddingHorizontal: space[14], paddingVertical: space[12] }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
       <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
       <TextInput
         secureTextEntry

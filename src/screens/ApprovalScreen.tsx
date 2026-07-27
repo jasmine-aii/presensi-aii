@@ -10,13 +10,13 @@ export function ApprovalScreen() {
   const { s } = useLang();
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
-      <View style={{ paddingHorizontal: space[20], paddingTop: space[16], paddingBottom: space[14], backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: color.line }}>
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.md, backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: color.line }}>
         <Txt w="bold" size={17} color={color.ink}>
           {s.adm.apprTitle}
         </Txt>
       </View>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: space[32], gap: space[12] }}>
-        <View style={{ width: 72, height: 72, borderRadius: radius[20], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl, gap: space.md }}>
+        <View style={{ width: 72, height: 72, borderRadius: radius.lg, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
           <ClipboardList size={32} color={color.anugrahBlue} strokeWidth={1.75} />
         </View>
         <Txt w="bold" size={15} color={color.ink} style={{ textAlign: 'center' }}>

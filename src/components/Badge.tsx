@@ -30,8 +30,8 @@ export function Badge({ label, tone = 'brand', variant = 'soft', dot }: BadgePro
     alignItems: 'center',
     gap: space.sm,
     alignSelf: 'flex-start',
-    paddingVertical: space[5],
-    paddingHorizontal: space[11],
+    paddingVertical: space.xs,
+    paddingHorizontal: space.md,
     borderRadius: radius.pill,
     ...(variant === 'solid'
       ? { backgroundColor: p.base }

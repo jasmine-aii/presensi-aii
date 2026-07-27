@@ -75,7 +75,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.adm.invTitle} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: space[18], paddingBottom: space[22] + insets.bottom, gap: space[16] }}>
+      <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl + insets.bottom, gap: space.lg }}>
         <InfoBanner text={s.adm.invHint} />
 
         <TextField label={s.adm.fName} icon={User} value={name} onChangeText={setName} placeholder={s.adm.fNamePh} autoCapitalize="words" />
@@ -83,7 +83,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         <TextField label={s.adm.fPassword} icon={Lock} value={password} onChangeText={setPassword} placeholder={s.adm.fPasswordPh} secureTextEntry autoCapitalize="none" autoComplete="off" />
         <Field label={s.adm.fId} value={idValue} icon={BadgeCheck} variant="readonly" />
 
-        <View style={{ flexDirection: 'row', gap: space[12] }}>
+        <View style={{ flexDirection: 'row', gap: space.md }}>
           <View style={{ flex: 1 }}>
             <TextField label={s.adm.fJobRole} icon={Briefcase} value={jobRole} onChangeText={setJobRole} placeholder={s.adm.fJobRolePh} autoCapitalize="words" />
           </View>
@@ -93,11 +93,11 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         </View>
 
         <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space[8] }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm }}>
             <Txt w="semibold" size={13} color={color.muted}>
               {s.adm.fShift}
             </Txt>
-            <Pressable onPress={onManageShifts} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: space[5] }}>
+            <Pressable onPress={onManageShifts} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
               <Settings2 size={14} color={color.anugrahBlue} strokeWidth={2} />
               <Txt w="semibold" size={12} color={color.anugrahBlue}>
                 {s.adm.manageShift}
@@ -111,7 +111,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
           )}
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[8] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
           <ShieldCheck size={15} color={color.muted} strokeWidth={2} />
           <Txt size={12} color={color.muted}>
             {s.adm.invMethod}
@@ -119,8 +119,8 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         </View>
 
         {error && (
-          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space[8] }}>
-            <TriangleAlert size={16} color={color.danger} strokeWidth={2} style={{ marginTop: space[1] }} />
+          <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: space.sm }}>
+            <TriangleAlert size={16} color={color.danger} strokeWidth={2} style={{ marginTop: space.xs }} />
             <Txt size={13} color={color.danger} style={{ flex: 1, lineHeight: 18 }}>
               {error}
             </Txt>
@@ -153,10 +153,10 @@ function TextField({
 }: { label: string; icon: LucideIcon } & React.ComponentProps<typeof TextInput>) {
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space.sm }}>
         {label}
       </Txt>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[10], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[12], padding: space[14] }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, padding: space.md }}>
         <Icon size={20} color={color.anugrahBlue} strokeWidth={2} />
         <TextInput
           placeholderTextColor={color.muted}

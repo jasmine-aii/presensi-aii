@@ -22,7 +22,7 @@ export function Field({ label, value, icon: Icon, variant = 'text' }: FieldProps
   const iconColor = readonly ? color.muted : color.anugrahBlue;
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space.sm }}>
         {label}
       </Txt>
       <View
@@ -33,8 +33,8 @@ export function Field({ label, value, icon: Icon, variant = 'text' }: FieldProps
           backgroundColor: readonly ? color.paper : color.white,
           borderWidth: 1,
           borderColor: color.line,
-          borderRadius: radius[12],
-          padding: space[14],
+          borderRadius: radius.sm,
+          padding: space.md,
         }}
       >
         {Icon && <Icon size={20} color={iconColor} strokeWidth={2} />}

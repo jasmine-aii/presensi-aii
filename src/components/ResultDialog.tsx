@@ -42,12 +42,12 @@ export function ResultDialog({ visible, kind, title, message, actionLabel, image
       <Txt w="extrabold" size={18} color={color.ink} style={{ textAlign: 'center' }}>
         {title}
       </Txt>
-      <Txt size={14} color={color.muted} style={{ textAlign: 'center', lineHeight: 20, marginTop: space.xs + 2 }}>
+      <Txt size={14} color={color.muted} style={{ textAlign: 'center', lineHeight: 20, marginTop: space.sm }}>
         {message}
       </Txt>
       <Pressable
         onPress={onClose}
-        style={{ marginTop: space.lg, alignSelf: 'stretch', alignItems: 'center', backgroundColor: ok ? color.anugrahBlue : color.white, borderWidth: ok ? 0 : 1, borderColor: color.danger, borderRadius: radius.md, paddingVertical: space[15] }}
+        style={{ marginTop: space.lg, alignSelf: 'stretch', alignItems: 'center', backgroundColor: ok ? color.anugrahBlue : color.white, borderWidth: ok ? 0 : 1, borderColor: color.danger, borderRadius: radius.md, paddingVertical: space.lg }}
       >
         <Txt w="semibold" size={16} color={ok ? color.white : color.danger}>
           {actionLabel}

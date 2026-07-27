@@ -66,11 +66,11 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.adm.shiftTitle} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: space[18], paddingBottom: space[22] + insets.bottom, gap: space[12] }}>
+      <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl + insets.bottom, gap: space.md }}>
         {!showForm && (
           <Pressable
             onPress={openAdd}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[8], backgroundColor: color.skyTint, borderRadius: radius[14], paddingVertical: space[14] }}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, backgroundColor: color.skyTint, borderRadius: radius.md, paddingVertical: space.md }}
           >
             <Plus size={18} color={color.anugrahBlue} strokeWidth={2.5} />
             <Txt w="semibold" size={14} color={color.anugrahBlue}>
@@ -80,7 +80,7 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
         )}
 
         {showForm && (
-          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[18], padding: space[16], gap: space[12] }}>
+          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Txt w="bold" size={14} color={color.ink}>
                 {editingId ? s.adm.edit : s.adm.shiftAdd}
@@ -90,7 +90,7 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
               </Pressable>
             </View>
             <LabeledInput label={s.adm.shiftName} value={name} onChangeText={setName} placeholder={s.adm.shiftNamePh} />
-            <View style={{ flexDirection: 'row', gap: space[12] }}>
+            <View style={{ flexDirection: 'row', gap: space.md }}>
               <View style={{ flex: 1 }}>
                 <LabeledInput label={s.adm.shiftStart} value={start} onChangeText={setStart} placeholder="08:30" />
               </View>
@@ -108,19 +108,19 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
         )}
 
         {shifts === null ? (
-          <View style={{ paddingTop: space[30], alignItems: 'center' }}>
+          <View style={{ paddingTop: space.xl, alignItems: 'center' }}>
             <ActivityIndicator color={color.anugrahBlue} />
           </View>
         ) : shifts.length === 0 && !showForm ? (
-          <View style={{ paddingTop: space[30], alignItems: 'center' }}>
+          <View style={{ paddingTop: space.xl, alignItems: 'center' }}>
             <Txt size={13} color={color.muted}>
               {s.adm.shiftEmpty}
             </Txt>
           </View>
         ) : (
           shifts.map((sh) => (
-            <View key={sh.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space[12], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[16], paddingVertical: space[13], paddingHorizontal: space[14] }}>
-              <View style={{ width: 40, height: 40, borderRadius: radius[12], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <View key={sh.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.md }}>
+              <View style={{ width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                 <Clock size={20} color={color.anugrahBlue} strokeWidth={2} />
               </View>
               <View style={{ flex: 1 }}>
@@ -131,10 +131,10 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
                   {sh.start_time} – {sh.end_time}
                 </Txt>
               </View>
-              <Pressable onPress={() => openEdit(sh)} hitSlop={8} style={{ padding: space[6] }}>
+              <Pressable onPress={() => openEdit(sh)} hitSlop={8} style={{ padding: space.sm }}>
                 <Pencil size={18} color={color.anugrahBlue} strokeWidth={2} />
               </Pressable>
-              <Pressable onPress={() => remove(sh.id)} hitSlop={8} style={{ padding: space[6] }}>
+              <Pressable onPress={() => remove(sh.id)} hitSlop={8} style={{ padding: space.sm }}>
                 <Trash2 size={18} color={color.danger} strokeWidth={2} />
               </Pressable>
             </View>
@@ -148,12 +148,12 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
 function LabeledInput({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space.sm }}>
         {label}
       </Txt>
       <TextInput
         placeholderTextColor={color.muted}
-        style={{ fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[12], paddingHorizontal: space[14], paddingVertical: space[12] }}
+        style={{ fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}
         {...props}
       />
     </View>

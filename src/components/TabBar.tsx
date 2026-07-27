@@ -63,9 +63,9 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        paddingTop: space[10],
-        paddingHorizontal: space[20],
-        paddingBottom: space[18] + bottomInset,
+        paddingTop: space.md,
+        paddingHorizontal: space.lg,
+        paddingBottom: space.lg + bottomInset,
         backgroundColor: color.white,
         borderTopWidth: 1,
         borderTopColor: color.line,
@@ -84,7 +84,7 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
               accessibilityRole="button"
               accessibilityLabel={label}
               onPress={() => onNavigate(item.key)}
-              style={{ alignItems: 'center', width: 64, gap: space[6] }}
+              style={{ alignItems: 'center', width: 64, gap: space.sm }}
             >
               <View
                 style={{
@@ -117,7 +117,7 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
             accessibilityState={{ selected: isActive, disabled: isDisabled }}
             disabled={isDisabled}
             onPress={() => onNavigate(item.key)}
-            style={{ alignItems: 'center', width: 58, gap: space[5], opacity: isDisabled ? 0.6 : 1 }}
+            style={{ alignItems: 'center', width: 58, gap: space.xs, opacity: isDisabled ? 0.6 : 1 }}
           >
             <View>
               <Icon size={24} color={iconColor} strokeWidth={2} />
@@ -129,7 +129,7 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
                     right: -10,
                     minWidth: 16,
                     height: 16,
-                    paddingHorizontal: space[4],
+                    paddingHorizontal: space.xs,
                     borderRadius: radius.pill,
                     backgroundColor: color.danger,
                     alignItems: 'center',
