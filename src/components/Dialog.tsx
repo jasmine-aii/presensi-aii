@@ -1,6 +1,11 @@
 import React from 'react';
 import { View, Modal } from 'react-native';
-import { color, space, radius } from '../theme';
+import { color, radius } from '../theme';
+
+// Astryx dialog spacing (astryx.css): interior padding = --spacing-4 (16px);
+// corner = --radius-container (22px in the Anugrah theme = radius.lg). We mirror
+// those exact values here rather than defining a bespoke modal scale.
+const DIALOG_PADDING = 16;
 
 export interface DialogProps {
   visible: boolean;
@@ -15,10 +20,10 @@ export interface DialogProps {
 }
 
 /**
- * Standard centered modal surface carrying the design-system spacing so every
- * dialog matches: backdrop inset `space.xl` (22), card padding `space.xl` (22),
- * corner `radius.lg` (22). Compose content as children and rely on `space.md`
- * (12) gaps inside. Anchored popovers (SelectField) use their own pattern.
+ * Standard centered modal surface matching Astryx's dialog spacing so every
+ * modal is consistent: card padding 16 (Astryx --spacing-4), corner radius.lg
+ * (22, --radius-container). Compose content as children. Anchored popovers
+ * (SelectField) use their own pattern.
  */
 export function Dialog({ visible, onClose, children, maxWidth = 360, align = 'stretch', tone = 'default' }: DialogProps) {
   return (
@@ -29,7 +34,7 @@ export function Dialog({ visible, onClose, children, maxWidth = 360, align = 'st
           backgroundColor: tone === 'dark' ? 'rgba(10,17,40,0.82)' : 'rgba(14,17,22,0.45)',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: space.xl,
+          padding: DIALOG_PADDING,
         }}
       >
         <View
@@ -38,7 +43,7 @@ export function Dialog({ visible, onClose, children, maxWidth = 360, align = 'st
             maxWidth,
             backgroundColor: color.white,
             borderRadius: radius.lg,
-            padding: space.xl,
+            padding: DIALOG_PADDING,
             alignItems: align === 'center' ? 'center' : 'stretch',
           }}
         >
