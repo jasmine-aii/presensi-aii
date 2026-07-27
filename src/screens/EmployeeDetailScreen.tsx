@@ -9,7 +9,7 @@ import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 import { setMemberShift, resetMemberPassword, type AdminMember } from '../lib/admin';
-import { fetchLeaveBalance, setLeaveQuota, type LeaveBalance } from '../lib/leave';
+import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
@@ -20,9 +20,10 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
 
-  // Annual-leave quota
+  // Annual-leave quota (accrual + manual adjustment)
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
-  const [quotaDraft, setQuotaDraft] = useState('');
+  const [joinDraft, setJoinDraft] = useState('');
+  const [adjustDraft, setAdjustDraft] = useState('0');
   const [quotaBusy, setQuotaBusy] = useState(false);
   const [quotaSaved, setQuotaSaved] = useState(false);
 
@@ -73,24 +74,46 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     fetchShifts().then(setShifts);
   }, []);
 
+  const loadBalance = async () => {
+    const b = await fetchLeaveBalance(member.id);
+    setBalance(b);
+    setJoinDraft(b.joinDate ?? '');
+    setAdjustDraft(String(b.adjust));
+  };
+
   useEffect(() => {
-    fetchLeaveBalance(member.id).then((b) => {
-      setBalance(b);
-      setQuotaDraft(String(b.quota));
-    });
+    loadBalance();
   }, [member.id]);
 
-  const saveQuota = async () => {
-    const n = parseInt(quotaDraft, 10);
-    if (Number.isNaN(n) || n < 0) return;
+  const isValidISO = (v: string) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+    const [y, m, d] = v.split('-').map(Number);
+    const dt = new Date(y, m - 1, d);
+    return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+  };
+
+  const flashSaved = () => {
+    setQuotaSaved(true);
+    setTimeout(() => setQuotaSaved(false), 2000);
+  };
+
+  const saveJoinDate = async () => {
+    if (!isValidISO(joinDraft) || quotaBusy) return;
     setQuotaBusy(true);
-    const ok = await setLeaveQuota(member.id, n);
+    const ok = await setLeaveJoinDate(member.id, joinDraft);
+    if (ok) await loadBalance();
     setQuotaBusy(false);
-    if (ok) {
-      setQuotaSaved(true);
-      setBalance((b) => (b ? { ...b, quota: n, remaining: Math.max(0, n - b.taken) } : b));
-      setTimeout(() => setQuotaSaved(false), 2000);
-    }
+    if (ok) flashSaved();
+  };
+
+  const saveAdjust = async () => {
+    const n = parseInt(adjustDraft, 10);
+    if (Number.isNaN(n) || quotaBusy) return;
+    setQuotaBusy(true);
+    const ok = await setLeaveQuotaAdjust(member.id, n);
+    if (ok) await loadBalance();
+    setQuotaBusy(false);
+    if (ok) flashSaved();
   };
 
   const onPickShift = (id: string) => {
@@ -159,37 +182,100 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </View>
         )}
 
-        {/* Annual-leave quota */}
+        {/* Annual-leave quota (accrual + manual adjustment) */}
         {balance && (
           <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
               <CalendarClock size={18} color={color.anugrahBlue} strokeWidth={2} />
-              <Txt w="semibold" size={13} color={color.muted}>
+              <Txt w="semibold" size={13} color={color.muted} style={{ flex: 1 }}>
                 {s.adm.quotaTitle}
               </Txt>
+              {quotaSaved && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+                  <Check size={15} color={color.success} strokeWidth={2.5} />
+                  <Txt w="semibold" size={12} color={color.success}>
+                    {s.adm.copied}
+                  </Txt>
+                </View>
+              )}
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
-                <TextInput
-                  value={quotaDraft}
-                  onChangeText={(t) => setQuotaDraft(t.replace(/[^0-9]/g, ''))}
-                  keyboardType="number-pad"
-                  style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 16, color: color.ink, padding: 0 }}
+
+            {/* Join date */}
+            <View>
+              <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+                {s.adm.joinDate}
+              </Txt>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+                <View style={{ flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
+                  <TextInput
+                    value={joinDraft}
+                    onChangeText={setJoinDraft}
+                    placeholder={s.leave.datePh}
+                    placeholderTextColor={color.muted}
+                    autoCapitalize="none"
+                    style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 15, color: color.ink, padding: 0 }}
+                  />
+                </View>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  label={s.prof.save}
+                  disabled={quotaBusy || !isValidISO(joinDraft) || joinDraft === (balance.joinDate ?? '')}
+                  onPress={saveJoinDate}
                 />
-                <Txt size={12} color={color.muted}>
-                  {s.adm.quotaUnit}
-                </Txt>
               </View>
-              <Button
-                variant="primary"
-                size="md"
-                label={quotaSaved ? '✓' : s.adm.quotaSave}
-                disabled={quotaBusy || quotaDraft === '' || parseInt(quotaDraft, 10) === balance.quota}
-                onPress={saveQuota}
-              />
             </View>
-            <Txt size={12} color={color.muted} tabular>
-              {s.home.taken}: {balance.taken} · {s.home.balance}: {balance.remaining} {s.leave.daysWork}
+
+            {/* Breakdown */}
+            <View style={{ flexDirection: 'row', backgroundColor: color.paper, borderRadius: radius.sm, paddingVertical: space.md }}>
+              {(
+                [
+                  [s.adm.accrued, balance.accrued, color.ink],
+                  [s.adm.carryOver, balance.carryOver, color.deepNavy],
+                  [s.home.taken, balance.taken, color.warning],
+                  [s.home.balance, balance.remaining, color.success],
+                ] as const
+              ).map(([label, value, hex], i) => (
+                <View key={label} style={{ flex: 1, alignItems: 'center', borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: color.line }}>
+                  <Txt w="extrabold" size={18} color={hex} tabular>
+                    {value}
+                  </Txt>
+                  <Txt size={11} color={color.muted} style={{ marginTop: 2, textAlign: 'center' }}>
+                    {label}
+                  </Txt>
+                </View>
+              ))}
+            </View>
+
+            {/* Manual adjustment */}
+            <View>
+              <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+                {s.adm.adjustLabel}
+              </Txt>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
+                  <TextInput
+                    value={adjustDraft}
+                    onChangeText={(t) => setAdjustDraft(t.replace(/[^0-9-]/g, ''))}
+                    keyboardType="numbers-and-punctuation"
+                    style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 16, color: color.ink, padding: 0 }}
+                  />
+                  <Txt size={12} color={color.muted}>
+                    {s.adm.adjustUnit}
+                  </Txt>
+                </View>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  label={s.prof.save}
+                  disabled={quotaBusy || adjustDraft === '' || adjustDraft === '-' || parseInt(adjustDraft, 10) === balance.adjust}
+                  onPress={saveAdjust}
+                />
+              </View>
+            </View>
+
+            <Txt size={11} color={color.muted} style={{ lineHeight: 16 }}>
+              {s.adm.accrualNote}
             </Txt>
           </View>
         )}

@@ -65,14 +65,16 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, email, employee_id, department)
+  insert into public.profiles (id, full_name, email, employee_id, department, join_date)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', ''),
     new.email,
     -- honour an explicit id if one was passed, otherwise auto-number AII001, AII002, …
     coalesce(new.raw_user_meta_data ->> 'employee_id', public.next_employee_id()),
-    new.raw_user_meta_data ->> 'department'
+    new.raw_user_meta_data ->> 'department',
+    -- leave accrual starts the day the account is created (admin can adjust later)
+    coalesce((new.raw_user_meta_data ->> 'join_date')::date, current_date)
   )
   on conflict (id) do nothing;
   return new;
@@ -172,11 +174,21 @@ create policy "att photos select admin" on storage.objects
 -- ── leave / permission requests ──────────────────────────────────────────────
 -- One row per request. Lifecycle: pending → approved | rejected | cancelled.
 -- Types mirror the reference diagram: cuti_tahunan / sakit / izin / dinas_luar.
--- Only approved `cuti_tahunan` consumes annual-leave quota; the balance is
--- derived (quota − Σ approved cuti_tahunan days this year), so cancelling an
--- approved request automatically restores it — no counter to keep in sync.
+-- Only approved `cuti_tahunan` consumes annual-leave quota. The balance is
+-- DERIVED, not stored: annual leave accrues +1 day per completed month since
+-- `join_date` (capped at 12 per service year); any unused balance from the
+-- previous service year carries over but expires 6 months into the new one.
+-- `leave_quota_adjust` is an admin correction (+/- days). Cancelling an approved
+-- request automatically restores the balance — no counter to keep in sync.
 alter table public.profiles
+  add column if not exists join_date date,
+  add column if not exists leave_quota_adjust int not null default 0,
+  -- deprecated: superseded by join_date accrual + leave_quota_adjust; kept to
+  -- avoid breaking older clients. No longer read by the app.
   add column if not exists annual_leave_quota int not null default 12;
+
+-- Backfill join_date for existing employees from their account creation date.
+update public.profiles set join_date = created_at::date where join_date is null;
 
 -- btree_gist lets the overlap guard combine `user_id =` with a range `&&`.
 create extension if not exists btree_gist;

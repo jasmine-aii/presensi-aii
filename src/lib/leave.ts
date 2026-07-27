@@ -28,9 +28,18 @@ export interface AdminLeaveRequest extends LeaveRequest {
 }
 
 export interface LeaveBalance {
-  quota: number; // annual entitlement (working days)
-  taken: number; // approved cuti_tahunan days this year
-  remaining: number;
+  quota: number; // total days currently available = accrued (this service year) + carryOver + adjust
+  taken: number; // approved cuti_tahunan days counted in the active window
+  remaining: number; // quota − taken, never below 0
+  accrued: number; // accrued in the current service year (capped at 12)
+  carryOver: number; // still-valid balance carried from the previous year (0 once expired)
+  adjust: number; // admin manual correction (+/-)
+  joinDate: string | null;
+}
+
+export interface ApprovedLeave {
+  startDate: string;
+  days: number;
 }
 
 /** Discriminated result so the UI can map a code to a localized message. */
@@ -50,6 +59,21 @@ export function todayISO(): string {
 function parseISO(s: string): Date {
   const [y, m, d] = s.split('-').map(Number);
   return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+/** A local Date back to YYYY-MM-DD. */
+function toISO(d: Date): string {
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+const addYears = (d: Date, n: number) => new Date(d.getFullYear() + n, d.getMonth(), d.getDate());
+const addMonths = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, d.getDate());
+
+/** Completed whole months from `from` to `to` (0 if to is before from). */
+function fullMonthsBetween(from: Date, to: Date): number {
+  let m = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
+  if (to.getDate() < from.getDate()) m -= 1;
+  return Math.max(0, m);
 }
 
 /**
@@ -155,23 +179,57 @@ export async function fetchMyLeaves(userId: string, limit = 60): Promise<LeaveRe
   return (data ?? []).map(mapRow);
 }
 
-/** Annual-leave balance: quota minus approved cuti_tahunan days this calendar year. */
+const MONTHLY_ACCRUAL_CAP = 12; // days per service year
+const CARRYOVER_GRACE_MONTHS = 6; // prior-year balance expires this far into the new year
+
+/**
+ * Pure annual-leave accrual: +1 day per completed month since `joinDate`,
+ * capped at 12 per service year. Any unused balance from the previous service
+ * year carries over but expires `CARRYOVER_GRACE_MONTHS` into the new one.
+ * `adjust` is an admin correction added on top. `approved` is every approved
+ * cuti_tahunan request; only those inside the active window count as taken.
+ */
+export function computeLeaveBalance(
+  joinDateISO: string | null,
+  adjust: number,
+  approved: ApprovedLeave[],
+  today: string,
+): LeaveBalance {
+  const empty: LeaveBalance = { quota: 0, taken: 0, remaining: 0, accrued: 0, carryOver: 0, adjust, joinDate: joinDateISO };
+  if (!joinDateISO) {
+    const q = Math.max(0, adjust);
+    return { ...empty, quota: q, remaining: q };
+  }
+  const join = parseISO(joinDateISO);
+  const now = parseISO(today);
+  if (now < join) return empty; // employment hasn't started
+
+  const years = Math.floor(fullMonthsBetween(join, now) / 12);
+  const anniv = addYears(join, years); // start of the current service year
+  const accrued = Math.min(MONTHLY_ACCRUAL_CAP, fullMonthsBetween(anniv, now));
+
+  const carryActive = years >= 1 && now < addMonths(anniv, CARRYOVER_GRACE_MONTHS);
+  const carryOver = carryActive ? MONTHLY_ACCRUAL_CAP : 0; // a full prior year accrues to the cap
+  const windowStart = toISO(carryActive ? addYears(join, years - 1) : anniv);
+  const taken = approved.filter((r) => r.startDate >= windowStart).reduce((s, r) => s + r.days, 0);
+
+  const quota = accrued + carryOver + adjust;
+  return { quota, taken, remaining: Math.max(0, quota - taken), accrued, carryOver, adjust, joinDate: joinDateISO };
+}
+
+/** Annual-leave balance for one employee, derived from join_date + accrual. */
 export async function fetchLeaveBalance(userId: string): Promise<LeaveBalance> {
-  const year = new Date().getFullYear();
   const [{ data: prof }, { data: rows }] = await Promise.all([
-    supabase.from('profiles').select('annual_leave_quota').eq('id', userId).maybeSingle(),
+    supabase.from('profiles').select('join_date, leave_quota_adjust').eq('id', userId).maybeSingle(),
     supabase
       .from('leave_requests')
-      .select('days')
+      .select('start_date, days')
       .eq('user_id', userId)
       .eq('type', 'cuti_tahunan')
-      .eq('status', 'approved')
-      .gte('start_date', `${year}-01-01`)
-      .lte('start_date', `${year}-12-31`),
+      .eq('status', 'approved'),
   ]);
-  const quota = (prof?.annual_leave_quota as number) ?? 12;
-  const taken = (rows ?? []).reduce((sum, r) => sum + ((r.days as number) ?? 0), 0);
-  return { quota, taken, remaining: Math.max(0, quota - taken) };
+  const approved: ApprovedLeave[] = (rows ?? []).map((r) => ({ startDate: r.start_date as string, days: (r.days as number) ?? 0 }));
+  return computeLeaveBalance((prof?.join_date as string) ?? null, (prof?.leave_quota_adjust as number) ?? 0, approved, todayISO());
 }
 
 // ── Admin ───────────────────────────────────────────────────────────────────
@@ -247,9 +305,16 @@ export async function fetchOnLeaveToday(): Promise<AdminLeaveRequest[]> {
   return attachEmployees((data ?? []).map(mapRow));
 }
 
-/** Set an employee's annual-leave quota (admin only, enforced by RLS). */
-export async function setLeaveQuota(userId: string, quota: number): Promise<boolean> {
-  const { error } = await supabase.from('profiles').update({ annual_leave_quota: quota }).eq('id', userId);
-  if (error) console.warn('[setLeaveQuota]', error.message);
+/** Set an employee's leave-accrual start date (admin only, enforced by RLS). */
+export async function setLeaveJoinDate(userId: string, joinDateISO: string): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ join_date: joinDateISO }).eq('id', userId);
+  if (error) console.warn('[setLeaveJoinDate]', error.message);
+  return !error;
+}
+
+/** Set an employee's manual quota adjustment in days (+/-, admin only). */
+export async function setLeaveQuotaAdjust(userId: string, adjust: number): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ leave_quota_adjust: adjust }).eq('id', userId);
+  if (error) console.warn('[setLeaveQuotaAdjust]', error.message);
   return !error;
 }
