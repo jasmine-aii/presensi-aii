@@ -129,8 +129,8 @@ export function HomeScreen({
       <LinearGradient
         colors={[color.anugrahBlue, color.anugrahBlue, color.deepNavy]}
         locations={[0, 0.55, 1]}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 1 }}
+        start={{ x: 0.5, y: 1 }}
+        end={{ x: 0.5, y: 0 }}
         style={{
           marginHorizontal: space.lg,
           marginTop: space.lg,
