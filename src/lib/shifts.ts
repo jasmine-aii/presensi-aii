@@ -38,3 +38,27 @@ export async function deleteShift(id: string): Promise<string | null> {
 
 /** "Nama · 08:30–17:30" label for dropdowns. */
 export const shiftLabel = (s: Shift) => `${s.name} · ${s.start_time}–${s.end_time}`;
+
+export interface ShiftWindow {
+  startMin: number; // minutes from midnight
+  endMin: number;
+  startStr: string; // "08:30"
+  endStr: string; // "17:30"
+}
+
+const fmtMin = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+/**
+ * Extract the [start, end] window from a shift label like
+ * "Reguler · 08:30–17:30". Falls back to the default 08:30–17:30.
+ */
+export function parseShiftWindow(label?: string | null): ShiftWindow {
+  let startMin = 8 * 60 + 30;
+  let endMin = 17 * 60 + 30;
+  const m = label?.match(/(\d{1,2})[.:](\d{2}).*?(\d{1,2})[.:](\d{2})/);
+  if (m) {
+    startMin = Number(m[1]) * 60 + Number(m[2]);
+    endMin = Number(m[3]) * 60 + Number(m[4]);
+  }
+  return { startMin, endMin, startStr: fmtMin(startMin), endStr: fmtMin(endMin) };
+}

@@ -7,6 +7,7 @@ import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
+import { parseShiftWindow } from '../lib/shifts';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
 const DISABLED_MENU = new Set([0, 1]); // Cuti, Sakit — shown but disabled
@@ -15,12 +16,14 @@ const RIWAYAT_INDEX = 5; // opens the History page
 
 export function HomeScreen({
   name,
+  shift,
   onClock,
   onOpenHistory,
   clockInTime,
   clockOutTime,
 }: {
   name?: string;
+  shift?: string | null;
   onClock?: (mode: 'in' | 'out') => void;
   onOpenHistory?: () => void;
   clockInTime?: string | null;
@@ -53,15 +56,21 @@ export function HomeScreen({
   const greetKey = h < 5 ? 'night' : h < 11 ? 'morning' : h < 15 ? 'noon' : h < 19 ? 'afternoon' : 'night';
   const greeting = s.home.greet[greetKey];
 
-  // Total work hours: clock-out − clock-in, or live (now − clock-in) if still in.
+  // Work hours are credited within the SHIFT window: counting starts at the
+  // shift start (arriving early doesn't add hours) and stops at the shift end
+  // (overtime past shift end isn't counted in regular hours). Late arrival /
+  // early leave still shorten it.
+  const win = parseShiftWindow(shift);
   const toMin = (t: string) => {
     const [hh, mm] = t.split(':').map(Number);
     return hh * 60 + mm;
   };
   let workStr = s.home.dash;
   if (clockInTime) {
-    const endMin = clockOutTime ? toMin(clockOutTime) : now.getHours() * 60 + now.getMinutes();
-    const diff = Math.max(0, endMin - toMin(clockInTime));
+    const endActual = clockOutTime ? toMin(clockOutTime) : now.getHours() * 60 + now.getMinutes();
+    const effStart = Math.max(toMin(clockInTime), win.startMin);
+    const effEnd = Math.min(endActual, win.endMin);
+    const diff = Math.max(0, effEnd - effStart);
     workStr = `${Math.floor(diff / 60)}${lang === 'id' ? 'j' : 'h'} ${diff % 60}m`;
   }
 
@@ -114,7 +123,7 @@ export function HomeScreen({
             {s.home.shift}
           </Txt>
           <Txt w="semibold" size={13} color="rgba(255,255,255,0.78)" tabular>
-            {s.home.hours}
+            {win.startStr} – {win.endStr}
           </Txt>
         </View>
         <Txt size={14} color="rgba(255,255,255,0.7)" style={{ marginTop: 14 }}>
