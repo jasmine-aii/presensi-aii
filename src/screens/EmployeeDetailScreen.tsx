@@ -193,7 +193,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
                   <Check size={15} color={color.success} strokeWidth={2.5} />
                   <Txt w="semibold" size={12} color={color.success}>
-                    {s.adm.copied}
+                    {s.adm.saved}
                   </Txt>
                 </View>
               )}
