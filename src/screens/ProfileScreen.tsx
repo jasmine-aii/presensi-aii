@@ -227,7 +227,7 @@ export function ProfileScreen({
 function PwInput(props: React.ComponentProps<typeof TextInput>) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
-      <KeyRound size={18} color={color.anugrahBlue} strokeWidth={2} />
+      <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
       <TextInput
         secureTextEntry
         autoCapitalize="none"

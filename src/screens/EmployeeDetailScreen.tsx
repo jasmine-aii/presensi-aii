@@ -264,7 +264,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             ) : (
               <View style={{ gap: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
-                  <KeyRound size={18} color={color.anugrahBlue} strokeWidth={2} />
+                  <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
                   <TextInput
                     value={rpNew}
                     onChangeText={setRpNew}
@@ -275,7 +275,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                     style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
                   />
                   <Pressable onPress={() => setRpShow((v) => !v)} hitSlop={8}>
-                    {rpShow ? <EyeOff size={18} color={color.muted} strokeWidth={2} /> : <Eye size={18} color={color.muted} strokeWidth={2} />}
+                    {rpShow ? <EyeOff size={20} color={color.muted} strokeWidth={2} /> : <Eye size={20} color={color.muted} strokeWidth={2} />}
                   </Pressable>
                 </View>
                 <Pressable onPress={generatePw} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
