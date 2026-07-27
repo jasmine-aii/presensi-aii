@@ -23,3 +23,4 @@ export { SelectField, type SelectOption } from './SelectField';
 export { SegmentedTabs } from './SegmentedTabs';
 export { Stepper } from './Stepper';
 export { DateField } from './DateField';
+export { AttachmentField } from './AttachmentField';

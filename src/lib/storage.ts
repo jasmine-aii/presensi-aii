@@ -2,6 +2,7 @@ import { decode } from 'base64-arraybuffer';
 import { supabase } from './supabase';
 
 export const PHOTO_BUCKET = 'attendance-photos';
+export const LEAVE_BUCKET = 'leave-attachments';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 function todayKey(): string {
@@ -43,6 +44,39 @@ export async function signedUrlsFor(paths: string[], expiresInSec = 60 * 60): Pr
   const unique = Array.from(new Set(paths.filter(Boolean)));
   if (unique.length === 0) return {};
   const { data, error } = await supabase.storage.from(PHOTO_BUCKET).createSignedUrls(unique, expiresInSec);
+  if (error || !data) return {};
+  const map: Record<string, string> = {};
+  for (const row of data) {
+    if (row.signedUrl && row.path) map[row.path] = row.signedUrl;
+  }
+  return map;
+}
+
+/**
+ * Upload a leave-request attachment (surat dokter, dsb.) to the private
+ * leave-attachments bucket at `{userId}/{timestamp}.{ext}`. Accepts a web File
+ * / Blob directly. Returns the object path, or null on error.
+ */
+export async function uploadLeaveAttachment(userId: string, file: Blob & { name?: string; type?: string }): Promise<string | null> {
+  const name = (file as { name?: string }).name ?? '';
+  const ext = name.includes('.') ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : 'bin';
+  const path = `${userId}/${Date.now()}.${ext}`;
+  const { error } = await supabase.storage.from(LEAVE_BUCKET).upload(path, file, {
+    contentType: file.type || undefined,
+    upsert: false,
+  });
+  if (error) {
+    console.warn('[uploadLeaveAttachment] error:', error.message);
+    return null;
+  }
+  return path;
+}
+
+/** Signed URLs (path → URL) for leave attachments in the private bucket. */
+export async function signedLeaveUrls(paths: string[], expiresInSec = 60 * 60): Promise<Record<string, string>> {
+  const unique = Array.from(new Set(paths.filter(Boolean)));
+  if (unique.length === 0) return {};
+  const { data, error } = await supabase.storage.from(LEAVE_BUCKET).createSignedUrls(unique, expiresInSec);
   if (error || !data) return {};
   const map: Record<string, string> = {};
   for (const row of data) {

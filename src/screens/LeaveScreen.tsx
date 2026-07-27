@@ -1,11 +1,12 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { Plus, Sun, Thermometer, FileText, Briefcase, type LucideIcon } from 'lucide-react-native';
+import { View, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
+import { Plus, Sun, Thermometer, FileText, Briefcase, Paperclip, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, IconTile, StatusBadge, Dialog, Button } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { rangeStr } from '../lib/format';
+import { signedLeaveUrls } from '../lib/storage';
 import {
   fetchMyLeaves,
   fetchLeaveBalance,
@@ -39,6 +40,7 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
   const [reqs, setReqs] = useState<LeaveRequest[]>([]);
   const [confirm, setConfirm] = useState<LeaveRequest | null>(null);
   const [busy, setBusy] = useState(false);
+  const [attachUrls, setAttachUrls] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -46,6 +48,8 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
     setBalance(b);
     setReqs(r);
     setLoading(false);
+    const paths = r.map((x) => x.attachmentPath).filter((x): x is string => !!x);
+    if (paths.length) setAttachUrls(await signedLeaveUrls(paths));
   }, [userId]);
 
   useEffect(() => {
@@ -190,6 +194,23 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
                       <Txt size={12} color={color.muted} style={{ lineHeight: 17 }}>
                         {s.leave.reviewNote}: {r.reviewNote}
                       </Txt>
+                    ) : null}
+
+                    {r.attachmentPath ? (
+                      <Pressable
+                        accessibilityRole="button"
+                        disabled={!attachUrls[r.attachmentPath]}
+                        onPress={() => {
+                          const url = attachUrls[r.attachmentPath!];
+                          if (url) Linking.openURL(url);
+                        }}
+                        style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start' }}
+                      >
+                        <Paperclip size={15} color={color.anugrahBlue} strokeWidth={2} />
+                        <Txt w="semibold" size={13} color={color.anugrahBlue}>
+                          {s.leave.viewAttachment}
+                        </Txt>
+                      </Pressable>
                     ) : null}
 
                     {canCancel(r) && (

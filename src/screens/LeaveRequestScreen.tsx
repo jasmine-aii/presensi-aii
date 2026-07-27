@@ -2,10 +2,11 @@ import React, { useMemo, useState } from 'react';
 import { View, ScrollView, TextInput } from 'react-native';
 import { CalendarDays, Tag } from 'lucide-react-native';
 import { color, space, radius, interFamily } from '../theme';
-import { Txt, Button, SelectField, ResultDialog, DateField } from '../components';
+import { Txt, Button, SelectField, ResultDialog, DateField, AttachmentField } from '../components';
 import { TopAppBar } from '../components/TopAppBar';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
+import { uploadLeaveAttachment } from '../lib/storage';
 import {
   submitLeave,
   workingDaysBetween,
@@ -37,6 +38,7 @@ export function LeaveRequestScreen({ onBack, onSubmitted }: LeaveRequestScreenPr
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [reason, setReason] = useState('');
+  const [attachFile, setAttachFile] = useState<any | null>(null);
   const [errKey, setErrKey] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -63,6 +65,10 @@ export function LeaveRequestScreen({ onBack, onSubmitted }: LeaveRequestScreenPr
         return s.leave.errOverlap;
       case 'db':
         return s.leave.errDb;
+      case 'attach':
+        return s.leave.attachErr;
+      case 'big':
+        return s.leave.attachTooBig;
       default:
         return null;
     }
@@ -75,11 +81,28 @@ export function LeaveRequestScreen({ onBack, onSubmitted }: LeaveRequestScreenPr
       return;
     }
     setSubmitting(true);
+
+    let attachmentPath: string | null = null;
+    if (attachFile) {
+      if (attachFile.size > 5 * 1024 * 1024) {
+        setSubmitting(false);
+        setErrKey('big');
+        return;
+      }
+      attachmentPath = await uploadLeaveAttachment(userId, attachFile);
+      if (!attachmentPath) {
+        setSubmitting(false);
+        setErrKey('attach');
+        return;
+      }
+    }
+
     const res: SubmitResult = await submitLeave(userId, {
       type,
       startDate: start,
       endDate: end,
       reason: reason.trim() || null,
+      attachmentPath,
     });
     setSubmitting(false);
     if (res.ok) {
@@ -140,6 +163,14 @@ export function LeaveRequestScreen({ onBack, onSubmitted }: LeaveRequestScreenPr
             style={[inputStyle, { minHeight: 88, textAlignVertical: 'top' }]}
           />
         </View>
+
+        <AttachmentField
+          label={s.leave.fAttachment}
+          fileName={attachFile?.name ?? null}
+          onPick={setAttachFile}
+          hint={s.leave.attachHint}
+          pickLabel={s.leave.attachPick}
+        />
 
         {/* Duration summary */}
         {days > 0 && (
