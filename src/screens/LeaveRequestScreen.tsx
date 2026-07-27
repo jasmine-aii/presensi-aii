@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, ScrollView, TextInput } from 'react-native';
 import { CalendarDays, Tag } from 'lucide-react-native';
 import { color, space, radius, interFamily } from '../theme';
-import { Txt, Button, SelectField, ResultDialog, DateField, AttachmentField } from '../components';
+import { Txt, Button, SelectField, ResultDialog, DateField, AttachmentField, Toast } from '../components';
 import { TopAppBar } from '../components/TopAppBar';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
@@ -42,6 +42,7 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
   const [reason, setReason] = useState('');
   const [attachFile, setAttachFile] = useState<any | null>(null);
   const [errKey, setErrKey] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -80,12 +81,9 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
 
   const submit = async () => {
     setErrKey(null);
-    if (!isValidISO(start) || !isValidISO(end)) {
-      setErrKey('date');
-      return;
-    }
-    if (!reason.trim()) {
-      setErrKey('reason');
+    // Required-field guard: keep the button enabled, nudge with a toast instead.
+    if (!isValidISO(start) || !isValidISO(end) || !reason.trim()) {
+      setToast(s.leave.toastRequired);
       return;
     }
     setSubmitting(true);
@@ -212,7 +210,7 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
           label={submitting ? s.leave.submitting : s.leave.submit}
           size="lg"
           fullWidth
-          disabled={submitting || !datesValid || !reason.trim()}
+          disabled={submitting}
           onPress={submit}
         />
       </ScrollView>
@@ -228,6 +226,8 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
           onSubmitted();
         }}
       />
+
+      <Toast message={toast} onHide={() => setToast(null)} tone="error" />
     </View>
   );
 }

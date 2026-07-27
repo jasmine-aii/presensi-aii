@@ -24,3 +24,4 @@ export { SegmentedTabs } from './SegmentedTabs';
 export { Stepper } from './Stepper';
 export { DateField } from './DateField';
 export { AttachmentField } from './AttachmentField';
+export { Toast } from './Toast';
