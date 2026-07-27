@@ -3,7 +3,7 @@ import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from
 import * as Clipboard from 'expo-clipboard';
 import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper } from '../components';
+import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
@@ -205,15 +205,8 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 {s.adm.joinDate}
               </Txt>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-                <View style={{ flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
-                  <TextInput
-                    value={joinDraft}
-                    onChangeText={setJoinDraft}
-                    placeholder={s.leave.datePh}
-                    placeholderTextColor={color.muted}
-                    autoCapitalize="none"
-                    style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 15, color: color.ink, padding: 0 }}
-                  />
+                <View style={{ flex: 1 }}>
+                  <DateField value={joinDraft} onChange={setJoinDraft} />
                 </View>
                 <Button
                   variant="secondary"

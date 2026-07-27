@@ -2,13 +2,14 @@ import React, { useMemo, useState } from 'react';
 import { View, ScrollView, TextInput } from 'react-native';
 import { CalendarDays, Tag } from 'lucide-react-native';
 import { color, space, radius, interFamily } from '../theme';
-import { Txt, Button, SelectField, ResultDialog } from '../components';
+import { Txt, Button, SelectField, ResultDialog, DateField } from '../components';
 import { TopAppBar } from '../components/TopAppBar';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import {
   submitLeave,
   workingDaysBetween,
+  todayISO,
   LEAVE_TYPES,
   type LeaveType,
   type SubmitResult,
@@ -121,26 +122,10 @@ export function LeaveRequestScreen({ onBack, onSubmitted }: LeaveRequestScreenPr
 
         <View style={{ flexDirection: 'row', gap: space.md }}>
           <View style={{ flex: 1 }}>
-            <Label>{s.leave.fStart}</Label>
-            <TextInput
-              value={start}
-              onChangeText={setStart}
-              placeholder={s.leave.datePh}
-              placeholderTextColor={color.muted}
-              autoCapitalize="none"
-              style={inputStyle}
-            />
+            <DateField label={s.leave.fStart} value={start} onChange={setStart} min={todayISO()} />
           </View>
           <View style={{ flex: 1 }}>
-            <Label>{s.leave.fEnd}</Label>
-            <TextInput
-              value={end}
-              onChangeText={setEnd}
-              placeholder={s.leave.datePh}
-              placeholderTextColor={color.muted}
-              autoCapitalize="none"
-              style={inputStyle}
-            />
+            <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || todayISO()} />
           </View>
         </View>
 
