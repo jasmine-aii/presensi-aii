@@ -11,7 +11,8 @@ import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 import { useClockReminders } from '../lib/useClockReminders';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
-const DISABLED_MENU = new Set([0, 1]); // Cuti, Sakit — shown but disabled
+const LEAVE_INDEX = 0; // opens the leave-request form
+const DISABLED_MENU = new Set([1]); // Sakit — shown but disabled for now
 const HIDDEN_MENU = new Set([2, 3, 4]); // Izin khusus, Lembur, Dinas luar — hidden for now
 const RIWAYAT_INDEX = 5; // opens the History page
 
@@ -20,6 +21,7 @@ export function HomeScreen({
   shift,
   onClock,
   onOpenHistory,
+  onOpenLeave,
   clockInTime,
   clockOutTime,
 }: {
@@ -27,6 +29,7 @@ export function HomeScreen({
   shift?: string | null;
   onClock?: (mode: 'in' | 'out') => void;
   onOpenHistory?: () => void;
+  onOpenLeave?: () => void;
   clockInTime?: string | null;
   clockOutTime?: string | null;
 }) {
@@ -271,8 +274,9 @@ export function HomeScreen({
                 </Txt>
               </>
             );
-            return i === RIWAYAT_INDEX ? (
-              <Pressable key={label} onPress={onOpenHistory} style={tileStyle}>
+            const onPress = i === RIWAYAT_INDEX ? onOpenHistory : i === LEAVE_INDEX ? onOpenLeave : undefined;
+            return onPress && !disabled ? (
+              <Pressable key={label} onPress={onPress} style={tileStyle}>
                 {inner}
               </Pressable>
             ) : (

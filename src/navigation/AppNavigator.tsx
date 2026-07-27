@@ -180,6 +180,7 @@ export function AppNavigator() {
             shift={profile?.shift}
             onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
             onOpenHistory={() => setEmpTab('history')}
+            onOpenLeave={() => setPushed('leaverequest')}
             clockInTime={clockInTime}
             clockOutTime={clockOutTime}
           />

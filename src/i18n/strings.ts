@@ -285,6 +285,10 @@ const id = {
     adjustLabel: 'Penyesuaian manual',
     adjustUnit: 'hari',
     accrualNote: '+1 hari/bulan sejak bergabung · maks 12/tahun · sisa carry-over berlaku 6 bulan',
+    statLeaveTitle: 'Statistik cuti karyawan',
+    statLoading: 'Memuat…',
+    statEmpty: 'Belum ada data karyawan.',
+    statPending: 'Menunggu',
   },
   dh: {
     title: 'Kepala Departemen',
@@ -579,6 +583,10 @@ const en = {
     adjustLabel: 'Manual adjustment',
     adjustUnit: 'days',
     accrualNote: '+1 day/month since joining · max 12/year · carry-over valid 6 months',
+    statLeaveTitle: 'Employee leave statistics',
+    statLoading: 'Loading…',
+    statEmpty: 'No employee data yet.',
+    statPending: 'Pending',
   },
   dh: {
     title: 'Department Head',

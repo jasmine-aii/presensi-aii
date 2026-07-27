@@ -305,6 +305,52 @@ export async function fetchOnLeaveToday(): Promise<AdminLeaveRequest[]> {
   return attachEmployees((data ?? []).map(mapRow));
 }
 
+export interface LeaveStat {
+  id: string;
+  name: string;
+  employeeId: string;
+  accrued: number;
+  carryOver: number;
+  taken: number;
+  remaining: number;
+  pending: number; // pending requests awaiting review
+}
+
+/** Per-employee leave statistics for the admin Reports screen. */
+export async function fetchLeaveStats(): Promise<LeaveStat[]> {
+  const today = todayISO();
+  const [{ data: profs }, { data: rows }] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, employee_id, join_date, leave_quota_adjust').order('full_name'),
+    supabase.from('leave_requests').select('user_id, type, status, days, start_date'),
+  ]);
+
+  const acc = new Map<string, { approved: ApprovedLeave[]; pending: number }>();
+  for (const p of profs ?? []) acc.set(p.id as string, { approved: [], pending: 0 });
+  for (const r of rows ?? []) {
+    const e = acc.get(r.user_id as string);
+    if (!e) continue;
+    if (r.status === 'pending') e.pending += 1;
+    if (r.type === 'cuti_tahunan' && r.status === 'approved') {
+      e.approved.push({ startDate: r.start_date as string, days: (r.days as number) ?? 0 });
+    }
+  }
+
+  return (profs ?? []).map((p) => {
+    const e = acc.get(p.id as string)!;
+    const bal = computeLeaveBalance((p.join_date as string) ?? null, (p.leave_quota_adjust as number) ?? 0, e.approved, today);
+    return {
+      id: p.id as string,
+      name: (p.full_name as string) || '—',
+      employeeId: (p.employee_id as string) || '—',
+      accrued: bal.accrued,
+      carryOver: bal.carryOver,
+      taken: bal.taken,
+      remaining: bal.remaining,
+      pending: e.pending,
+    };
+  });
+}
+
 /** Set an employee's leave-accrual start date (admin only, enforced by RLS). */
 export async function setLeaveJoinDate(userId: string, joinDateISO: string): Promise<boolean> {
   const { error } = await supabase.from('profiles').update({ join_date: joinDateISO }).eq('id', userId);
