@@ -127,8 +127,8 @@ export function HomeScreen({
       {/* Clock hero — AII-blue → navy gradient (primary dominant, navy accent) */}
       <LinearGradient
         colors={[color.anugrahBlue, color.anugrahBlue, color.deepNavy]}
-        locations={[0, 0.55, 1]}
-        start={{ x: 0, y: 0 }}
+        locations={[0, 0.72, 1]}
+        start={{ x: 0, y: 0.2 }}
         end={{ x: 1, y: 1 }}
         style={{
           marginHorizontal: space.lg,
