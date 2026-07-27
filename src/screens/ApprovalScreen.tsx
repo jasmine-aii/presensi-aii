@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator, Pressable, TextInput, Linking } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Pressable, TextInput, Linking, Image } from 'react-native';
 import { Sun, Thermometer, FileText, Briefcase, Paperclip, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius, interFamily } from '../theme';
 import { Txt, Avatar, Button, StatusBadge, SegmentedTabs, Dialog } from '../components';
@@ -143,20 +143,7 @@ export function ApprovalScreen({ onChanged }: ApprovalScreenProps) {
                 ) : null}
 
                 {r.attachmentPath ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    disabled={!attachUrls[r.attachmentPath]}
-                    onPress={() => {
-                      const url = attachUrls[r.attachmentPath!];
-                      if (url) Linking.openURL(url);
-                    }}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start' }}
-                  >
-                    <Paperclip size={15} color={color.anugrahBlue} strokeWidth={2} />
-                    <Txt w="semibold" size={13} color={color.anugrahBlue}>
-                      {s.leave.viewAttachment}
-                    </Txt>
-                  </Pressable>
+                  <AttachmentPreview path={r.attachmentPath} url={attachUrls[r.attachmentPath]} label={s.leave.viewAttachment} loadingLabel={s.leave.loading} />
                 ) : null}
 
                 {tab === 'pending' && (
@@ -225,6 +212,43 @@ export function ApprovalScreen({ onChanged }: ApprovalScreenProps) {
         </View>
       </Dialog>
     </View>
+  );
+}
+
+/** Inline attachment: image shows as a thumbnail (tap to open full); PDF/other
+ *  shows a link. Falls back to a loading hint until the signed URL resolves. */
+function AttachmentPreview({ path, url, label, loadingLabel }: { path: string; url?: string; label: string; loadingLabel: string }) {
+  const isImage = /\.(png|jpe?g|webp|gif|heic|bmp)$/i.test(path);
+  if (!url) {
+    return (
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start' }}>
+        <Paperclip size={15} color={color.muted} strokeWidth={2} />
+        <Txt size={13} color={color.muted}>
+          {loadingLabel}
+        </Txt>
+      </View>
+    );
+  }
+  if (isImage) {
+    return (
+      <Pressable accessibilityRole="button" onPress={() => Linking.openURL(url)} style={{ alignSelf: 'flex-start', gap: space.xs }}>
+        <Image source={{ uri: url }} style={{ width: 220, height: 150, borderRadius: radius.sm, backgroundColor: color.line }} resizeMode="cover" />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+          <Paperclip size={13} color={color.anugrahBlue} strokeWidth={2} />
+          <Txt w="semibold" size={12} color={color.anugrahBlue}>
+            {label}
+          </Txt>
+        </View>
+      </Pressable>
+    );
+  }
+  return (
+    <Pressable accessibilityRole="button" onPress={() => Linking.openURL(url)} style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, alignSelf: 'flex-start' }}>
+      <Paperclip size={15} color={color.anugrahBlue} strokeWidth={2} />
+      <Txt w="semibold" size={13} color={color.anugrahBlue}>
+        {label}
+      </Txt>
+    </Pressable>
   );
 }
 

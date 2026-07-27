@@ -77,7 +77,10 @@ export async function signedLeaveUrls(paths: string[], expiresInSec = 60 * 60): 
   const unique = Array.from(new Set(paths.filter(Boolean)));
   if (unique.length === 0) return {};
   const { data, error } = await supabase.storage.from(LEAVE_BUCKET).createSignedUrls(unique, expiresInSec);
-  if (error || !data) return {};
+  if (error || !data) {
+    if (error) console.warn('[signedLeaveUrls] error:', error.message);
+    return {};
+  }
   const map: Record<string, string> = {};
   for (const row of data) {
     if (row.signedUrl && row.path) map[row.path] = row.signedUrl;
