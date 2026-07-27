@@ -86,7 +86,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
           {s.out.photoHint}
         </Txt>
 
-        <CameraViewfinder height={260} oval={{ w: 150, h: 185 }} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} />
+        <CameraViewfinder height={260} oval={{ w: 150, h: 185 }} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} busy={submitting} busyMessage={s.dlg.processing} />
         <Txt w="semibold" size={14} color={color.ink} style={{ marginTop: 12, textAlign: 'center' }}>
           {s.out.good} {firstName}.
         </Txt>

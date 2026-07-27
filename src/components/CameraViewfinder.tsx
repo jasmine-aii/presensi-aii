@@ -1,5 +1,5 @@
 import React, { useEffect, type Ref } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { MapPin, Camera, CameraOff } from 'lucide-react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { color } from '../theme';
@@ -18,6 +18,10 @@ export interface CameraViewfinderProps {
   active?: boolean;
   /** Caption under the "grant camera" placeholder. */
   permMessage?: string;
+  /** Show a processing overlay (e.g. while capturing/uploading on confirm). */
+  busy?: boolean;
+  /** Caption under the processing spinner. */
+  busyMessage?: string;
 }
 
 /**
@@ -34,6 +38,8 @@ export function CameraViewfinder({
   cameraRef,
   active = true,
   permMessage = 'Izinkan akses kamera',
+  busy = false,
+  busyMessage,
 }: CameraViewfinderProps) {
   const [permission, requestPermission] = useCameraPermissions();
 
@@ -108,6 +114,18 @@ export function CameraViewfinder({
           {coord} · {time}
         </Txt>
       </View>
+
+      {/* Processing overlay — masks the frozen frame during capture/upload */}
+      {busy && (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(10,17,40,0.6)', alignItems: 'center', justifyContent: 'center', gap: 10 }]}>
+          <ActivityIndicator color={color.humanAccent} size="large" />
+          {busyMessage ? (
+            <Txt w="semibold" size={13} color={color.white}>
+              {busyMessage}
+            </Txt>
+          ) : null}
+        </View>
+      )}
     </View>
   );
 }

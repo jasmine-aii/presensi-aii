@@ -134,6 +134,7 @@ const id = {
     retry: 'Coba lagi',
     failTitle: 'Gagal',
     failMsg: 'Terjadi kesalahan saat menyimpan. Silakan coba lagi.',
+    processing: 'Memproses…',
   },
   anav: { dashboard: 'Dasbor', team: 'Tim', add: 'Buat akun', approval: 'Approval', report: 'Laporan' },
   adm: {
@@ -352,6 +353,7 @@ const en = {
     retry: 'Try again',
     failTitle: 'Failed',
     failMsg: 'Something went wrong while saving. Please try again.',
+    processing: 'Processing…',
   },
   anav: { dashboard: 'Dashboard', team: 'Team', add: 'Invite', approval: 'Approvals', report: 'Reports' },
   adm: {

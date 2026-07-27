@@ -77,7 +77,7 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
           {s.in.photoHint}
         </Txt>
 
-        <CameraViewfinder height={300} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} />
+        <CameraViewfinder height={300} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} busy={submitting} busyMessage={s.dlg.processing} />
         <Txt size={12} color={color.muted} style={{ marginTop: 10, textAlign: 'center' }}>
           {s.in.faceGuide}
         </Txt>
