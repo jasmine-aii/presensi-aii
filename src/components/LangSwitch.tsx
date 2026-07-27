@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Pressable } from 'react-native';
-import { color } from '../theme';
+import { color, space, radius } from '../theme';
 import { Txt } from './Txt';
 import { useLang } from '../i18n/LangContext';
 import type { Lang } from '../i18n/strings';
@@ -16,7 +16,7 @@ export function LangSwitch() {
         accessibilityRole="button"
         accessibilityState={{ selected: active }}
         onPress={() => setLang(value)}
-        style={{ paddingVertical: 8, paddingHorizontal: 18, borderRadius: 999, backgroundColor: active ? color.anugrahBlue : 'transparent' }}
+        style={{ paddingVertical: space[8], paddingHorizontal: space[18], borderRadius: radius.pill, backgroundColor: active ? color.anugrahBlue : 'transparent' }}
       >
         <Txt w="bold" size={14} color={active ? color.white : color.muted}>
           {text}
@@ -28,9 +28,9 @@ export function LangSwitch() {
     <View
       style={{
         flexDirection: 'row',
-        gap: 4,
-        padding: 4,
-        borderRadius: 999,
+        gap: space[4],
+        padding: space[4],
+        borderRadius: radius.pill,
         backgroundColor: color.white,
         borderWidth: 1,
         borderColor: color.line,

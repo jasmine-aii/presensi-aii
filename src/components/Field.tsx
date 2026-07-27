@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput } from 'react-native';
 import { ChevronDown, type LucideIcon } from 'lucide-react-native';
-import { color, interFamily } from '../theme';
+import { color, interFamily, space, radius } from '../theme';
 import { Txt } from './Txt';
 
 export type FieldVariant = 'text' | 'select' | 'readonly';
@@ -22,7 +22,7 @@ export function Field({ label, value, icon: Icon, variant = 'text' }: FieldProps
   const iconColor = readonly ? color.muted : color.anugrahBlue;
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: 8 }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
         {label}
       </Txt>
       <View
@@ -33,8 +33,8 @@ export function Field({ label, value, icon: Icon, variant = 'text' }: FieldProps
           backgroundColor: readonly ? color.paper : color.white,
           borderWidth: 1,
           borderColor: color.line,
-          borderRadius: 12,
-          padding: 14,
+          borderRadius: radius[12],
+          padding: space[14],
         }}
       >
         {Icon && <Icon size={20} color={iconColor} strokeWidth={2} />}

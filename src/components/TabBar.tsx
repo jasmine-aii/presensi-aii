@@ -13,7 +13,7 @@ import {
   TrendingUp,
   type LucideIcon,
 } from 'lucide-react-native';
-import { color } from '../theme';
+import { color, space, radius } from '../theme';
 import { Txt } from './Txt';
 
 export type EmployeeNav = 'home' | 'history' | 'clock' | 'leave' | 'profile';
@@ -63,9 +63,9 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'flex-end',
-        paddingTop: 10,
-        paddingHorizontal: 20,
-        paddingBottom: 18 + bottomInset,
+        paddingTop: space[10],
+        paddingHorizontal: space[20],
+        paddingBottom: space[18] + bottomInset,
         backgroundColor: color.white,
         borderTopWidth: 1,
         borderTopColor: color.line,
@@ -84,13 +84,13 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
               accessibilityRole="button"
               accessibilityLabel={label}
               onPress={() => onNavigate(item.key)}
-              style={{ alignItems: 'center', width: 64, gap: 6 }}
+              style={{ alignItems: 'center', width: 64, gap: space[6] }}
             >
               <View
                 style={{
                   width: 56,
                   height: 56,
-                  borderRadius: 999,
+                  borderRadius: radius.pill,
                   backgroundColor: color.anugrahBlue,
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -117,7 +117,7 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
             accessibilityState={{ selected: isActive, disabled: isDisabled }}
             disabled={isDisabled}
             onPress={() => onNavigate(item.key)}
-            style={{ alignItems: 'center', width: 58, gap: 5, opacity: isDisabled ? 0.6 : 1 }}
+            style={{ alignItems: 'center', width: 58, gap: space[5], opacity: isDisabled ? 0.6 : 1 }}
           >
             <View>
               <Icon size={24} color={iconColor} strokeWidth={2} />
@@ -129,8 +129,8 @@ export function TabBar({ mode = 'employee', active, labels, onNavigate, badges, 
                     right: -10,
                     minWidth: 16,
                     height: 16,
-                    paddingHorizontal: 4,
-                    borderRadius: 999,
+                    paddingHorizontal: space[4],
+                    borderRadius: radius.pill,
                     backgroundColor: color.danger,
                     alignItems: 'center',
                     justifyContent: 'center',

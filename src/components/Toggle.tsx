@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
-import { color } from '../theme';
+import { color, radius } from '../theme';
 
 export interface ToggleProps {
   on: boolean;
@@ -19,7 +19,7 @@ export function Toggle({ on, onChange, label }: ToggleProps) {
       style={{
         width: 40,
         height: 24,
-        borderRadius: 999,
+        borderRadius: radius.pill,
         backgroundColor: on ? color.anugrahBlue : color.line,
         justifyContent: 'center',
       }}
@@ -31,7 +31,7 @@ export function Toggle({ on, onChange, label }: ToggleProps) {
           left: on ? 19 : 3,
           width: 18,
           height: 18,
-          borderRadius: 999,
+          borderRadius: radius.pill,
           backgroundColor: color.white,
         }}
       />

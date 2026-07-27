@@ -3,7 +3,7 @@ import { View, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, RefreshCw, TriangleAlert } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
-import { color, elevation, space } from '../theme';
+import { color, elevation, space, radius } from '../theme';
 import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, SelectField, Dialog, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
@@ -90,8 +90,8 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.out.title} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: 18 }}>
-        <View style={{ marginBottom: 16 }}>
+      <ScrollView contentContainerStyle={{ padding: space[18] }}>
+        <View style={{ marginBottom: space[16] }}>
           <SelectField
             label={s.home.actionType}
             value="out"
@@ -102,23 +102,23 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
             onChange={(v) => v === 'in' && onSwitchMode?.('in')}
           />
         </View>
-        <Txt size={13} color={color.muted} style={{ marginBottom: 14 }}>
+        <Txt size={13} color={color.muted} style={{ marginBottom: space[14] }}>
           {s.out.photoHint}
         </Txt>
 
         <CameraViewfinder height={260} oval={{ w: 150, h: 185 }} coord={coordText} time={clock} cameraRef={cameraRef} permMessage={s.loc.permCam} busy={submitting} busyMessage={s.dlg.processing} />
-        <Txt w="semibold" size={14} color={color.ink} style={{ marginTop: 12, textAlign: 'center' }}>
+        <Txt w="semibold" size={14} color={color.ink} style={{ marginTop: space[12], textAlign: 'center' }}>
           {s.out.good} {firstName}.
         </Txt>
 
         {/* Work summary card */}
-        <View style={{ marginTop: 18, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 24, padding: 22, overflow: 'hidden', ...elevation('soft') }}>
+        <View style={{ marginTop: space[18], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[24], padding: space[22], overflow: 'hidden', ...elevation('soft') }}>
           <View style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, backgroundColor: color.humanAccent }} />
-          <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: 18 }}>
+          <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space[18] }}>
             {s.out.summaryTitle}
           </Txt>
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 16 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: space[16] }}>
             <View style={{ flex: 1 }}>
               <Txt size={12} color={color.muted}>
                 {s.out.inAt}
@@ -138,7 +138,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
             </View>
           </View>
 
-          <View style={{ height: 1, backgroundColor: color.line, marginTop: 4, marginBottom: 16 }} />
+          <View style={{ height: 1, backgroundColor: color.line, marginTop: space[4], marginBottom: space[16] }} />
 
           <View style={{ flexDirection: 'row' }}>
             <TotalCell label={s.out.total} value={totals.total} />
@@ -148,8 +148,8 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
         </View>
 
         {/* Location row */}
-        <View style={{ marginTop: 14, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, padding: 14 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={{ marginTop: space[14], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[16], padding: space[14] }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[10] }}>
             <MapPin size={20} color={color.anugrahBlue} strokeWidth={2} />
             <View style={{ flex: 1 }}>
               <Txt w="semibold" size={14} color={color.ink}>
@@ -163,7 +163,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
               <RefreshCw size={16} color={color.muted} strokeWidth={2} />
             </Pressable>
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 12 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[8], marginTop: space[12] }}>
             <Badge tone={geo.tone} variant="soft" dot label={geo.label} />
             {loc.distanceM != null && (
               <Txt size={12} color={loc.inRadius ? color.success : color.danger} tabular>
@@ -175,15 +175,15 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
       </ScrollView>
 
       {/* Confirm */}
-      <View style={{ paddingHorizontal: 18, paddingTop: 16, paddingBottom: 16 + insets.bottom, backgroundColor: color.paper }}>
+      <View style={{ paddingHorizontal: space[18], paddingTop: space[16], paddingBottom: space[16] + insets.bottom, backgroundColor: color.paper }}>
         <Button variant="primary" size="lg" fullWidth label={s.out.confirm} disabled={!canConfirm || submitting || alreadyDone} onPress={onConfirmPress} />
         {alreadyDone ? (
-          <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center', marginTop: 12, paddingHorizontal: 8 }}>
+          <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center', marginTop: space[12], paddingHorizontal: space[8] }}>
             {s.out.alreadyDone}
           </Txt>
         ) : (
           loc.status === 'ready' && !loc.inRadius && (
-            <Txt size={12} color={color.danger} style={{ textAlign: 'center', marginTop: 12, paddingHorizontal: 8 }}>
+            <Txt size={12} color={color.danger} style={{ textAlign: 'center', marginTop: space[12], paddingHorizontal: space[8] }}>
               {s.loc.outsideMsg}
             </Txt>
           )
@@ -192,7 +192,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
 
       {/* Early clock-out warning */}
       <Dialog visible={warnOpen} onClose={() => setWarnOpen(false)} align="center" maxWidth={340}>
-        <View style={{ width: 60, height: 60, borderRadius: 999, backgroundColor: color.warningBg, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
+        <View style={{ width: 60, height: 60, borderRadius: radius.pill, backgroundColor: color.warningBg, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
           <TriangleAlert size={32} color={color.warning} strokeWidth={2} />
         </View>
         <Txt w="extrabold" size={18} color={color.ink} style={{ textAlign: 'center' }}>
@@ -230,7 +230,7 @@ function TotalCell({ label, value, bordered }: { label: string; value: string; b
       <Txt w="extrabold" size={20} color={color.ink} tabular>
         {value}
       </Txt>
-      <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+      <Txt size={12} color={color.muted} style={{ marginTop: space[2] }}>
         {label}
       </Txt>
     </View>

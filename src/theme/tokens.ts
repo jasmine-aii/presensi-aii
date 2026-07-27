@@ -26,7 +26,19 @@ export const color = {
   dangerBg: '#FBE9E9',
 } as const;
 
-export const space = {
+/**
+ * Spacing scale. Semantic steps (xs…4xl) are the vocabulary to reach for; the
+ * numeric keys (`space[16]`) exist so every value in the app can be expressed
+ * as a token 1:1 (a 2px grid, mirroring Astryx's numeric `--spacing-*` scale)
+ * without changing any pixel value. Prefer the named steps in new code.
+ */
+const spaceGrid: Record<string, number> = {};
+for (let i = 0; i <= 48; i += 1) spaceGrid[i] = i;
+
+export const space: Record<string, number> = {
+  ...spaceGrid,
+  78: 78,
+  96: 96,
   xs: 4,
   sm: 8,
   md: 12,
@@ -35,14 +47,19 @@ export const space = {
   '2xl': 44,
   '3xl': 78,
   '4xl': 96,
-} as const;
+};
 
-export const radius = {
+const radiusGrid: Record<string, number> = {};
+for (let i = 0; i <= 30; i += 1) radiusGrid[i] = i;
+
+export const radius: Record<string, number> = {
+  ...radiusGrid,
+  999: 999,
   sm: 12,
   md: 16,
   lg: 22,
   pill: 999,
-} as const;
+};
 
 export const fontSize = {
   display: 82,

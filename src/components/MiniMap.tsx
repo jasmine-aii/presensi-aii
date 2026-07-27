@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import { MapPin } from 'lucide-react-native';
-import { color } from '../theme';
+import { color, space, radius } from '../theme';
 
 /**
  * Schematic mini-map with a geofence accuracy circle and a centered pin — the
@@ -13,7 +13,7 @@ export function MiniMap({ height = 120 }: { height?: number }) {
     <View
       style={{
         height,
-        borderRadius: 16,
+        borderRadius: radius[16],
         overflow: 'hidden',
         backgroundColor: color.skyTint,
         alignItems: 'center',
@@ -26,14 +26,14 @@ export function MiniMap({ height = 120 }: { height?: number }) {
           position: 'absolute',
           width: 70,
           height: 70,
-          borderRadius: 999,
+          borderRadius: radius.pill,
           backgroundColor: 'rgba(31,70,222,0.14)',
           borderWidth: 1,
           borderColor: 'rgba(31,70,222,0.3)',
         }}
       />
       {/* Pin — nudged up so its tip sits at the circle centre */}
-      <View style={{ marginBottom: 20 }}>
+      <View style={{ marginBottom: space[20] }}>
         <MapPin size={26} color={color.anugrahBlue} fill={color.skyTint} strokeWidth={2} />
       </View>
     </View>

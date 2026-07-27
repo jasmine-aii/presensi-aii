@@ -30,12 +30,12 @@ export function ResultDialog({ visible, kind, title, message, actionLabel, image
       {ok && imageUri ? (
         <View style={{ marginBottom: space.md, alignItems: 'center' }}>
           <Image source={{ uri: imageUri }} style={{ width: 96, height: 96, borderRadius: radius.md, backgroundColor: color.line }} resizeMode="cover" />
-          <View style={{ position: 'absolute', bottom: -8, width: 34, height: 34, borderRadius: 999, backgroundColor: color.white, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ position: 'absolute', bottom: -8, width: 34, height: 34, borderRadius: radius.pill, backgroundColor: color.white, alignItems: 'center', justifyContent: 'center' }}>
             <Icon size={30} color={accent} strokeWidth={2} />
           </View>
         </View>
       ) : (
-        <View style={{ width: 60, height: 60, borderRadius: 999, backgroundColor: tint, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
+        <View style={{ width: 60, height: 60, borderRadius: radius.pill, backgroundColor: tint, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
           <Icon size={34} color={accent} strokeWidth={2} />
         </View>
       )}
@@ -47,7 +47,7 @@ export function ResultDialog({ visible, kind, title, message, actionLabel, image
       </Txt>
       <Pressable
         onPress={onClose}
-        style={{ marginTop: space.lg, alignSelf: 'stretch', alignItems: 'center', backgroundColor: ok ? color.anugrahBlue : color.white, borderWidth: ok ? 0 : 1, borderColor: color.danger, borderRadius: radius.md, paddingVertical: 15 }}
+        style={{ marginTop: space.lg, alignSelf: 'stretch', alignItems: 'center', backgroundColor: ok ? color.anugrahBlue : color.white, borderWidth: ok ? 0 : 1, borderColor: color.danger, borderRadius: radius.md, paddingVertical: space[15] }}
       >
         <Txt w="semibold" size={16} color={ok ? color.white : color.danger}>
           {actionLabel}

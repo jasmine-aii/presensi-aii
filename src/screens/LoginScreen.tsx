@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, ScrollView, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Mail, Lock, Eye, EyeOff, TriangleAlert, Settings2, type LucideIcon } from 'lucide-react-native';
-import { color, interFamily } from '../theme';
+import { color, interFamily, space, radius } from '../theme';
 import { Txt, Button, LogoMark, GlowCircle, LangSwitch } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
@@ -36,29 +36,29 @@ export function LoginScreen() {
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: color.paper }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         {/* Navy hero */}
-        <View style={{ backgroundColor: color.deepNavy, paddingHorizontal: 26, paddingTop: insets.top + 32, paddingBottom: 40, borderBottomLeftRadius: 32, borderBottomRightRadius: 32, overflow: 'hidden' }}>
+        <View style={{ backgroundColor: color.deepNavy, paddingHorizontal: space[26], paddingTop: insets.top + 32, paddingBottom: space[40], borderBottomLeftRadius: radius[32], borderBottomRightRadius: radius[32], overflow: 'hidden' }}>
           <GlowCircle size={220} top={-80} right={-60} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <LogoMark height={30} fill={color.white} />
             <LangSwitch />
           </View>
-          <Txt w="extrabold" size={30} color={color.white} style={{ marginTop: 40, letterSpacing: -0.5 }}>
+          <Txt w="extrabold" size={30} color={color.white} style={{ marginTop: space[40], letterSpacing: -0.5 }}>
             {s.auth.welcome}
           </Txt>
-          <Txt size={15} color="rgba(255,255,255,0.72)" style={{ marginTop: 8 }}>
+          <Txt size={15} color="rgba(255,255,255,0.72)" style={{ marginTop: space[8] }}>
             {s.auth.subtitle}
           </Txt>
         </View>
 
-        <View style={{ paddingHorizontal: 22, paddingTop: 28, gap: 18, flex: 1 }}>
+        <View style={{ paddingHorizontal: space[22], paddingTop: space[28], gap: space[18], flex: 1 }}>
           {!configured && (
-            <View style={{ flexDirection: 'row', gap: 12, backgroundColor: color.dangerBg, borderRadius: 16, padding: 16 }}>
+            <View style={{ flexDirection: 'row', gap: space[12], backgroundColor: color.dangerBg, borderRadius: radius[16], padding: space[16] }}>
               <Settings2 size={20} color={color.danger} strokeWidth={2} />
               <View style={{ flex: 1 }}>
                 <Txt w="bold" size={13} color={color.danger}>
                   {s.auth.setupTitle}
                 </Txt>
-                <Txt size={12} color={color.danger} style={{ marginTop: 4, lineHeight: 17 }}>
+                <Txt size={12} color={color.danger} style={{ marginTop: space[4], lineHeight: 17 }}>
                   {s.auth.setupMsg}
                 </Txt>
               </View>
@@ -77,7 +77,7 @@ export function LoginScreen() {
           />
 
           <View>
-            <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: 8 }}>
+            <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
               {s.auth.password}
             </Txt>
             <View style={inputWrap}>
@@ -101,7 +101,7 @@ export function LoginScreen() {
           </View>
 
           {error && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[8] }}>
               <TriangleAlert size={16} color={color.danger} strokeWidth={2} />
               <Txt size={13} color={color.danger} style={{ flex: 1 }}>
                 {error}
@@ -118,7 +118,7 @@ export function LoginScreen() {
             onPress={onSubmit}
           />
 
-          <Txt size={12} color={color.muted} style={{ textAlign: 'center', lineHeight: 18, marginTop: 4 }}>
+          <Txt size={12} color={color.muted} style={{ textAlign: 'center', lineHeight: 18, marginTop: space[4] }}>
             {s.auth.footer}
           </Txt>
         </View>
@@ -132,13 +132,13 @@ export function LoginScreen() {
 const inputWrap = {
   flexDirection: 'row' as const,
   alignItems: 'center' as const,
-  gap: 10,
+  gap: space[10],
   backgroundColor: color.white,
   borderWidth: 1,
   borderColor: color.line,
-  borderRadius: 12,
-  paddingHorizontal: 14,
-  paddingVertical: 14,
+  borderRadius: radius[12],
+  paddingHorizontal: space[14],
+  paddingVertical: space[14],
 };
 
 const inputText = {
@@ -156,7 +156,7 @@ function LabeledInput({
 }: { label: string; icon: LucideIcon } & React.ComponentProps<typeof TextInput>) {
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: 8 }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
         {label}
       </Txt>
       <View style={inputWrap}>

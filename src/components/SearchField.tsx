@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TextInput } from 'react-native';
 import { Search } from 'lucide-react-native';
-import { color, interFamily } from '../theme';
+import { color, interFamily, space, radius } from '../theme';
 
 export interface SearchFieldProps {
   placeholder: string;
@@ -12,7 +12,7 @@ export interface SearchFieldProps {
 /** Search input row with a leading magnifier — used in the employee directory. */
 export function SearchField({ placeholder, value, onChangeText }: SearchFieldProps) {
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 14 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[10], backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, borderRadius: radius[12], paddingVertical: space[11], paddingHorizontal: space[14] }}>
       <Search size={18} color={color.muted} strokeWidth={2} />
       <TextInput
         placeholder={placeholder}

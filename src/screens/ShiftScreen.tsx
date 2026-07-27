@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Plus, Pencil, Trash2, Clock, X } from 'lucide-react-native';
-import { color, interFamily } from '../theme';
+import { color, interFamily, space, radius } from '../theme';
 import { Txt, Button, TopAppBar } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchShifts, addShift, updateShift, deleteShift, type Shift } from '../lib/shifts';
@@ -66,11 +66,11 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={s.adm.shiftTitle} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 22 + insets.bottom, gap: 12 }}>
+      <ScrollView contentContainerStyle={{ padding: space[18], paddingBottom: space[22] + insets.bottom, gap: space[12] }}>
         {!showForm && (
           <Pressable
             onPress={openAdd}
-            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: color.skyTint, borderRadius: 14, paddingVertical: 14 }}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space[8], backgroundColor: color.skyTint, borderRadius: radius[14], paddingVertical: space[14] }}
           >
             <Plus size={18} color={color.anugrahBlue} strokeWidth={2.5} />
             <Txt w="semibold" size={14} color={color.anugrahBlue}>
@@ -80,7 +80,7 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
         )}
 
         {showForm && (
-          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16, gap: 12 }}>
+          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[18], padding: space[16], gap: space[12] }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
               <Txt w="bold" size={14} color={color.ink}>
                 {editingId ? s.adm.edit : s.adm.shiftAdd}
@@ -90,7 +90,7 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
               </Pressable>
             </View>
             <LabeledInput label={s.adm.shiftName} value={name} onChangeText={setName} placeholder={s.adm.shiftNamePh} />
-            <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={{ flexDirection: 'row', gap: space[12] }}>
               <View style={{ flex: 1 }}>
                 <LabeledInput label={s.adm.shiftStart} value={start} onChangeText={setStart} placeholder="08:30" />
               </View>
@@ -108,19 +108,19 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
         )}
 
         {shifts === null ? (
-          <View style={{ paddingTop: 30, alignItems: 'center' }}>
+          <View style={{ paddingTop: space[30], alignItems: 'center' }}>
             <ActivityIndicator color={color.anugrahBlue} />
           </View>
         ) : shifts.length === 0 && !showForm ? (
-          <View style={{ paddingTop: 30, alignItems: 'center' }}>
+          <View style={{ paddingTop: space[30], alignItems: 'center' }}>
             <Txt size={13} color={color.muted}>
               {s.adm.shiftEmpty}
             </Txt>
           </View>
         ) : (
           shifts.map((sh) => (
-            <View key={sh.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 13, paddingHorizontal: 14 }}>
-              <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <View key={sh.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space[12], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[16], paddingVertical: space[13], paddingHorizontal: space[14] }}>
+              <View style={{ width: 40, height: 40, borderRadius: radius[12], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                 <Clock size={20} color={color.anugrahBlue} strokeWidth={2} />
               </View>
               <View style={{ flex: 1 }}>
@@ -131,10 +131,10 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
                   {sh.start_time} – {sh.end_time}
                 </Txt>
               </View>
-              <Pressable onPress={() => openEdit(sh)} hitSlop={8} style={{ padding: 6 }}>
+              <Pressable onPress={() => openEdit(sh)} hitSlop={8} style={{ padding: space[6] }}>
                 <Pencil size={18} color={color.anugrahBlue} strokeWidth={2} />
               </Pressable>
-              <Pressable onPress={() => remove(sh.id)} hitSlop={8} style={{ padding: 6 }}>
+              <Pressable onPress={() => remove(sh.id)} hitSlop={8} style={{ padding: space[6] }}>
                 <Trash2 size={18} color={color.danger} strokeWidth={2} />
               </Pressable>
             </View>
@@ -148,12 +148,12 @@ export function ShiftScreen({ onBack }: { onBack?: () => void }) {
 function LabeledInput({ label, ...props }: { label: string } & React.ComponentProps<typeof TextInput>) {
   return (
     <View>
-      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: 8 }}>
+      <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space[8] }}>
         {label}
       </Txt>
       <TextInput
         placeholderTextColor={color.muted}
-        style={{ fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}
+        style={{ fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[12], paddingHorizontal: space[14], paddingVertical: space[12] }}
         {...props}
       />
     </View>

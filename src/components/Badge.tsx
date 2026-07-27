@@ -30,8 +30,8 @@ export function Badge({ label, tone = 'brand', variant = 'soft', dot }: BadgePro
     alignItems: 'center',
     gap: space.sm,
     alignSelf: 'flex-start',
-    paddingVertical: 5,
-    paddingHorizontal: 11,
+    paddingVertical: space[5],
+    paddingHorizontal: space[11],
     borderRadius: radius.pill,
     ...(variant === 'solid'
       ? { backgroundColor: p.base }
@@ -42,7 +42,7 @@ export function Badge({ label, tone = 'brand', variant = 'soft', dot }: BadgePro
   const fg = variant === 'solid' ? p.onSolid : variant === 'soft' ? p.onSoft : p.base;
   return (
     <View style={container}>
-      {dot && <View style={{ width: 7, height: 7, borderRadius: 999, backgroundColor: p.base }} />}
+      {dot && <View style={{ width: 7, height: 7, borderRadius: radius.pill, backgroundColor: p.base }} />}
       <Txt w="semibold" size={12} color={fg}>
         {label}
       </Txt>

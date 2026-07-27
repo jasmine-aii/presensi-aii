@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check } from 'lucide-react-native';
-import { color, interFamily, space } from '../theme';
+import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
@@ -94,23 +94,23 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       <TopAppBar title={member.name} onBack={onBack} />
-      <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 24, gap: 14 }}>
+      <ScrollView contentContainerStyle={{ padding: space[18], paddingBottom: space[24], gap: space[14] }}>
         {/* Employee header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[18], padding: space[16] }}>
           <Avatar name={member.name} size={54} />
           <View style={{ flex: 1 }}>
             <Txt w="bold" size={16} color={color.ink}>
               {member.name}
             </Txt>
-            <Txt size={12} color={color.muted} tabular style={{ marginTop: 2 }}>
+            <Txt size={12} color={color.muted} tabular style={{ marginTop: space[2] }}>
               {member.dept} · {member.employeeId}
             </Txt>
             {!!member.email && (
-              <Txt size={12} color={color.muted} numberOfLines={1} style={{ marginTop: 1 }}>
+              <Txt size={12} color={color.muted} numberOfLines={1} style={{ marginTop: space[1] }}>
                 {member.email}
               </Txt>
             )}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[8], marginTop: space[8] }}>
               <AdminStatusBadge status={member.st} />
               <Txt size={12} color={color.muted} tabular>
                 {s.out.inAt} {member.in} · {s.out.outAt} {member.out}
@@ -121,7 +121,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
 
         {/* Assign shift */}
         {shifts.length > 0 && (
-          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16 }}>
+          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[18], padding: space[16] }}>
             <SelectField
               label={s.adm.fShift}
               value={currentShiftId}
@@ -135,9 +135,9 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
         {/* Reset password */}
         <Pressable
           onPress={() => setRpOpen(true)}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 16 }}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: space[12], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[16], paddingVertical: space[14], paddingHorizontal: space[16] }}
         >
-          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ width: 40, height: 40, borderRadius: radius[12], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
             <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
           </View>
           <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
@@ -145,16 +145,16 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </Txt>
         </Pressable>
 
-        <Txt w="bold" size={14} color={color.ink} style={{ marginTop: 4 }}>
+        <Txt w="bold" size={14} color={color.ink} style={{ marginTop: space[4] }}>
           {s.adm.recentAtt}
         </Txt>
 
         {rows === null ? (
-          <View style={{ paddingTop: 24, alignItems: 'center' }}>
+          <View style={{ paddingTop: space[24], alignItems: 'center' }}>
             <ActivityIndicator color={color.anugrahBlue} />
           </View>
         ) : rows.length === 0 ? (
-          <View style={{ paddingTop: 24, alignItems: 'center' }}>
+          <View style={{ paddingTop: space[24], alignItems: 'center' }}>
             <Txt size={13} color={color.muted}>
               {s.adm.noAtt}
             </Txt>
@@ -168,9 +168,9 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               <Pressable
                 key={r.date}
                 onPress={hasPhoto ? () => setSel(r) : undefined}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, padding: 14 }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: space[14], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[16], padding: space[14] }}
               >
-                <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: 44, height: 44, borderRadius: radius[12], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                   <Txt w="semibold" size={11} color={color.muted} style={{ textTransform: 'uppercase' }}>
                     {weekdayShort(d, lang)}
                   </Txt>
@@ -179,7 +179,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                   </Txt>
                 </View>
                 <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', gap: 14 }}>
+                  <View style={{ flexDirection: 'row', gap: space[14] }}>
                     <Txt size={14} color={color.ink} tabular>
                       <Txt size={12} color={color.muted}>
                         {s.out.inAt}{'  '}
@@ -193,15 +193,15 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                       {r.clockOutTime ?? '—'}
                     </Txt>
                   </View>
-                  <Txt size={12} color={color.muted} style={{ marginTop: 3 }}>
+                  <Txt size={12} color={color.muted} style={{ marginTop: space[3] }}>
                     {monthYear(d, lang)}
                   </Txt>
                 </View>
                 {hasPhoto &&
                   (thumb ? (
-                    <Image source={{ uri: thumb }} style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: color.line }} />
+                    <Image source={{ uri: thumb }} style={{ width: 38, height: 38, borderRadius: radius[10], backgroundColor: color.line }} />
                   ) : (
-                    <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                    <View style={{ width: 38, height: 38, borderRadius: radius[10], backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                       <Camera size={16} color={color.anugrahBlue} strokeWidth={2} />
                     </View>
                   ))}
@@ -214,7 +214,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
       {/* Reset-password modal */}
       <Dialog visible={rpOpen} onClose={closeReset} maxWidth={340}>
         <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space[6] }}>
               <Txt w="bold" size={16} color={color.ink}>
                 {s.adm.resetPw}
               </Txt>
@@ -222,12 +222,12 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <X size={20} color={color.muted} strokeWidth={2} />
               </Pressable>
             </View>
-            <Txt size={12} color={color.muted} style={{ marginBottom: 16 }}>
+            <Txt size={12} color={color.muted} style={{ marginBottom: space[16] }}>
               {member.name}
             </Txt>
 
             {rpDone ? (
-              <View style={{ alignItems: 'center', paddingVertical: 12, gap: 12 }}>
+              <View style={{ alignItems: 'center', paddingVertical: space[12], gap: space[12] }}>
                 <CircleCheck size={40} color={color.success} strokeWidth={2} />
                 <Txt size={14} color={color.ink} style={{ textAlign: 'center' }}>
                   {s.adm.resetPwDone}
@@ -237,20 +237,20 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 </Txt>
                 <Pressable
                   onPress={copyPw}
-                  style={{ alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: color.skyTint, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16 }}
+                  style={{ alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: color.skyTint, borderRadius: radius[12], paddingVertical: space[12], paddingHorizontal: space[16] }}
                 >
                   <Txt w="bold" size={18} color={color.deepNavy} tabular>
                     {rpSaved}
                   </Txt>
                   {rpCopied ? (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[5] }}>
                       <Check size={16} color={color.success} strokeWidth={2.5} />
                       <Txt w="semibold" size={13} color={color.success}>
                         {s.adm.copied}
                       </Txt>
                     </View>
                   ) : (
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[5] }}>
                       <Copy size={16} color={color.anugrahBlue} strokeWidth={2} />
                       <Txt w="semibold" size={13} color={color.anugrahBlue}>
                         {s.adm.copy}
@@ -261,8 +261,8 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closeReset} />
               </View>
             ) : (
-              <View style={{ gap: 12 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+              <View style={{ gap: space[12] }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[10], backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius[12], paddingHorizontal: space[14], paddingVertical: space[12] }}>
                   <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
                   <TextInput
                     value={rpNew}
@@ -277,7 +277,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                     {rpShow ? <EyeOff size={20} color={color.muted} strokeWidth={2} /> : <Eye size={20} color={color.muted} strokeWidth={2} />}
                   </Pressable>
                 </View>
-                <Pressable onPress={generatePw} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+                <Pressable onPress={generatePw} style={{ flexDirection: 'row', alignItems: 'center', gap: space[6], alignSelf: 'flex-start' }}>
                   <Sparkles size={15} color={color.anugrahBlue} strokeWidth={2} />
                   <Txt w="semibold" size={13} color={color.anugrahBlue}>
                     {s.adm.genPw}
@@ -303,7 +303,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                   {s.hist.photoTitle}
                 </Txt>
                 {sel && (
-                  <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+                  <Txt size={12} color={color.muted} style={{ marginTop: space[2] }}>
                     {dateStr(parseYmd(sel.date), lang)}
                   </Txt>
                 )}
@@ -325,7 +325,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
 function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string | null; uri?: string; noPhoto: string }) {
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space[6] }}>
         <Txt w="semibold" size={12} color={color.muted}>
           {label}
         </Txt>
@@ -336,9 +336,9 @@ function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string 
         )}
       </View>
       {uri ? (
-        <Image source={{ uri }} style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: 14, backgroundColor: color.line }} resizeMode="cover" />
+        <Image source={{ uri }} style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius[14], backgroundColor: color.line }} resizeMode="cover" />
       ) : (
-        <View style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: 14, backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+        <View style={{ width: '100%', aspectRatio: 3 / 4, borderRadius: radius[14], backgroundColor: color.paper, borderWidth: 1, borderColor: color.line, alignItems: 'center', justifyContent: 'center', gap: space[6] }}>
           <Camera size={22} color={color.muted} strokeWidth={2} />
           <Txt size={11} color={color.muted}>
             {noPhoto}
