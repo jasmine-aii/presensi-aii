@@ -62,3 +62,22 @@ export function parseShiftWindow(label?: string | null): ShiftWindow {
   }
   return { startMin, endMin, startStr: fmtMin(startMin), endStr: fmtMin(endMin) };
 }
+
+/** Unpaid break deducted from each full workday (minutes). */
+export const BREAK_MIN = 60;
+
+/** Full-day net work target after the break (e.g. 09:00 shift − 1h = 8h). */
+export const FULL_DAY_MIN = 8 * 60;
+
+/**
+ * Net worked minutes within the shift window, minus the unpaid break.
+ * Counting starts at the shift start (early arrival not credited) and stops at
+ * the shift end (overtime not counted here).
+ */
+export function netWorkedMin(clockInMin: number, endMin: number, win: ShiftWindow): number {
+  const gross = Math.max(0, Math.min(endMin, win.endMin) - Math.max(clockInMin, win.startMin));
+  return Math.max(0, gross - BREAK_MIN);
+}
+
+/** "8j 0m" / "8h 0m" from minutes. */
+export const durationStr = (mins: number, lang: 'id' | 'en') => `${Math.floor(mins / 60)}${lang === 'id' ? 'j' : 'h'} ${mins % 60}m`;

@@ -79,6 +79,9 @@ const id = {
     successTitle: 'Clock Out berhasil',
     successMsg: 'Jam kerja Anda tersimpan. Sampai jumpa besok!',
     alreadyDone: 'Anda sudah clock out hari ini.',
+    earlyTitle: 'Clock out lebih awal?',
+    earlyMsg: 'Anda belum menyelesaikan 8 jam kerja hari ini. Yakin ingin clock out sekarang?',
+    earlyConfirm: 'Ya, clock out',
   },
   hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat absensi.', loading: 'Memuat…', photoTitle: 'Foto kehadiran', noPhoto: 'Tidak ada foto', close: 'Tutup' },
   prof: {
@@ -298,6 +301,9 @@ const en = {
     successTitle: 'Clock Out successful',
     successMsg: 'Your work hours are saved. See you tomorrow!',
     alreadyDone: 'You have already clocked out today.',
+    earlyTitle: 'Clock out early?',
+    earlyMsg: "You haven't completed 8 work hours today. Are you sure you want to clock out now?",
+    earlyConfirm: 'Yes, clock out',
   },
   hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave', empty: 'No attendance history yet.', loading: 'Loading…', photoTitle: 'Attendance photo', noPhoto: 'No photo', close: 'Close' },
   prof: {

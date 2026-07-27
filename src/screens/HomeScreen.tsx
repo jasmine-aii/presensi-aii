@@ -7,7 +7,7 @@ import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
-import { parseShiftWindow } from '../lib/shifts';
+import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
 const DISABLED_MENU = new Set([0, 1]); // Cuti, Sakit — shown but disabled
@@ -68,10 +68,7 @@ export function HomeScreen({
   let workStr = s.home.dash;
   if (clockInTime) {
     const endActual = clockOutTime ? toMin(clockOutTime) : now.getHours() * 60 + now.getMinutes();
-    const effStart = Math.max(toMin(clockInTime), win.startMin);
-    const effEnd = Math.min(endActual, win.endMin);
-    const diff = Math.max(0, effEnd - effStart);
-    workStr = `${Math.floor(diff / 60)}${lang === 'id' ? 'j' : 'h'} ${diff % 60}m`;
+    workStr = durationStr(netWorkedMin(toMin(clockInTime), endActual, win), lang);
   }
 
   return (

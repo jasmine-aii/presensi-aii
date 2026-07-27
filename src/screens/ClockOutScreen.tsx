@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { View, ScrollView, Pressable } from 'react-native';
+import { View, ScrollView, Pressable, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, RefreshCw } from 'lucide-react-native';
+import { MapPin, RefreshCw, TriangleAlert } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
 import { color, elevation } from '../theme';
 import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, SelectField, type ResultKind } from '../components';
@@ -11,11 +11,12 @@ import { useNow } from '../lib/useNow';
 import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { captureSelfie } from '../lib/camera';
+import { parseShiftWindow, netWorkedMin, durationStr, FULL_DAY_MIN, BREAK_MIN } from '../lib/shifts';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
-export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
+export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; shift?: string | null; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
   const { s, lang } = useLang();
   const firstName = (name ?? s.home.name).trim().split(' ')[0];
   const now = useNow(1000);
@@ -27,8 +28,18 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
   const [result, setResult] = useState<ResultKind | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
+  const [warnOpen, setWarnOpen] = useState(false);
   const confirmedTime = useRef<string>('');
   const clockIn = clockInTime ?? '08:41';
+
+  // Net work today (within shift window, minus break) vs the 8h target.
+  const win = parseShiftWindow(shift);
+  const toMin = (t: string) => Number(t.split(':')[0]) * 60 + Number(t.split(':')[1]);
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const inMin = clockInTime ? toMin(clockInTime) : win.startMin;
+  const netMin = netWorkedMin(inMin, nowMin, win);
+  const otMin = Math.max(0, nowMin - win.endMin); // worked past shift end
+  const isEarly = netMin < FULL_DAY_MIN;
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
   const canConfirm = loc.inRadius === true;
@@ -45,13 +56,22 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
             : { tone: 'danger', label: s.loc.outside };
 
   const totals = {
-    total: lang === 'id' ? '8j 31m' : '8h 31m',
-    ot: '12m',
-    brk: lang === 'id' ? '1j' : '1h',
+    total: durationStr(netMin, lang),
+    ot: durationStr(otMin, lang),
+    brk: durationStr(BREAK_MIN, lang),
   };
 
-  const onConfirmPress = async () => {
+  const onConfirmPress = () => {
     if (!canConfirm || submitting || alreadyDone) return;
+    if (isEarly) {
+      setWarnOpen(true);
+      return;
+    }
+    proceed();
+  };
+
+  const proceed = async () => {
+    setWarnOpen(false);
     setSubmitting(true);
     confirmedTime.current = timeShort(now);
     const photoBase64 = await captureSelfie(cameraRef.current);
@@ -169,6 +189,29 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchM
           )
         )}
       </View>
+
+      {/* Early clock-out warning */}
+      <Modal visible={warnOpen} transparent animationType="fade" onRequestClose={() => setWarnOpen(false)}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+          <View style={{ width: '100%', maxWidth: 320, backgroundColor: color.white, borderRadius: 22, padding: 24, alignItems: 'center' }}>
+            <View style={{ width: 60, height: 60, borderRadius: 999, backgroundColor: '#FFF3D6', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
+              <TriangleAlert size={32} color="#B7791F" strokeWidth={2} />
+            </View>
+            <Txt w="extrabold" size={18} color={color.ink} style={{ textAlign: 'center' }}>
+              {s.out.earlyTitle}
+            </Txt>
+            <Txt size={14} color={color.muted} style={{ textAlign: 'center', lineHeight: 20, marginTop: 6 }}>
+              {s.out.earlyMsg} ({durationStr(netMin, lang)} / {durationStr(FULL_DAY_MIN, lang)})
+            </Txt>
+            <Button variant="primary" size="md" fullWidth label={s.out.earlyConfirm} onPress={proceed} />
+            <Pressable onPress={() => setWarnOpen(false)} style={{ marginTop: 10, paddingVertical: 10 }}>
+              <Txt w="semibold" size={15} color={color.muted}>
+                {s.prof.cancel}
+              </Txt>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
 
       <ResultDialog
         visible={result !== null}

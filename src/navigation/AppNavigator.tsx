@@ -90,6 +90,7 @@ export function AppNavigator() {
         onBack={() => setPushed(null)}
         onSwitchMode={(m) => setPushed(m === 'out' ? 'clockout' : 'clockin')}
         name={displayName}
+        shift={profile?.shift}
         clockInTime={clockInTime ?? undefined}
         onConfirm={async ({ time, lat, lng, photoBase64 }) => {
           const photo = photoBase64 ? await uploadClockPhoto(userId, 'out', photoBase64) : null;
