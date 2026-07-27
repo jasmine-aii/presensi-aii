@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal, TextInput } from 'react-native';
-import { Camera, X, Clock, KeyRound, CircleCheck } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles } from 'lucide-react-native';
 import { color, interFamily } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -21,30 +21,37 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   // Reset-password modal
   const [rpOpen, setRpOpen] = useState(false);
   const [rpNew, setRpNew] = useState('');
-  const [rpConfirm, setRpConfirm] = useState('');
+  const [rpShow, setRpShow] = useState(false);
   const [rpBusy, setRpBusy] = useState(false);
   const [rpErr, setRpErr] = useState<string | null>(null);
   const [rpDone, setRpDone] = useState(false);
+  const [rpSaved, setRpSaved] = useState(''); // the password that was set (shown on success)
 
+  const generatePw = () => {
+    const pw = Math.random().toString(36).slice(2, 6) + Math.random().toString(36).slice(2, 6);
+    setRpNew(pw);
+    setRpShow(true);
+    setRpErr(null);
+  };
   const doReset = async () => {
     if (rpBusy) return;
     if (rpNew.length < 6) return setRpErr(s.prof.pwMin);
-    if (rpNew !== rpConfirm) return setRpErr(s.prof.pwMismatch);
     setRpErr(null);
     setRpBusy(true);
     const err = await resetMemberPassword(member.id, rpNew);
     setRpBusy(false);
     if (err) return setRpErr(err);
+    setRpSaved(rpNew);
     setRpDone(true);
     setRpNew('');
-    setRpConfirm('');
   };
   const closeReset = () => {
     setRpOpen(false);
     setRpErr(null);
     setRpDone(false);
     setRpNew('');
-    setRpConfirm('');
+    setRpSaved('');
+    setRpShow(false);
   };
 
   useEffect(() => {
@@ -218,12 +225,39 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Txt size={14} color={color.ink} style={{ textAlign: 'center' }}>
                   {s.adm.resetPwDone}
                 </Txt>
+                <Txt size={12} color={color.muted} style={{ textAlign: 'center' }}>
+                  {s.adm.resetPwShare}
+                </Txt>
+                <View style={{ alignSelf: 'stretch', backgroundColor: color.skyTint, borderRadius: 12, paddingVertical: 12, alignItems: 'center' }}>
+                  <Txt w="bold" size={18} color={color.deepNavy} tabular>
+                    {rpSaved}
+                  </Txt>
+                </View>
                 <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closeReset} />
               </View>
             ) : (
               <View style={{ gap: 12 }}>
-                <RpInput placeholder={s.prof.newPw} value={rpNew} onChangeText={setRpNew} />
-                <RpInput placeholder={s.prof.confirmPw} value={rpConfirm} onChangeText={setRpConfirm} />
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+                  <KeyRound size={18} color={color.anugrahBlue} strokeWidth={2} />
+                  <TextInput
+                    value={rpNew}
+                    onChangeText={setRpNew}
+                    placeholder={s.prof.newPw}
+                    placeholderTextColor={color.muted}
+                    secureTextEntry={!rpShow}
+                    autoCapitalize="none"
+                    style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
+                  />
+                  <Pressable onPress={() => setRpShow((v) => !v)} hitSlop={8}>
+                    {rpShow ? <EyeOff size={18} color={color.muted} strokeWidth={2} /> : <Eye size={18} color={color.muted} strokeWidth={2} />}
+                  </Pressable>
+                </View>
+                <Pressable onPress={generatePw} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, alignSelf: 'flex-start' }}>
+                  <Sparkles size={15} color={color.anugrahBlue} strokeWidth={2} />
+                  <Txt w="semibold" size={13} color={color.anugrahBlue}>
+                    {s.adm.genPw}
+                  </Txt>
+                </Pressable>
                 {rpErr && (
                   <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
                     {rpErr}
@@ -262,21 +296,6 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </View>
         </View>
       </Modal>
-    </View>
-  );
-}
-
-function RpInput(props: React.ComponentProps<typeof TextInput>) {
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
-      <KeyRound size={18} color={color.anugrahBlue} strokeWidth={2} />
-      <TextInput
-        secureTextEntry
-        autoCapitalize="none"
-        placeholderTextColor={color.muted}
-        style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
-        {...props}
-      />
     </View>
   );
 }
