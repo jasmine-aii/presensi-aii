@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, BellRing, BellOff, Check, Clock as ClockIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
@@ -123,15 +124,18 @@ export function HomeScreen({
         </View>
       </View>
 
-      {/* Navy hero */}
-      <View
+      {/* Clock hero — AII-blue → navy gradient (primary dominant, navy accent) */}
+      <LinearGradient
+        colors={[color.anugrahBlue, color.anugrahBlue, color.deepNavy]}
+        locations={[0, 0.55, 1]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={{
           marginHorizontal: space.lg,
           marginTop: space.lg,
           padding: space.xl,
           paddingBottom: space.xl,
           borderRadius: radius.lg,
-          backgroundColor: color.deepNavy,
           overflow: 'hidden',
         }}
       >
@@ -199,7 +203,7 @@ export function HomeScreen({
             {statusLabel}
           </Txt>
         </View>
-      </View>
+      </LinearGradient>
 
       {/* Primary clock action */}
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
