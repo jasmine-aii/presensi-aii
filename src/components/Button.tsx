@@ -19,7 +19,7 @@ export interface ButtonProps {
 const sizes: Record<ButtonSize, { fontSize: number; padV: number; padH: number; radius: number }> = {
   sm: { fontSize: 13, padV: space.sm, padH: space.md, radius: radius.sm },
   md: { fontSize: 15, padV: space.md, padH: space.xl, radius: radius.sm },
-  lg: { fontSize: 17, padV: 16, padH: space['2xl'], radius: radius.md },
+  lg: { fontSize: 17, padV: space.lg, padH: space['2xl'], radius: radius.md },
 };
 
 const fills: Record<ButtonVariant, { bg: string; fg: string; border?: string }> = {
