@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
-import { Bell } from 'lucide-react-native';
+import { Bell, BellRing, BellOff, Check, Clock as ClockIcon } from 'lucide-react-native';
 import { color } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -8,6 +8,7 @@ import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
 import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
+import { useClockReminders } from '../lib/useClockReminders';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
 const DISABLED_MENU = new Set([0, 1]); // Cuti, Sakit — shown but disabled
@@ -70,6 +71,8 @@ export function HomeScreen({
     const endActual = clockOutTime ? toMin(clockOutTime) : now.getHours() * 60 + now.getMinutes();
     workStr = durationStr(netWorkedMin(toMin(clockInTime), endActual, win), lang);
   }
+
+  const rem = useClockReminders(shift, clockInTime, clockOutTime);
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -184,6 +187,63 @@ export function HomeScreen({
       <View style={{ paddingHorizontal: 18, paddingTop: 18 }}>
         <Button variant="primary" size="lg" fullWidth label={afterNoon ? s.home.clockOut : s.home.clockIn} onPress={() => onClock?.(primaryMode)} />
       </View>
+
+      {/* Attendance reminders */}
+      <Section title={s.home.remindTitle}>
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 18, padding: 16 }}>
+          {/* Notification status / enable */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingBottom: 12, marginBottom: 12, borderBottomWidth: 1, borderBottomColor: color.line }}>
+            {rem.permission === 'granted' ? (
+              <>
+                <BellRing size={18} color={color.success} strokeWidth={2} />
+                <Txt w="semibold" size={13} color={color.success} style={{ flex: 1 }}>
+                  {s.home.notifOn}
+                </Txt>
+              </>
+            ) : rem.permission === 'default' && rem.supported ? (
+              <>
+                <Bell size={18} color={color.anugrahBlue} strokeWidth={2} />
+                <Txt size={13} color={color.muted} style={{ flex: 1 }}>
+                  {s.home.remindNote}
+                </Txt>
+                <Pressable onPress={rem.requestPermission} style={{ paddingVertical: 7, paddingHorizontal: 12, borderRadius: 999, backgroundColor: color.anugrahBlue }}>
+                  <Txt w="semibold" size={12} color={color.white}>
+                    {s.home.enableNotif}
+                  </Txt>
+                </Pressable>
+              </>
+            ) : (
+              <>
+                <BellOff size={18} color={color.muted} strokeWidth={2} />
+                <Txt size={12} color={color.muted} style={{ flex: 1 }}>
+                  {rem.supported ? s.home.notifDenied : s.home.notifUnsupported}
+                </Txt>
+              </>
+            )}
+          </View>
+
+          {/* Reminder rows */}
+          {rem.items.map((it) => (
+            <View key={it.kind} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 6 }}>
+              <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: it.done ? color.successBg : color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                {it.done ? <Check size={18} color={color.success} strokeWidth={2.5} /> : <ClockIcon size={17} color={color.anugrahBlue} strokeWidth={2} />}
+              </View>
+              <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
+                {it.kind === 'in' ? s.home.remindIn : s.home.remindOut}
+              </Txt>
+              {it.done ? (
+                <Txt w="semibold" size={12} color={color.success}>
+                  {s.home.remindDone}
+                </Txt>
+              ) : (
+                <Txt w="semibold" size={13} color={color.muted} tabular>
+                  {it.before} · {it.after}
+                </Txt>
+              )}
+            </View>
+          ))}
+        </View>
+      </Section>
 
       {/* Quick menu */}
       <Section title={s.home.menuTitle}>
