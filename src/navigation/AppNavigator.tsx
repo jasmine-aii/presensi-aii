@@ -7,7 +7,7 @@ import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchToday, recordClockIn, recordClockOut } from '../lib/attendance';
 import { uploadClockPhoto } from '../lib/storage';
-import { pendingLeaveCount } from '../lib/leave';
+import { pendingLeaveCount, type LeaveType } from '../lib/leave';
 import { useLeaveNotifications } from '../lib/useLeaveNotifications';
 import type { AdminMember } from '../lib/admin';
 import {
@@ -50,6 +50,7 @@ export function AppNavigator() {
   const [pushed, setPushed] = useState<Pushed>(null);
   const [viewMember, setViewMember] = useState<AdminMember | null>(null);
   const [leaveRefresh, setLeaveRefresh] = useState(0);
+  const [leaveType, setLeaveType] = useState<LeaveType | undefined>(undefined);
   const [pendingCount, setPendingCount] = useState(0);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
@@ -124,6 +125,7 @@ export function AppNavigator() {
   if (pushed === 'leaverequest') {
     return (
       <LeaveRequestScreen
+        initialType={leaveType}
         onBack={() => setPushed(null)}
         onSubmitted={() => {
           setLeaveRefresh((n) => n + 1);
@@ -180,13 +182,24 @@ export function AppNavigator() {
             shift={profile?.shift}
             onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
             onOpenHistory={() => setEmpTab('history')}
-            onOpenLeave={() => setPushed('leaverequest')}
+            onOpenLeave={(type) => {
+              setLeaveType(type);
+              setPushed('leaverequest');
+            }}
             clockInTime={clockInTime}
             clockOutTime={clockOutTime}
           />
         )}
         {empTab === 'history' && <HistoryScreen />}
-        {empTab === 'leave' && <LeaveScreen onNew={() => setPushed('leaverequest')} reloadKey={leaveRefresh} />}
+        {empTab === 'leave' && (
+          <LeaveScreen
+            onNew={() => {
+              setLeaveType(undefined);
+              setPushed('leaverequest');
+            }}
+            reloadKey={leaveRefresh}
+          />
+        )}
         {empTab === 'profile' && (
           <ProfileScreen
             name={displayName}

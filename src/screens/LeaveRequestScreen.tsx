@@ -27,14 +27,16 @@ function isValidISO(v: string): boolean {
 export interface LeaveRequestScreenProps {
   onBack: () => void;
   onSubmitted: () => void;
+  /** Preselect a request type (e.g. from the Home quick menu). */
+  initialType?: LeaveType;
 }
 
-export function LeaveRequestScreen({ onBack, onSubmitted }: LeaveRequestScreenProps) {
+export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRequestScreenProps) {
   const { s } = useLang();
   const { session } = useAuth();
   const userId = session?.user.id ?? '';
 
-  const [type, setType] = useState<LeaveType>('cuti_tahunan');
+  const [type, setType] = useState<LeaveType>(initialType ?? 'cuti_tahunan');
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
   const [reason, setReason] = useState('');

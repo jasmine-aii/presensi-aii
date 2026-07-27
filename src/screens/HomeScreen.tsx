@@ -11,11 +11,12 @@ import { timeStr, dateStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
 import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 import { useClockReminders } from '../lib/useClockReminders';
-import { fetchLeaveBalance, type LeaveBalance } from '../lib/leave';
+import { fetchLeaveBalance, type LeaveBalance, type LeaveType } from '../lib/leave';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
-const LEAVE_INDEX = 0; // opens the leave-request form
-const DISABLED_MENU = new Set([1]); // Sakit — shown but disabled for now
+const LEAVE_INDEX = 0; // opens the leave-request form (Cuti tahunan)
+const SICK_INDEX = 1; // opens the leave form pre-filled with Sakit
+const DISABLED_MENU = new Set<number>(); // none disabled
 const HIDDEN_MENU = new Set([2, 3, 4]); // Izin khusus, Lembur, Dinas luar — hidden for now
 const RIWAYAT_INDEX = 5; // opens the History page
 
@@ -32,7 +33,7 @@ export function HomeScreen({
   shift?: string | null;
   onClock?: (mode: 'in' | 'out') => void;
   onOpenHistory?: () => void;
-  onOpenLeave?: () => void;
+  onOpenLeave?: (type?: LeaveType) => void;
   clockInTime?: string | null;
   clockOutTime?: string | null;
 }) {
@@ -317,7 +318,14 @@ export function HomeScreen({
                 </Txt>
               </>
             );
-            const onPress = i === RIWAYAT_INDEX ? onOpenHistory : i === LEAVE_INDEX ? onOpenLeave : undefined;
+            const onPress =
+              i === RIWAYAT_INDEX
+                ? onOpenHistory
+                : i === LEAVE_INDEX
+                  ? () => onOpenLeave?.('cuti_tahunan')
+                  : i === SICK_INDEX
+                    ? () => onOpenLeave?.('sakit')
+                    : undefined;
             return onPress && !disabled ? (
               <Pressable key={label} onPress={onPress} style={tileStyle}>
                 {inner}
