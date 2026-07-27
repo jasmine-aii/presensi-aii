@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { Bell, BellRing, BellOff, Check, Clock as ClockIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, dateStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
 import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 import { useClockReminders } from '../lib/useClockReminders';
+import { fetchLeaveBalance, type LeaveBalance } from '../lib/leave';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
 const LEAVE_INDEX = 0; // opens the leave-request form
@@ -34,8 +36,21 @@ export function HomeScreen({
   clockOutTime?: string | null;
 }) {
   const { s, lang } = useLang();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? '';
   const userName = name ?? s.home.name;
   const now = useNow(1000);
+
+  // Personal annual-leave balance for the dashboard stats card.
+  const [balance, setBalance] = useState<LeaveBalance | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    fetchLeaveBalance(userId).then((b) => alive && setBalance(b));
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
   const { width } = useWindowDimensions();
   // Tile width derives from the actual quick-menu row width (measured on layout),
   // not the window — on desktop the app is a narrow centered column, so the
@@ -247,6 +262,30 @@ export function HomeScreen({
           ))}
         </View>
       </Section>
+
+      {/* Personal leave balance */}
+      {balance && (
+        <Section title={s.home.leaveTitle}>
+          <View style={{ flexDirection: 'row', backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg }}>
+            {(
+              [
+                [s.home.entitle, balance.quota, color.ink],
+                [s.home.taken, balance.taken, color.warning],
+                [s.home.balance, balance.remaining, color.success],
+              ] as const
+            ).map(([label, value, hex], i) => (
+              <View key={label} style={{ flex: 1, alignItems: 'center', borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: color.line }}>
+                <Txt w="extrabold" size={22} color={hex} tabular>
+                  {value}
+                </Txt>
+                <Txt size={12} color={color.muted} style={{ marginTop: space.xs }}>
+                  {label}
+                </Txt>
+              </View>
+            ))}
+          </View>
+        </Section>
+      )}
 
       {/* Quick menu */}
       <Section title={s.home.menuTitle}>
