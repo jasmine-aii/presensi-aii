@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Pressable, Modal, TextInput } from 'react-native';
+import { View, ScrollView, Pressable, TextInput } from 'react-native';
 import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, KeyRound, X } from 'lucide-react-native';
-import { color, interFamily } from '../theme';
-import { Txt, Avatar, Toggle, Button, GlowCircle } from '../components';
+import { color, interFamily, space } from '../theme';
+import { Txt, Avatar, Toggle, Button, GlowCircle, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { supabase } from '../lib/supabase';
 import { profileRows } from '../lib/data';
@@ -185,41 +185,37 @@ export function ProfileScreen({
       </View>
 
       {/* Change-password modal */}
-      <Modal visible={pwOpen} transparent animationType="fade" onRequestClose={closePw}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <View style={{ width: '100%', maxWidth: 340, backgroundColor: color.white, borderRadius: 22, padding: 22 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <Txt w="bold" size={16} color={color.ink}>
-                {s.prof.changePw}
-              </Txt>
-              <Pressable onPress={closePw} hitSlop={10}>
-                <X size={20} color={color.muted} strokeWidth={2} />
-              </Pressable>
-            </View>
-
-            {pwDone ? (
-              <View style={{ alignItems: 'center', paddingVertical: 12, gap: 12 }}>
-                <CircleCheck size={40} color={color.success} strokeWidth={2} />
-                <Txt size={14} color={color.ink} style={{ textAlign: 'center' }}>
-                  {s.prof.pwSaved}
-                </Txt>
-                <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closePw} />
-              </View>
-            ) : (
-              <View style={{ gap: 12 }}>
-                <PwInput placeholder={s.prof.newPw} value={newPw} onChangeText={setNewPw} />
-                <PwInput placeholder={s.prof.confirmPw} value={confirmPw} onChangeText={setConfirmPw} />
-                {pwErr && (
-                  <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
-                    {pwErr}
-                  </Txt>
-                )}
-                <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={pwBusy} onPress={savePassword} />
-              </View>
-            )}
-          </View>
+      <Dialog visible={pwOpen} onClose={closePw} maxWidth={340}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
+          <Txt w="bold" size={16} color={color.ink}>
+            {s.prof.changePw}
+          </Txt>
+          <Pressable onPress={closePw} hitSlop={10}>
+            <X size={20} color={color.muted} strokeWidth={2} />
+          </Pressable>
         </View>
-      </Modal>
+
+        {pwDone ? (
+          <View style={{ alignItems: 'center', paddingVertical: space.md, gap: space.md }}>
+            <CircleCheck size={40} color={color.success} strokeWidth={2} />
+            <Txt size={14} color={color.ink} style={{ textAlign: 'center' }}>
+              {s.prof.pwSaved}
+            </Txt>
+            <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closePw} />
+          </View>
+        ) : (
+          <View style={{ gap: space.md }}>
+            <PwInput placeholder={s.prof.newPw} value={newPw} onChangeText={setNewPw} />
+            <PwInput placeholder={s.prof.confirmPw} value={confirmPw} onChangeText={setConfirmPw} />
+            {pwErr && (
+              <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
+                {pwErr}
+              </Txt>
+            )}
+            <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={pwBusy} onPress={savePassword} />
+          </View>
+        )}
+      </Dialog>
     </ScrollView>
   );
 }

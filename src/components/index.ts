@@ -8,6 +8,7 @@ export { IconTile } from './IconTile';
 export { StatusBadge } from './StatusBadge';
 export { AdminStatusBadge } from './AdminStatusBadge';
 export { CameraViewfinder } from './CameraViewfinder';
+export { Dialog } from './Dialog';
 export { ResultDialog, type ResultKind } from './ResultDialog';
 export { MiniMap } from './MiniMap';
 export { GlowCircle } from './GlowCircle';

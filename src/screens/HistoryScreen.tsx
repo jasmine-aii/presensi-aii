@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, Pressable } from 'react-native';
 import { ChevronDown, Camera, X } from 'lucide-react-native';
-import { color } from '../theme';
-import { Txt, StatusBadge } from '../components';
+import { color, space } from '../theme';
+import { Txt, StatusBadge, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
@@ -177,32 +177,30 @@ export function HistoryScreen() {
       </ScrollView>
 
       {/* Photo viewer */}
-      <Modal visible={sel !== null} transparent animationType="fade" onRequestClose={() => setSel(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(10,17,40,0.82)', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: color.white, borderRadius: 24, padding: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-              <View>
-                <Txt w="bold" size={16} color={color.ink}>
-                  {s.hist.photoTitle}
+      <Dialog visible={sel !== null} onClose={() => setSel(null)} tone="dark" maxWidth={420}>
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
+            <View>
+              <Txt w="bold" size={16} color={color.ink}>
+                {s.hist.photoTitle}
+              </Txt>
+              {sel && (
+                <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+                  {dateStr(parseYmd(sel.date), lang)}
                 </Txt>
-                {sel && (
-                  <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
-                    {dateStr(parseYmd(sel.date), lang)}
-                  </Txt>
-                )}
-              </View>
-              <Pressable onPress={() => setSel(null)} hitSlop={10} accessibilityLabel={s.hist.close}>
-                <X size={22} color={color.muted} strokeWidth={2} />
-              </Pressable>
+              )}
             </View>
+            <Pressable onPress={() => setSel(null)} hitSlop={10} accessibilityLabel={s.hist.close}>
+              <X size={22} color={color.muted} strokeWidth={2} />
+            </Pressable>
+          </View>
 
-            <View style={{ flexDirection: 'row', gap: 12 }}>
-              <PhotoCell label={s.out.inAt} time={sel?.clockInTime ?? null} uri={sel?.clockInPhoto ? urls[sel.clockInPhoto] : undefined} noPhoto={s.hist.noPhoto} />
-              <PhotoCell label={s.out.outAt} time={sel?.clockOutTime ?? null} uri={sel?.clockOutPhoto ? urls[sel.clockOutPhoto] : undefined} noPhoto={s.hist.noPhoto} />
-            </View>
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <PhotoCell label={s.out.inAt} time={sel?.clockInTime ?? null} uri={sel?.clockInPhoto ? urls[sel.clockInPhoto] : undefined} noPhoto={s.hist.noPhoto} />
+            <PhotoCell label={s.out.outAt} time={sel?.clockOutTime ?? null} uri={sel?.clockOutPhoto ? urls[sel.clockOutPhoto] : undefined} noPhoto={s.hist.noPhoto} />
           </View>
         </View>
-      </Modal>
+      </Dialog>
     </View>
   );
 }

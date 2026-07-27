@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal, TextInput } from 'react-native';
+import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check } from 'lucide-react-native';
-import { color, interFamily } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button } from '../components';
+import { color, interFamily, space } from '../theme';
+import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
@@ -212,10 +212,9 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
       </ScrollView>
 
       {/* Reset-password modal */}
-      <Modal visible={rpOpen} transparent animationType="fade" onRequestClose={closeReset}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
-          <View style={{ width: '100%', maxWidth: 340, backgroundColor: color.white, borderRadius: 22, padding: 22 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+      <Dialog visible={rpOpen} onClose={closeReset} maxWidth={340}>
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
               <Txt w="bold" size={16} color={color.ink}>
                 {s.adm.resetPw}
               </Txt>
@@ -292,15 +291,13 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={rpBusy} onPress={doReset} />
               </View>
             )}
-          </View>
         </View>
-      </Modal>
+      </Dialog>
 
       {/* Photo viewer */}
-      <Modal visible={sel !== null} transparent animationType="fade" onRequestClose={() => setSel(null)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(10,17,40,0.82)', justifyContent: 'center', padding: 24 }}>
-          <View style={{ backgroundColor: color.white, borderRadius: 24, padding: 20 }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <Dialog visible={sel !== null} onClose={() => setSel(null)} tone="dark" maxWidth={420}>
+        <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
               <View>
                 <Txt w="bold" size={16} color={color.ink}>
                   {s.hist.photoTitle}
@@ -315,13 +312,12 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <X size={22} color={color.muted} strokeWidth={2} />
               </Pressable>
             </View>
-            <View style={{ flexDirection: 'row', gap: 12 }}>
+            <View style={{ flexDirection: 'row', gap: space.md }}>
               <PhotoCell label={s.out.inAt} time={sel?.clockInTime ?? null} uri={sel?.clockInPhoto ? urls[sel.clockInPhoto] : undefined} noPhoto={s.hist.noPhoto} />
               <PhotoCell label={s.out.outAt} time={sel?.clockOutTime ?? null} uri={sel?.clockOutPhoto ? urls[sel.clockOutPhoto] : undefined} noPhoto={s.hist.noPhoto} />
             </View>
-          </View>
         </View>
-      </Modal>
+      </Dialog>
     </View>
   );
 }

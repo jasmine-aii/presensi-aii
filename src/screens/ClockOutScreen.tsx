@@ -1,10 +1,10 @@
 import React, { useRef, useState } from 'react';
-import { View, ScrollView, Pressable, Modal } from 'react-native';
+import { View, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, RefreshCw, TriangleAlert } from 'lucide-react-native';
 import { CameraView } from 'expo-camera';
-import { color, elevation } from '../theme';
-import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, SelectField, type ResultKind } from '../components';
+import { color, elevation, space } from '../theme';
+import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, SelectField, Dialog, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
 import { useNow } from '../lib/useNow';
@@ -191,27 +191,25 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
       </View>
 
       {/* Early clock-out warning */}
-      <Modal visible={warnOpen} transparent animationType="fade" onRequestClose={() => setWarnOpen(false)}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-          <View style={{ width: '100%', maxWidth: 320, backgroundColor: color.white, borderRadius: 22, padding: 24, alignItems: 'center' }}>
-            <View style={{ width: 60, height: 60, borderRadius: 999, backgroundColor: '#FFF3D6', alignItems: 'center', justifyContent: 'center', marginBottom: 16 }}>
-              <TriangleAlert size={32} color="#B7791F" strokeWidth={2} />
-            </View>
-            <Txt w="extrabold" size={18} color={color.ink} style={{ textAlign: 'center' }}>
-              {s.out.earlyTitle}
-            </Txt>
-            <Txt size={14} color={color.muted} style={{ textAlign: 'center', lineHeight: 20, marginTop: 6 }}>
-              {s.out.earlyMsg} ({durationStr(netMin, lang)} / {durationStr(FULL_DAY_MIN, lang)})
-            </Txt>
-            <Button variant="primary" size="md" fullWidth label={s.out.earlyConfirm} onPress={proceed} />
-            <Pressable onPress={() => setWarnOpen(false)} style={{ marginTop: 10, paddingVertical: 10 }}>
-              <Txt w="semibold" size={15} color={color.muted}>
-                {s.prof.cancel}
-              </Txt>
-            </Pressable>
-          </View>
+      <Dialog visible={warnOpen} onClose={() => setWarnOpen(false)} align="center" maxWidth={340}>
+        <View style={{ width: 60, height: 60, borderRadius: 999, backgroundColor: color.warningBg, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
+          <TriangleAlert size={32} color={color.warning} strokeWidth={2} />
         </View>
-      </Modal>
+        <Txt w="extrabold" size={18} color={color.ink} style={{ textAlign: 'center' }}>
+          {s.out.earlyTitle}
+        </Txt>
+        <Txt size={14} color={color.muted} style={{ textAlign: 'center', lineHeight: 20, marginTop: space.xs + 2 }}>
+          {s.out.earlyMsg} ({durationStr(netMin, lang)} / {durationStr(FULL_DAY_MIN, lang)})
+        </Txt>
+        <View style={{ alignSelf: 'stretch', marginTop: space.lg }}>
+          <Button variant="primary" size="md" fullWidth label={s.out.earlyConfirm} onPress={proceed} />
+        </View>
+        <Pressable onPress={() => setWarnOpen(false)} style={{ marginTop: space.sm, paddingVertical: space.sm }}>
+          <Txt w="semibold" size={15} color={color.muted}>
+            {s.prof.cancel}
+          </Txt>
+        </Pressable>
+      </Dialog>
 
       <ResultDialog
         visible={result !== null}
