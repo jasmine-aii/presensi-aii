@@ -13,9 +13,11 @@ import { fetchTeam, deriveStats, type AdminMember } from '../lib/admin';
 export function HRDashboardScreen({
   onNavigate,
   onSwitchEmployee,
+  onSelectMember,
 }: {
   onNavigate?: (k: AdminNav) => void;
   onSwitchEmployee?: () => void;
+  onSelectMember?: (m: AdminMember) => void;
 }) {
   const { s, lang } = useLang();
   const { profile } = useAuth();
@@ -114,7 +116,7 @@ export function HRDashboardScreen({
             </View>
           ) : (
             notInList.map((p) => (
-              <View key={p.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 14 }}>
+              <Pressable key={p.id} onPress={() => onSelectMember?.(p)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 12, paddingHorizontal: 14 }}>
                 <Avatar name={p.name} size={40} />
                 <View style={{ flex: 1 }}>
                   <Txt w="semibold" size={14} color={color.ink}>
@@ -125,7 +127,7 @@ export function HRDashboardScreen({
                   </Txt>
                 </View>
                 <AdminStatusBadge status={p.st} />
-              </View>
+              </Pressable>
             ))
           )}
         </View>

@@ -124,7 +124,7 @@ export function AppNavigator() {
     return (
       <View style={{ flex: 1, backgroundColor: color.paper }}>
         <View style={{ flex: 1 }}>
-          {admTab === 'dashboard' && <HRDashboardScreen onNavigate={admNavigate} onSwitchEmployee={() => setWorkspace('employee')} />}
+          {admTab === 'dashboard' && <HRDashboardScreen onNavigate={admNavigate} onSwitchEmployee={() => setWorkspace('employee')} onSelectMember={setViewMember} />}
           {admTab === 'team' && <DirectoryScreen onInvite={() => setPushed('invite')} onSelectMember={setViewMember} />}
           {admTab === 'approval' && <ApprovalScreen />}
           {admTab === 'report' && <ReportsScreen />}

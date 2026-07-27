@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal, TextInput } from 'react-native';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles } from 'lucide-react-native';
+import * as Clipboard from 'expo-clipboard';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check } from 'lucide-react-native';
 import { color, interFamily } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -26,6 +27,12 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [rpErr, setRpErr] = useState<string | null>(null);
   const [rpDone, setRpDone] = useState(false);
   const [rpSaved, setRpSaved] = useState(''); // the password that was set (shown on success)
+  const [rpCopied, setRpCopied] = useState(false);
+
+  const copyPw = async () => {
+    await Clipboard.setStringAsync(rpSaved);
+    setRpCopied(true);
+  };
 
   const generatePw = () => {
     const pw = Math.random().toString(36).slice(2, 6) + Math.random().toString(36).slice(2, 6);
@@ -52,6 +59,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     setRpNew('');
     setRpSaved('');
     setRpShow(false);
+    setRpCopied(false);
   };
 
   useEffect(() => {
@@ -228,11 +236,29 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Txt size={12} color={color.muted} style={{ textAlign: 'center' }}>
                   {s.adm.resetPwShare}
                 </Txt>
-                <View style={{ alignSelf: 'stretch', backgroundColor: color.skyTint, borderRadius: 12, paddingVertical: 12, alignItems: 'center' }}>
+                <Pressable
+                  onPress={copyPw}
+                  style={{ alignSelf: 'stretch', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: color.skyTint, borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16 }}
+                >
                   <Txt w="bold" size={18} color={color.deepNavy} tabular>
                     {rpSaved}
                   </Txt>
-                </View>
+                  {rpCopied ? (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                      <Check size={16} color={color.success} strokeWidth={2.5} />
+                      <Txt w="semibold" size={13} color={color.success}>
+                        {s.adm.copied}
+                      </Txt>
+                    </View>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                      <Copy size={16} color={color.anugrahBlue} strokeWidth={2} />
+                      <Txt w="semibold" size={13} color={color.anugrahBlue}>
+                        {s.adm.copy}
+                      </Txt>
+                    </View>
+                  )}
+                </Pressable>
                 <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closeReset} />
               </View>
             ) : (
