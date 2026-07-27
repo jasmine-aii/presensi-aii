@@ -11,6 +11,7 @@ export interface DateFieldProps {
   min?: string; // YYYY-MM-DD
   max?: string; // YYYY-MM-DD
   placeholder?: string;
+  required?: boolean;
 }
 
 /**
@@ -19,11 +20,12 @@ export interface DateFieldProps {
  * tokens; on native it falls back to a YYYY-MM-DD text input. Value is always
  * an ISO YYYY-MM-DD string — the same format the DB and leave engine use.
  */
-export function DateField({ label, value, onChange, min, max, placeholder }: DateFieldProps) {
+export function DateField({ label, value, onChange, min, max, placeholder, required }: DateFieldProps) {
   const Label = () =>
     label ? (
       <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
         {label}
+        {required ? <Txt color={color.danger}> *</Txt> : null}
       </Txt>
     ) : null;
 

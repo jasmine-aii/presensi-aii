@@ -15,6 +15,7 @@ export interface SelectFieldProps {
   options: SelectOption[];
   onChange: (value: string) => void;
   icon?: LucideIcon;
+  required?: boolean;
   /** Show an "add new" row at the bottom of the dropdown (e.g. HR adding a department). */
   allowAdd?: boolean;
   addLabel?: string;
@@ -26,7 +27,7 @@ export interface SelectFieldProps {
  * Anchored dropdown: opens a popover directly below the field. Optionally lets
  * an authorized user add a new option inline (`allowAdd`).
  */
-export function SelectField({ label, value, options, onChange, icon: Icon, allowAdd, addLabel, addPlaceholder, onAdd }: SelectFieldProps) {
+export function SelectField({ label, value, options, onChange, icon: Icon, required, allowAdd, addLabel, addPlaceholder, onAdd }: SelectFieldProps) {
   const triggerRef = useRef<View>(null);
   const [open, setOpen] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -60,6 +61,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon, allow
     <View>
       <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space.sm }}>
         {label}
+        {required ? <Txt color={color.danger}> *</Txt> : null}
       </Txt>
       <Pressable
         ref={triggerRef}

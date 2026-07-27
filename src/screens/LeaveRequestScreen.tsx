@@ -71,6 +71,8 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
         return s.leave.attachErr;
       case 'big':
         return s.leave.attachTooBig;
+      case 'reason':
+        return s.leave.errReason;
       default:
         return null;
     }
@@ -80,6 +82,10 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
     setErrKey(null);
     if (!isValidISO(start) || !isValidISO(end)) {
       setErrKey('date');
+      return;
+    }
+    if (!reason.trim()) {
+      setErrKey('reason');
       return;
     }
     setSubmitting(true);
@@ -126,9 +132,10 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
     paddingVertical: space.md,
   } as const;
 
-  const Label = ({ children }: { children: string }) => (
+  const Label = ({ children, required }: { children: string; required?: boolean }) => (
     <Txt w="semibold" size={13} color={color.muted} style={{ marginBottom: space.sm }}>
       {children}
+      {required ? <Txt color={color.danger}> *</Txt> : null}
     </Txt>
   );
 
@@ -143,19 +150,20 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
           options={typeOptions}
           onChange={(v) => setType(v as LeaveType)}
           icon={Tag}
+          required
         />
 
         <View style={{ flexDirection: 'row', gap: space.md }}>
           <View style={{ flex: 1 }}>
-            <DateField label={s.leave.fStart} value={start} onChange={setStart} min={todayISO()} />
+            <DateField label={s.leave.fStart} value={start} onChange={setStart} min={todayISO()} required />
           </View>
           <View style={{ flex: 1 }}>
-            <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || todayISO()} />
+            <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || todayISO()} required />
           </View>
         </View>
 
         <View>
-          <Label>{s.leave.fReason}</Label>
+          <Label required>{s.leave.fReason}</Label>
           <TextInput
             value={reason}
             onChangeText={setReason}
@@ -204,7 +212,7 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
           label={submitting ? s.leave.submitting : s.leave.submit}
           size="lg"
           fullWidth
-          disabled={submitting || !datesValid}
+          disabled={submitting || !datesValid || !reason.trim()}
           onPress={submit}
         />
       </ScrollView>
