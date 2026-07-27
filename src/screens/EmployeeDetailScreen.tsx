@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal } from 'react-native';
-import { Camera, X, Clock } from 'lucide-react-native';
-import { color } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField } from '../components';
+import { View, ScrollView, ActivityIndicator, Image, Pressable, Modal, TextInput } from 'react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck } from 'lucide-react-native';
+import { color, interFamily } from '../theme';
+import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
-import { setMemberShift, type AdminMember } from '../lib/admin';
+import { setMemberShift, resetMemberPassword, type AdminMember } from '../lib/admin';
 import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
@@ -17,6 +17,35 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [sel, setSel] = useState<HistoryEntry | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
+
+  // Reset-password modal
+  const [rpOpen, setRpOpen] = useState(false);
+  const [rpNew, setRpNew] = useState('');
+  const [rpConfirm, setRpConfirm] = useState('');
+  const [rpBusy, setRpBusy] = useState(false);
+  const [rpErr, setRpErr] = useState<string | null>(null);
+  const [rpDone, setRpDone] = useState(false);
+
+  const doReset = async () => {
+    if (rpBusy) return;
+    if (rpNew.length < 6) return setRpErr(s.prof.pwMin);
+    if (rpNew !== rpConfirm) return setRpErr(s.prof.pwMismatch);
+    setRpErr(null);
+    setRpBusy(true);
+    const err = await resetMemberPassword(member.id, rpNew);
+    setRpBusy(false);
+    if (err) return setRpErr(err);
+    setRpDone(true);
+    setRpNew('');
+    setRpConfirm('');
+  };
+  const closeReset = () => {
+    setRpOpen(false);
+    setRpErr(null);
+    setRpDone(false);
+    setRpNew('');
+    setRpConfirm('');
+  };
 
   useEffect(() => {
     fetchShifts().then(setShifts);
@@ -88,6 +117,19 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </View>
         )}
 
+        {/* Reset password */}
+        <Pressable
+          onPress={() => setRpOpen(true)}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 16, paddingVertical: 14, paddingHorizontal: 16 }}
+        >
+          <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <KeyRound size={20} color={color.anugrahBlue} strokeWidth={2} />
+          </View>
+          <Txt w="semibold" size={14} color={color.ink} style={{ flex: 1 }}>
+            {s.adm.resetPw}
+          </Txt>
+        </Pressable>
+
         <Txt w="bold" size={14} color={color.ink} style={{ marginTop: 4 }}>
           {s.adm.recentAtt}
         </Txt>
@@ -154,6 +196,46 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
         )}
       </ScrollView>
 
+      {/* Reset-password modal */}
+      <Modal visible={rpOpen} transparent animationType="fade" onRequestClose={closeReset}>
+        <View style={{ flex: 1, backgroundColor: 'rgba(14,17,22,0.45)', alignItems: 'center', justifyContent: 'center', padding: 28 }}>
+          <View style={{ width: '100%', maxWidth: 340, backgroundColor: color.white, borderRadius: 22, padding: 22 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
+              <Txt w="bold" size={16} color={color.ink}>
+                {s.adm.resetPw}
+              </Txt>
+              <Pressable onPress={closeReset} hitSlop={10}>
+                <X size={20} color={color.muted} strokeWidth={2} />
+              </Pressable>
+            </View>
+            <Txt size={12} color={color.muted} style={{ marginBottom: 16 }}>
+              {member.name}
+            </Txt>
+
+            {rpDone ? (
+              <View style={{ alignItems: 'center', paddingVertical: 12, gap: 12 }}>
+                <CircleCheck size={40} color={color.success} strokeWidth={2} />
+                <Txt size={14} color={color.ink} style={{ textAlign: 'center' }}>
+                  {s.adm.resetPwDone}
+                </Txt>
+                <Button variant="primary" size="md" fullWidth label={s.dlg.done} onPress={closeReset} />
+              </View>
+            ) : (
+              <View style={{ gap: 12 }}>
+                <RpInput placeholder={s.prof.newPw} value={rpNew} onChangeText={setRpNew} />
+                <RpInput placeholder={s.prof.confirmPw} value={rpConfirm} onChangeText={setRpConfirm} />
+                {rpErr && (
+                  <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
+                    {rpErr}
+                  </Txt>
+                )}
+                <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={rpBusy} onPress={doReset} />
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
+
       {/* Photo viewer */}
       <Modal visible={sel !== null} transparent animationType="fade" onRequestClose={() => setSel(null)}>
         <View style={{ flex: 1, backgroundColor: 'rgba(10,17,40,0.82)', justifyContent: 'center', padding: 24 }}>
@@ -180,6 +262,21 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </View>
         </View>
       </Modal>
+    </View>
+  );
+}
+
+function RpInput(props: React.ComponentProps<typeof TextInput>) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12 }}>
+      <KeyRound size={18} color={color.anugrahBlue} strokeWidth={2} />
+      <TextInput
+        secureTextEntry
+        autoCapitalize="none"
+        placeholderTextColor={color.muted}
+        style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
+        {...props}
+      />
     </View>
   );
 }

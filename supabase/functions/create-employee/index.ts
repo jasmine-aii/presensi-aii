@@ -32,16 +32,28 @@ Deno.serve(async (req) => {
     const { data: { user }, error: uErr } = await caller.auth.getUser();
     if (uErr || !user) return json({ error: 'Not authenticated' });
     const { data: prof } = await caller.from('profiles').select('role').eq('id', user.id).single();
-    if (prof?.role !== 'admin') return json({ error: 'Hanya admin yang dapat membuat akun.' });
+    if (prof?.role !== 'admin') return json({ error: 'Hanya admin yang dapat mengelola akun.' });
 
-    // 2. Validate input.
-    const { email, password, full_name, job_role, access_role, shift } = await req.json();
+    const body = await req.json();
+    const admin = createClient(url, serviceKey);
+
+    // Action: reset an existing employee's password.
+    if (body.action === 'reset-password') {
+      const { userId, password } = body;
+      if (!userId || !password) return json({ error: 'userId dan kata sandi wajib diisi.' });
+      if (String(password).length < 6) return json({ error: 'Kata sandi minimal 6 karakter.' });
+      const { error: rErr } = await admin.auth.admin.updateUserById(String(userId), { password: String(password) });
+      if (rErr) return json({ error: rErr.message });
+      return json({ ok: true });
+    }
+
+    // Default action: create a new employee account.
+    const { email, password, full_name, job_role, access_role, shift } = body;
     if (!email || !password) return json({ error: 'Email dan kata sandi wajib diisi.' });
     if (String(password).length < 6) return json({ error: 'Kata sandi minimal 6 karakter.' });
 
-    // 3. Create the auth user with the service role. email_confirm skips the
-    //    confirmation email so the employee can sign in immediately.
-    const admin = createClient(url, serviceKey);
+    // Create the auth user with the service role. email_confirm skips the
+    // confirmation email so the employee can sign in immediately.
     const { data: created, error: cErr } = await admin.auth.admin.createUser({
       email: String(email).trim(),
       password: String(password),

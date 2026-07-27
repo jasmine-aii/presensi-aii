@@ -80,6 +80,16 @@ export async function nextEmployeeIdPreview(): Promise<string> {
   return 'AII' + String(max + 1).padStart(3, '0');
 }
 
+/** Reset an employee's password (admin only, via the create-employee function). */
+export async function resetMemberPassword(userId: string, password: string): Promise<string | null> {
+  const { data, error } = await supabase.functions.invoke('create-employee', {
+    body: { action: 'reset-password', userId, password },
+  });
+  if (error) return error.message;
+  if (data?.error) return data.error as string;
+  return null;
+}
+
 /** Assign / change an employee's shift (admin only, enforced by RLS). */
 export async function setMemberShift(userId: string, shift: string | null): Promise<boolean> {
   const { error } = await supabase.from('profiles').update({ shift }).eq('id', userId);
