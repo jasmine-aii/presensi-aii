@@ -194,9 +194,9 @@ alter table public.profiles
 -- Backfill join_date for existing employees from their account creation date.
 update public.profiles set join_date = created_at::date where join_date is null;
 
--- The founder (Monthy) is everyone's manager — keep them out of the stats.
--- (Adjustable per person from the admin UI afterwards.)
-update public.profiles set exclude_from_stats = true where full_name ilike 'monthy%';
+-- The founder (Monthy = AII001) is everyone's manager — keep them out of the
+-- stats. Keyed by employee_id, not name. (Adjustable per person in the admin UI.)
+update public.profiles set exclude_from_stats = true where employee_id = 'AII001';
 
 -- btree_gist lets the overlap guard combine `user_id =` with a range `&&`.
 create extension if not exists btree_gist;
