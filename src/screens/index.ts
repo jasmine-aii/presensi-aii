@@ -5,6 +5,7 @@ export { ClockOutScreen } from './ClockOutScreen';
 export { HistoryScreen } from './HistoryScreen';
 export { ProfileScreen } from './ProfileScreen';
 export { LeaveScreen } from './LeaveScreen';
+export { LeaveRequestScreen } from './LeaveRequestScreen';
 export { HRDashboardScreen } from './HRDashboardScreen';
 export { DirectoryScreen } from './DirectoryScreen';
 export { InviteScreen } from './InviteScreen';

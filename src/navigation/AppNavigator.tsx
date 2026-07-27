@@ -14,6 +14,7 @@ import {
   ClockOutScreen,
   HistoryScreen,
   LeaveScreen,
+  LeaveRequestScreen,
   ProfileScreen,
   HRDashboardScreen,
   DirectoryScreen,
@@ -27,7 +28,7 @@ import {
 type Workspace = 'employee' | 'admin';
 type EmpTab = 'home' | 'history' | 'leave' | 'profile';
 type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
-type Pushed = 'clockin' | 'clockout' | 'invite' | 'shifts' | null;
+type Pushed = 'clockin' | 'clockout' | 'invite' | 'shifts' | 'leaverequest' | null;
 
 /**
  * State-based navigator. Two workspaces (employee ⇄ admin), each with a bottom
@@ -46,6 +47,7 @@ export function AppNavigator() {
   const [admTab, setAdmTab] = useState<AdmTab>('dashboard');
   const [pushed, setPushed] = useState<Pushed>(null);
   const [viewMember, setViewMember] = useState<AdminMember | null>(null);
+  const [leaveRefresh, setLeaveRefresh] = useState(0);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
 
@@ -107,6 +109,17 @@ export function AppNavigator() {
   if (pushed === 'shifts') {
     return <ShiftScreen onBack={() => setPushed('invite')} />;
   }
+  if (pushed === 'leaverequest') {
+    return (
+      <LeaveRequestScreen
+        onBack={() => setPushed(null)}
+        onSubmitted={() => {
+          setLeaveRefresh((n) => n + 1);
+          setPushed(null);
+        }}
+      />
+    );
+  }
 
   // ── Admin workspace ──
   if (workspace === 'admin') {
@@ -160,7 +173,7 @@ export function AppNavigator() {
           />
         )}
         {empTab === 'history' && <HistoryScreen />}
-        {empTab === 'leave' && <LeaveScreen />}
+        {empTab === 'leave' && <LeaveScreen onNew={() => setPushed('leaverequest')} reloadKey={leaveRefresh} />}
         {empTab === 'profile' && (
           <ProfileScreen
             name={displayName}

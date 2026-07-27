@@ -3,7 +3,7 @@ import { Badge, type BadgeTone } from './Badge';
 import { useLang } from '../i18n/LangContext';
 import type { AttendanceStatus, RequestStatus } from '../lib/data';
 
-type Status = AttendanceStatus | RequestStatus;
+type Status = AttendanceStatus | RequestStatus | 'cancelled';
 
 const toneOf: Record<Status, BadgeTone> = {
   ontime: 'success',
@@ -12,6 +12,7 @@ const toneOf: Record<Status, BadgeTone> = {
   pending: 'warning',
   approved: 'success',
   rejected: 'danger',
+  cancelled: 'neutral',
 };
 
 /** Localized semantic status pill for attendance rows and leave requests. */

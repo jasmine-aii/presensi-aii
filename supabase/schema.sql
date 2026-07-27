@@ -169,6 +169,123 @@ create policy "att photos select admin" on storage.objects
   for select to authenticated
   using (bucket_id = 'attendance-photos' and public.is_admin());
 
+-- ── leave / permission requests ──────────────────────────────────────────────
+-- One row per request. Lifecycle: pending → approved | rejected | cancelled.
+-- Types mirror the reference diagram: cuti_tahunan / sakit / izin / dinas_luar.
+-- Only approved `cuti_tahunan` consumes annual-leave quota; the balance is
+-- derived (quota − Σ approved cuti_tahunan days this year), so cancelling an
+-- approved request automatically restores it — no counter to keep in sync.
+alter table public.profiles
+  add column if not exists annual_leave_quota int not null default 12;
+
+-- btree_gist lets the overlap guard combine `user_id =` with a range `&&`.
+create extension if not exists btree_gist;
+
+create table if not exists public.leave_requests (
+  id             uuid primary key default gen_random_uuid(),
+  user_id        uuid not null references auth.users (id) on delete cascade,
+  type           text not null check (type in ('cuti_tahunan', 'sakit', 'izin', 'dinas_luar')),
+  start_date     date not null,
+  end_date       date not null,
+  days           int  not null default 1 check (days >= 1),  -- working days, computed by the app
+  reason         text,
+  attachment_path text,                                      -- storage object path (optional, e.g. surat dokter)
+  status         text not null default 'pending'
+                   check (status in ('pending', 'approved', 'rejected', 'cancelled')),
+  review_note    text,
+  reviewed_by    uuid references auth.users (id),
+  reviewed_at    timestamptz,
+  created_at     timestamptz not null default now(),
+  check (end_date >= start_date)
+);
+
+create index if not exists leave_user_idx   on public.leave_requests (user_id, start_date desc);
+create index if not exists leave_status_idx on public.leave_requests (status, start_date desc);
+
+-- No overlapping *active* (pending/approved) requests for the same employee.
+alter table public.leave_requests drop constraint if exists leave_no_overlap;
+alter table public.leave_requests add constraint leave_no_overlap
+  exclude using gist (
+    user_id with =,
+    daterange(start_date, end_date, '[]') with &&
+  ) where (status in ('pending', 'approved'));
+
+-- Guard status transitions in the DB so RLS doesn't have to be column-aware:
+--   • → approved / rejected : admins only (records reviewer + timestamp)
+--   • → cancelled           : the owner, and if it was approved only before it starts
+--   • pending row edits      : the owner may still change dates/reason while pending
+create or replace function public.enforce_leave_transition()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.status is distinct from old.status then
+    if new.status in ('approved', 'rejected') then
+      if not public.is_admin() then
+        raise exception 'Only an admin can approve or reject a request';
+      end if;
+      new.reviewed_by := auth.uid();
+      new.reviewed_at := now();
+    elsif new.status = 'cancelled' then
+      if auth.uid() <> old.user_id then
+        raise exception 'Only the owner can cancel their request';
+      end if;
+      if old.status not in ('pending', 'approved') then
+        raise exception 'Only a pending or approved request can be cancelled';
+      end if;
+      if old.status = 'approved' and old.start_date <= current_date then
+        raise exception 'An approved leave cannot be cancelled once it has started';
+      end if;
+    else
+      raise exception 'Illegal status transition % → %', old.status, new.status;
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_leave_update on public.leave_requests;
+create trigger on_leave_update
+  before update on public.leave_requests
+  for each row execute function public.enforce_leave_transition();
+
+alter table public.leave_requests enable row level security;
+
+drop policy if exists "leave read own"    on public.leave_requests;
+drop policy if exists "leave read admin"  on public.leave_requests;
+drop policy if exists "leave insert own"  on public.leave_requests;
+drop policy if exists "leave update own"  on public.leave_requests;
+drop policy if exists "leave update admin" on public.leave_requests;
+
+-- Employees: read + create + update (cancel) their own; new rows must be pending.
+create policy "leave read own"   on public.leave_requests for select using (auth.uid() = user_id);
+create policy "leave insert own" on public.leave_requests for insert
+  with check (auth.uid() = user_id and status = 'pending');
+create policy "leave update own" on public.leave_requests for update
+  using (auth.uid() = user_id) with check (auth.uid() = user_id);
+-- Admins: read everyone; approve/reject (transition guarded by the trigger above).
+create policy "leave read admin"   on public.leave_requests for select using (public.is_admin());
+create policy "leave update admin" on public.leave_requests for update
+  using (public.is_admin()) with check (public.is_admin());
+
+-- ── Storage: leave attachments (surat dokter, dsb.) ──────────────────────────
+insert into storage.buckets (id, name, public)
+values ('leave-attachments', 'leave-attachments', false)
+on conflict (id) do nothing;
+
+drop policy if exists "leave att all own"      on storage.objects;
+drop policy if exists "leave att select admin" on storage.objects;
+
+create policy "leave att all own" on storage.objects
+  for all to authenticated
+  using (bucket_id = 'leave-attachments' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'leave-attachments' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy "leave att select admin" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'leave-attachments' and public.is_admin());
+
 -- ============================================================================
 -- After the first user signs up, promote them to admin (run once, replace email):
 --   update public.profiles set role = 'admin'
