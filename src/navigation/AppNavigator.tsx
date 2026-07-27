@@ -7,6 +7,8 @@ import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchToday, recordClockIn, recordClockOut } from '../lib/attendance';
 import { uploadClockPhoto } from '../lib/storage';
+import { pendingLeaveCount } from '../lib/leave';
+import { useLeaveNotifications } from '../lib/useLeaveNotifications';
 import type { AdminMember } from '../lib/admin';
 import {
   HomeScreen,
@@ -48,6 +50,7 @@ export function AppNavigator() {
   const [pushed, setPushed] = useState<Pushed>(null);
   const [viewMember, setViewMember] = useState<AdminMember | null>(null);
   const [leaveRefresh, setLeaveRefresh] = useState(0);
+  const [pendingCount, setPendingCount] = useState(0);
   const [clockInTime, setClockInTime] = useState<string | null>(null);
   const [clockOutTime, setClockOutTime] = useState<string | null>(null);
 
@@ -66,6 +69,15 @@ export function AppNavigator() {
   }, [userId]);
 
   const displayName = profile?.full_name ?? s.home.name;
+
+  // Notify the employee when their leave request is approved/rejected.
+  useLeaveNotifications(userId);
+
+  // Keep the approval-tab badge fresh whenever the admin workspace is shown.
+  useEffect(() => {
+    if (!isAdmin) return;
+    pendingLeaveCount().then(setPendingCount);
+  }, [isAdmin, workspace, admTab]);
 
   // ── Pushed sub-views take over the whole screen (no tab bar) ──
   if (pushed === 'clockin') {
@@ -140,10 +152,10 @@ export function AppNavigator() {
         <View style={{ flex: 1 }}>
           {admTab === 'dashboard' && <HRDashboardScreen onNavigate={admNavigate} onSwitchEmployee={() => setWorkspace('employee')} onSelectMember={setViewMember} />}
           {admTab === 'team' && <DirectoryScreen onInvite={() => setPushed('invite')} onSelectMember={setViewMember} />}
-          {admTab === 'approval' && <ApprovalScreen />}
+          {admTab === 'approval' && <ApprovalScreen onChanged={() => pendingLeaveCount().then(setPendingCount)} />}
           {admTab === 'report' && <ReportsScreen />}
         </View>
-        <TabBar mode="admin" active={admTab} labels={s.anav} onNavigate={admNavigate} disabled={['approval']} bottomInset={insets.bottom} />
+        <TabBar mode="admin" active={admTab} labels={s.anav} onNavigate={admNavigate} badges={{ approval: pendingCount }} bottomInset={insets.bottom} />
       </View>
     );
   }

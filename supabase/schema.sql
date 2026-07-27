@@ -286,6 +286,15 @@ create policy "leave att select admin" on storage.objects
   for select to authenticated
   using (bucket_id = 'leave-attachments' and public.is_admin());
 
+-- Realtime: let employees receive live status changes (approve/reject) on their
+-- own requests. RLS still applies, so a client only ever sees its own rows.
+do $$
+begin
+  alter publication supabase_realtime add table public.leave_requests;
+exception
+  when duplicate_object then null;  -- already added; safe to re-run
+end $$;
+
 -- ============================================================================
 -- After the first user signs up, promote them to admin (run once, replace email):
 --   update public.profiles set role = 'admin'

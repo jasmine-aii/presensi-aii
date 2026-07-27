@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -9,6 +9,7 @@ import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 import { setMemberShift, resetMemberPassword, type AdminMember } from '../lib/admin';
+import { fetchLeaveBalance, setLeaveQuota, type LeaveBalance } from '../lib/leave';
 import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
@@ -18,6 +19,12 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [sel, setSel] = useState<HistoryEntry | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
+
+  // Annual-leave quota
+  const [balance, setBalance] = useState<LeaveBalance | null>(null);
+  const [quotaDraft, setQuotaDraft] = useState('');
+  const [quotaBusy, setQuotaBusy] = useState(false);
+  const [quotaSaved, setQuotaSaved] = useState(false);
 
   // Reset-password modal
   const [rpOpen, setRpOpen] = useState(false);
@@ -65,6 +72,26 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   useEffect(() => {
     fetchShifts().then(setShifts);
   }, []);
+
+  useEffect(() => {
+    fetchLeaveBalance(member.id).then((b) => {
+      setBalance(b);
+      setQuotaDraft(String(b.quota));
+    });
+  }, [member.id]);
+
+  const saveQuota = async () => {
+    const n = parseInt(quotaDraft, 10);
+    if (Number.isNaN(n) || n < 0) return;
+    setQuotaBusy(true);
+    const ok = await setLeaveQuota(member.id, n);
+    setQuotaBusy(false);
+    if (ok) {
+      setQuotaSaved(true);
+      setBalance((b) => (b ? { ...b, quota: n, remaining: Math.max(0, n - b.taken) } : b));
+      setTimeout(() => setQuotaSaved(false), 2000);
+    }
+  };
 
   const onPickShift = (id: string) => {
     const sh = shifts.find((x) => x.id === id);
@@ -129,6 +156,41 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               onChange={onPickShift}
               icon={Clock}
             />
+          </View>
+        )}
+
+        {/* Annual-leave quota */}
+        {balance && (
+          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+              <CalendarClock size={18} color={color.anugrahBlue} strokeWidth={2} />
+              <Txt w="semibold" size={13} color={color.muted}>
+                {s.adm.quotaTitle}
+              </Txt>
+            </View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, flex: 1, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
+                <TextInput
+                  value={quotaDraft}
+                  onChangeText={(t) => setQuotaDraft(t.replace(/[^0-9]/g, ''))}
+                  keyboardType="number-pad"
+                  style={{ flex: 1, fontFamily: interFamily('semibold'), fontSize: 16, color: color.ink, padding: 0 }}
+                />
+                <Txt size={12} color={color.muted}>
+                  {s.adm.quotaUnit}
+                </Txt>
+              </View>
+              <Button
+                variant="primary"
+                size="md"
+                label={quotaSaved ? '✓' : s.adm.quotaSave}
+                disabled={quotaBusy || quotaDraft === '' || parseInt(quotaDraft, 10) === balance.quota}
+                onPress={saveQuota}
+              />
+            </View>
+            <Txt size={12} color={color.muted} tabular>
+              {s.home.taken}: {balance.taken} · {s.home.balance}: {balance.remaining} {s.leave.daysWork}
+            </Txt>
           </View>
         )}
 

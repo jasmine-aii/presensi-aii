@@ -154,6 +154,9 @@ const id = {
     errDate: 'Format tanggal harus YYYY-MM-DD.',
     errDb: 'Gagal menyimpan. Coba lagi.',
     kind: { cuti_tahunan: 'Cuti tahunan', sakit: 'Sakit', izin: 'Izin', dinas_luar: 'Dinas luar' },
+    notifApprovedTitle: 'Pengajuan disetujui',
+    notifRejectedTitle: 'Pengajuan ditolak',
+    notifBody: 'Status pengajuan izin Anda telah diperbarui.',
   },
   status: {
     ontime: 'Tepat waktu',
@@ -433,6 +436,9 @@ const en = {
     errDate: 'Date format must be YYYY-MM-DD.',
     errDb: 'Failed to save. Please try again.',
     kind: { cuti_tahunan: 'Annual leave', sakit: 'Sick', izin: 'Permission', dinas_luar: 'Business trip' },
+    notifApprovedTitle: 'Request approved',
+    notifRejectedTitle: 'Request rejected',
+    notifBody: 'Your leave request status has been updated.',
   },
   status: {
     ontime: 'On time',

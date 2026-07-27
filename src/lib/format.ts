@@ -30,3 +30,17 @@ export const weekdayShort = (d: Date, lang: Lang) => dNames[lang][d.getDay()].sl
 
 /** Short month + year, e.g. id "Jul 2026" · en "Jul 2026". */
 export const monthYear = (d: Date, lang: Lang) => `${mNames[lang][d.getMonth()]} ${d.getFullYear()}`;
+
+/** Compact day + short month, e.g. "23 Jul". */
+export const dayMonth = (d: Date, lang: Lang) => `${d.getDate()} ${mNames[lang][d.getMonth()]}`;
+
+/** Inclusive date range from 'YYYY-MM-DD' strings, e.g. "23 Jul – 25 Jul 2026"
+ *  (single day collapses to "23 Jul 2026"). */
+export const rangeStr = (startYmd: string, endYmd: string, lang: Lang) => {
+  const a = parseYmd(startYmd);
+  const b = parseYmd(endYmd);
+  const year = b.getFullYear();
+  return startYmd === endYmd
+    ? `${dayMonth(a, lang)} ${year}`
+    : `${dayMonth(a, lang)} – ${dayMonth(b, lang)} ${year}`;
+};

@@ -5,6 +5,7 @@ import { color, space, radius } from '../theme';
 import { Txt, IconTile, StatusBadge, Dialog, Button } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
+import { rangeStr } from '../lib/format';
 import {
   fetchMyLeaves,
   fetchLeaveBalance,
@@ -22,22 +23,6 @@ const typeIcon: Record<LeaveType, LucideIcon> = {
   dinas_luar: Briefcase,
 };
 
-const MONTHS: Record<string, string[]> = {
-  id: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'],
-  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-};
-
-function fmtDay(dateISO: string, months: string[]): string {
-  const [, m, d] = dateISO.split('-').map(Number);
-  return `${d} ${months[(m ?? 1) - 1]}`;
-}
-function fmtRange(start: string, end: string, months: string[]): string {
-  const year = end.slice(0, 4);
-  return start === end
-    ? `${fmtDay(start, months)} ${year}`
-    : `${fmtDay(start, months)} – ${fmtDay(end, months)} ${year}`;
-}
-
 export interface LeaveScreenProps {
   onNew: () => void;
   /** Bump to force a reload (e.g. after submitting a request). */
@@ -48,7 +33,6 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
   const { s, lang } = useLang();
   const { session } = useAuth();
   const userId = session?.user.id ?? '';
-  const months = MONTHS[lang];
 
   const [loading, setLoading] = useState(true);
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
@@ -196,7 +180,7 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
                           {s.leave.kind[r.type]}
                         </Txt>
                         <Txt size={12} color={color.muted} tabular style={{ marginTop: space.xs }}>
-                          {fmtRange(r.startDate, r.endDate, months)} · {r.days} {s.leave.daysWork}
+                          {rangeStr(r.startDate, r.endDate, lang)} · {r.days} {s.leave.daysWork}
                         </Txt>
                       </View>
                       <StatusBadge status={r.status} />

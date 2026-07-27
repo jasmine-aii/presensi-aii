@@ -34,22 +34,27 @@ export interface AdminStats {
   total: number;
 }
 
-/** All employees joined with today's attendance, ordered by name. */
+/** All employees joined with today's attendance + approved leave, ordered by name. */
 export async function fetchTeam(): Promise<AdminMember[]> {
-  const [{ data: profiles }, { data: att }] = await Promise.all([
+  const today = todayKey();
+  const [{ data: profiles }, { data: att }, { data: leave }] = await Promise.all([
     supabase.from('profiles').select('id, full_name, employee_id, department, email, shift').order('full_name'),
-    supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', todayKey()),
+    supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', today),
+    supabase.from('leave_requests').select('user_id').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ]);
 
   const byUser = new Map<string, { clock_in_at: string | null; clock_out_at: string | null }>();
   for (const a of att ?? []) byUser.set(a.user_id as string, { clock_in_at: a.clock_in_at, clock_out_at: a.clock_out_at });
+  const onLeave = new Set((leave ?? []).map((l) => l.user_id as string));
 
   return (profiles ?? []).map((p) => {
     const a = byUser.get(p.id as string);
     const inT = hhmm(a?.clock_in_at);
     const outT = hhmm(a?.clock_out_at);
     let st: RosterStatus = 'not';
-    if (inT) {
+    if (onLeave.has(p.id as string)) {
+      st = 'leave';
+    } else if (inT) {
       const [h, m] = inT.split(':').map(Number);
       st = h * 60 + m > SHIFT_START_MIN ? 'late' : 'present';
     }
@@ -102,5 +107,6 @@ export function deriveStats(members: AdminMember[]): AdminStats {
   const present = members.filter((m) => m.st === 'present').length;
   const late = members.filter((m) => m.st === 'late').length;
   const notyet = members.filter((m) => m.st === 'not').length;
-  return { present, late, notyet, leave: 0, total: members.length };
+  const leave = members.filter((m) => m.st === 'leave').length;
+  return { present, late, notyet, leave, total: members.length };
 }

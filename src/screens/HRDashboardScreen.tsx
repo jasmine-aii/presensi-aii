@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, type LucideIcon } from 'lucide-react-native';
+import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, Palmtree, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, GlowCircle } from '../components';
 import type { AdminNav } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { useNow } from '../lib/useNow';
-import { dateStr } from '../lib/format';
+import { dateStr, rangeStr } from '../lib/format';
 import { fetchTeam, deriveStats, type AdminMember } from '../lib/admin';
+import { fetchOnLeaveToday, pendingLeaveCount, type AdminLeaveRequest } from '../lib/leave';
 
 export function HRDashboardScreen({
   onNavigate,
@@ -23,15 +24,24 @@ export function HRDashboardScreen({
   const { profile } = useAuth();
   const now = useNow(60000);
   const [team, setTeam] = useState<AdminMember[] | null>(null);
+  const [onLeave, setOnLeave] = useState<AdminLeaveRequest[]>([]);
+  const [pending, setPending] = useState(0);
 
   useEffect(() => {
     let alive = true;
-    fetchTeam().then((t) => alive && setTeam(t));
+    Promise.all([fetchTeam(), fetchOnLeaveToday(), pendingLeaveCount()]).then(([t, l, p]) => {
+      if (!alive) return;
+      setTeam(t);
+      setOnLeave(l);
+      setPending(p);
+    });
     return () => {
       alive = false;
     };
   }, []);
 
+  // fetchTeam already marks employees on approved leave as 'leave', so the
+  // headline counts and the "not clocked in" list exclude them automatically.
   const stats = team ? deriveStats(team) : { present: 0, late: 0, notyet: 0, leave: 0, total: 0 };
   const notInList = (team ?? []).filter((m) => m.st === 'not' || m.st === 'late');
   const adminName = profile?.full_name ?? s.adm.name;
@@ -133,6 +143,38 @@ export function HRDashboardScreen({
         </View>
       </View>
 
+      {/* On leave today */}
+      <View style={{ paddingHorizontal: space.lg, paddingTop: space.xl }}>
+        <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space.md }}>
+          {s.adm.onLeaveTitle}
+        </Txt>
+        {onLeave.length === 0 ? (
+          <View style={{ paddingVertical: space.lg, alignItems: 'center' }}>
+            <Txt size={13} color={color.muted}>
+              {s.adm.onLeaveEmpty}
+            </Txt>
+          </View>
+        ) : (
+          <View style={{ gap: space.md }}>
+            {onLeave.map((l) => (
+              <View key={l.id} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.md }}>
+                <View style={{ width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.humanTint, alignItems: 'center', justifyContent: 'center' }}>
+                  <Palmtree size={20} color={color.deepNavy} strokeWidth={2} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Txt w="semibold" size={14} color={color.ink}>
+                    {l.employeeName}
+                  </Txt>
+                  <Txt size={12} color={color.muted} tabular>
+                    {s.leave.kind[l.type]} · {rangeStr(l.startDate, l.endDate, lang)}
+                  </Txt>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+      </View>
+
       {/* Quick actions */}
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.xl, paddingBottom: space.xl }}>
         <Txt w="bold" size={14} color={color.ink} style={{ marginBottom: space.md }}>
@@ -140,7 +182,7 @@ export function HRDashboardScreen({
         </Txt>
         <View style={{ flexDirection: 'row', gap: space.md }}>
           <QuickAction icon={Users} label={s.adm.qDir} onPress={() => onNavigate?.('team')} />
-          <QuickAction icon={ClipboardList} label={s.adm.qAppr} disabled />
+          <QuickAction icon={ClipboardList} label={s.adm.qAppr} badge={pending || undefined} onPress={() => onNavigate?.('approval')} />
           <QuickAction icon={TrendingUp} label={s.adm.qReport} onPress={() => onNavigate?.('report')} />
           <QuickAction icon={UserPlus} label={s.adm.qInvite} filled onPress={() => onNavigate?.('add')} />
         </View>
