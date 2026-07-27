@@ -43,7 +43,7 @@ export function HRDashboardScreen({
   // fetchTeam already marks employees on approved leave as 'leave', so the
   // headline counts and the "not clocked in" list exclude them automatically.
   const stats = team ? deriveStats(team) : { present: 0, late: 0, notyet: 0, leave: 0, total: 0 };
-  const notInList = (team ?? []).filter((m) => m.st === 'not' || m.st === 'late');
+  const notInList = (team ?? []).filter((m) => (m.st === 'not' || m.st === 'late') && !m.excludeFromStats);
   const adminName = profile?.full_name ?? s.adm.name;
 
   return (

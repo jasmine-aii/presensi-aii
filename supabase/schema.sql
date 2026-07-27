@@ -183,12 +183,20 @@ create policy "att photos select admin" on storage.objects
 alter table public.profiles
   add column if not exists join_date date,
   add column if not exists leave_quota_adjust int not null default 0,
+  -- excluded people (e.g. the founder) still appear in the directory and can
+  -- clock in, but are left out of every statistic (attendance rate, leave stats,
+  -- dashboard headline counts).
+  add column if not exists exclude_from_stats boolean not null default false,
   -- deprecated: superseded by join_date accrual + leave_quota_adjust; kept to
   -- avoid breaking older clients. No longer read by the app.
   add column if not exists annual_leave_quota int not null default 12;
 
 -- Backfill join_date for existing employees from their account creation date.
 update public.profiles set join_date = created_at::date where join_date is null;
+
+-- The founder (Monthy) is everyone's manager — keep them out of the stats.
+-- (Adjustable per person from the admin UI afterwards.)
+update public.profiles set exclude_from_stats = true where full_name ilike 'monthy%';
 
 -- btree_gist lets the overlap guard combine `user_id =` with a range `&&`.
 create extension if not exists btree_gist;

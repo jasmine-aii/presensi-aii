@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField } from '../components';
+import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
-import { setMemberShift, resetMemberPassword, type AdminMember } from '../lib/admin';
+import { setMemberShift, resetMemberPassword, setExcludeFromStats, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
 
@@ -19,6 +19,12 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [sel, setSel] = useState<HistoryEntry | null>(null);
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
+  const [excluded, setExcluded] = useState(member.excludeFromStats);
+
+  const toggleStats = (countIn: boolean) => {
+    setExcluded(!countIn); // optimistic
+    setExcludeFromStats(member.id, !countIn);
+  };
 
   // Annual-leave quota (accrual + manual adjustment)
   const [balance, setBalance] = useState<LeaveBalance | null>(null);
@@ -261,6 +267,22 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             </Txt>
           </View>
         )}
+
+        {/* Count in statistics */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.lg }}>
+          <View style={{ width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <ChartColumnBig size={20} color={color.anugrahBlue} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Txt w="semibold" size={14} color={color.ink}>
+              {s.adm.inStatsLabel}
+            </Txt>
+            <Txt size={12} color={color.muted} style={{ marginTop: 2, lineHeight: 16 }}>
+              {s.adm.inStatsHint}
+            </Txt>
+          </View>
+          <Toggle on={!excluded} onChange={toggleStats} label={s.adm.inStatsLabel} />
+        </View>
 
         {/* Reset password */}
         <Pressable

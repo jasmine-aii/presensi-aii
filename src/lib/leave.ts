@@ -319,13 +319,16 @@ export interface LeaveStat {
 /** Per-employee leave statistics for the admin Reports screen. */
 export async function fetchLeaveStats(): Promise<LeaveStat[]> {
   const today = todayISO();
-  const [{ data: profs }, { data: rows }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, join_date, leave_quota_adjust').order('full_name'),
+  const [{ data: allProfs }, { data: rows }] = await Promise.all([
+    supabase.from('profiles').select('id, full_name, employee_id, join_date, leave_quota_adjust, exclude_from_stats').order('full_name'),
     supabase.from('leave_requests').select('user_id, type, status, days, start_date'),
   ]);
 
+  // Founder / flagged people are left out of the statistics list.
+  const profs = (allProfs ?? []).filter((p) => !p.exclude_from_stats);
+
   const acc = new Map<string, { approved: ApprovedLeave[]; pending: number }>();
-  for (const p of profs ?? []) acc.set(p.id as string, { approved: [], pending: 0 });
+  for (const p of profs) acc.set(p.id as string, { approved: [], pending: 0 });
   for (const r of rows ?? []) {
     const e = acc.get(r.user_id as string);
     if (!e) continue;

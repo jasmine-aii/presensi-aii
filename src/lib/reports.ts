@@ -52,21 +52,23 @@ export async function fetchAttendanceInsights(): Promise<AttendanceInsights> {
   const start = monthStartISO();
   const today = isoOf(new Date());
 
-  const [{ count: empCount }, { data: att }, { data: leave }, { count: pendingCount }] = await Promise.all([
-    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+  const [{ data: profs }, { data: att }, { data: leave }, { data: pend }] = await Promise.all([
+    supabase.from('profiles').select('id, exclude_from_stats'),
     supabase.from('attendance').select('user_id, work_date, clock_in_at').gte('work_date', start).lte('work_date', today),
-    supabase.from('leave_requests').select('start_date, end_date, days, status').eq('status', 'approved'),
-    supabase.from('leave_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('leave_requests').select('user_id, start_date, end_date, days, status').eq('status', 'approved'),
+    supabase.from('leave_requests').select('user_id').eq('status', 'pending'),
   ]);
 
-  const employees = empCount ?? 0;
+  // People flagged out of stats (e.g. the founder) never count anywhere here.
+  const excluded = new Set((profs ?? []).filter((p) => p.exclude_from_stats).map((p) => p.id as string));
+  const employees = (profs ?? []).filter((p) => !p.exclude_from_stats).length;
   const workingDays = weekdaysBetween(start, today);
 
   let present = 0;
   let late = 0;
   let sumMin = 0;
   for (const a of att ?? []) {
-    if (!a.clock_in_at) continue;
+    if (!a.clock_in_at || excluded.has(a.user_id as string)) continue;
     present += 1;
     const d = new Date(a.clock_in_at as string);
     const m = d.getHours() * 60 + d.getMinutes();
@@ -81,15 +83,17 @@ export async function fetchAttendanceInsights(): Promise<AttendanceInsights> {
   let leaveManDays = 0;
   let leaveDays = 0;
   for (const l of leave ?? []) {
+    if (excluded.has(l.user_id as string)) continue;
     const from = (l.start_date as string) > start ? (l.start_date as string) : start;
     const to = (l.end_date as string) < today ? (l.end_date as string) : today;
     leaveManDays += weekdaysBetween(from, to);
     if ((l.start_date as string) >= start && (l.start_date as string) <= today) leaveDays += (l.days as number) ?? 0;
   }
 
+  const pending = (pend ?? []).filter((r) => !excluded.has(r.user_id as string)).length;
   const expected = Math.max(0, employees * workingDays - leaveManDays);
   const rate = expected ? Math.min(100, Math.round((present / expected) * 100)) : 0;
   const lateRate = present ? Math.round((late / present) * 100) : 0;
 
-  return { rate, present, expected, onTime, late, lateRate, avgClockIn, leaveDays, pending: pendingCount ?? 0, workingDays, employees };
+  return { rate, present, expected, onTime, late, lateRate, avgClockIn, leaveDays, pending, workingDays, employees };
 }

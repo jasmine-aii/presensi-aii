@@ -21,9 +21,10 @@ export interface AdminMember {
   employeeId: string;
   dept: string;
   shift: string | null;
-  st: RosterStatus; // present | late | not (leave needs a leave table — not modelled yet)
+  st: RosterStatus; // present | late | not | leave
   in: string; // HH:MM or —
   out: string;
+  excludeFromStats: boolean; // founder / flagged: shown in directory, omitted from stats
 }
 
 export interface AdminStats {
@@ -38,7 +39,7 @@ export interface AdminStats {
 export async function fetchTeam(): Promise<AdminMember[]> {
   const today = todayKey();
   const [{ data: profiles }, { data: att }, { data: leave }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, department, email, shift').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, department, email, shift, exclude_from_stats').order('full_name'),
     supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', today),
     supabase.from('leave_requests').select('user_id').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ]);
@@ -68,6 +69,7 @@ export async function fetchTeam(): Promise<AdminMember[]> {
       st,
       in: inT ?? '—',
       out: outT ?? '—',
+      excludeFromStats: (p.exclude_from_stats as boolean) ?? false,
     };
   });
 }
@@ -102,11 +104,19 @@ export async function setMemberShift(userId: string, shift: string | null): Prom
   return !error;
 }
 
-/** Headline counts derived from the team roster. */
+/** Include/exclude an employee from all statistics (admin only). */
+export async function setExcludeFromStats(userId: string, exclude: boolean): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ exclude_from_stats: exclude }).eq('id', userId);
+  if (error) console.warn('[setExcludeFromStats]', error.message);
+  return !error;
+}
+
+/** Headline counts derived from the team roster (flagged people excluded). */
 export function deriveStats(members: AdminMember[]): AdminStats {
-  const present = members.filter((m) => m.st === 'present').length;
-  const late = members.filter((m) => m.st === 'late').length;
-  const notyet = members.filter((m) => m.st === 'not').length;
-  const leave = members.filter((m) => m.st === 'leave').length;
-  return { present, late, notyet, leave, total: members.length };
+  const counted = members.filter((m) => !m.excludeFromStats);
+  const present = counted.filter((m) => m.st === 'present').length;
+  const late = counted.filter((m) => m.st === 'late').length;
+  const notyet = counted.filter((m) => m.st === 'not').length;
+  const leave = counted.filter((m) => m.st === 'leave').length;
+  return { present, late, notyet, leave, total: counted.length };
 }
