@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
-import { setMemberShift, resetMemberPassword, setExcludeFromStats, type AdminMember } from '../lib/admin';
+import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberBirthDate, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
 
@@ -24,6 +24,24 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const toggleStats = (countIn: boolean) => {
     setExcluded(!countIn); // optimistic
     setExcludeFromStats(member.id, !countIn);
+  };
+
+  // Date of birth (editable)
+  const [birthDate, setBirthDate] = useState<string | null>(member.birthDate);
+  const [birthDraft, setBirthDraft] = useState(member.birthDate ?? '');
+  const [birthBusy, setBirthBusy] = useState(false);
+  const [birthSaved, setBirthSaved] = useState(false);
+
+  const saveBirth = async () => {
+    if (birthBusy) return;
+    setBirthBusy(true);
+    const ok = await setMemberBirthDate(member.id, birthDraft);
+    setBirthBusy(false);
+    if (ok) {
+      setBirthDate(birthDraft || null);
+      setBirthSaved(true);
+      setTimeout(() => setBirthSaved(false), 2000);
+    }
   };
 
   // Annual-leave quota (accrual + manual adjustment)
@@ -165,9 +183,9 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 {member.email}
               </Txt>
             )}
-            {!!member.birthDate && (
+            {!!birthDate && (
               <Txt size={12} color={color.muted} tabular style={{ marginTop: space.xs }}>
-                {s.adm.fBirth}: {rangeStr(member.birthDate, member.birthDate, lang)}
+                {s.adm.fBirth}: {rangeStr(birthDate, birthDate, lang)}
               </Txt>
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.sm }}>
@@ -191,6 +209,36 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             />
           </View>
         )}
+
+        {/* Date of birth */}
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+            <Cake size={18} color={color.anugrahBlue} strokeWidth={2} />
+            <Txt w="semibold" size={13} color={color.muted} style={{ flex: 1 }}>
+              {s.adm.fBirth}
+            </Txt>
+            {birthSaved && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+                <Check size={15} color={color.success} strokeWidth={2.5} />
+                <Txt w="semibold" size={12} color={color.success}>
+                  {s.adm.saved}
+                </Txt>
+              </View>
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <DateField value={birthDraft} onChange={setBirthDraft} max={new Date().toISOString().slice(0, 10)} />
+            </View>
+            <Button
+              variant="secondary"
+              size="md"
+              label={s.prof.save}
+              disabled={birthBusy || birthDraft === (birthDate ?? '')}
+              onPress={saveBirth}
+            />
+          </View>
+        </View>
 
         {/* Annual-leave quota (accrual + manual adjustment) */}
         {balance && (

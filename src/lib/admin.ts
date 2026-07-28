@@ -106,6 +106,13 @@ export async function setMemberShift(userId: string, shift: string | null): Prom
   return !error;
 }
 
+/** Set / clear an employee's date of birth (admin only). '' clears it. */
+export async function setMemberBirthDate(userId: string, birthDate: string): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ birth_date: birthDate || null }).eq('id', userId);
+  if (error) console.warn('[setMemberBirthDate]', error.message);
+  return !error;
+}
+
 /** Include/exclude an employee from all statistics (admin only). */
 export async function setExcludeFromStats(userId: string, exclude: boolean): Promise<boolean> {
   const { error } = await supabase.from('profiles').update({ exclude_from_stats: exclude }).eq('id', userId);
