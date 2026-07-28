@@ -48,15 +48,15 @@ export interface ProfileRow {
   value: string;
 }
 
-/** Profile label→value rows. Email comes from the signed-in account; the rest are sample. */
-export function profileRows(lang: Lang, email?: string): ProfileRow[] {
+/** Profile label→value rows. Email + join date come from the account; the rest are sample. */
+export function profileRows(lang: Lang, email?: string, joined?: string): ProfileRow[] {
   const L =
     lang === 'id'
       ? { email: 'Email', joined: 'Bergabung', manager: 'Atasan', location: 'Lokasi' }
       : { email: 'Email', joined: 'Joined', manager: 'Manager', location: 'Location' };
   return [
     { icon: Mail, label: L.email, value: email ?? '—' },
-    { icon: CalendarDays, label: L.joined, value: '12 Jan 2023' },
+    { icon: CalendarDays, label: L.joined, value: joined ?? '—' },
     { icon: UserRound, label: L.manager, value: 'Monthy' },
     { icon: MapPin, label: L.location, value: lang === 'id' ? 'Kantor Pusat, Jakarta' : 'HQ, Jakarta' },
   ];

@@ -18,6 +18,7 @@ export function ProfileScreen({
   empId,
   email,
   birthDate,
+  joinDate,
   isAdmin,
 }: {
   onOpenAdmin?: () => void;
@@ -28,11 +29,12 @@ export function ProfileScreen({
   empId?: string;
   email?: string;
   birthDate?: string | null;
+  joinDate?: string | null;
   isAdmin?: boolean;
 }) {
   const { s, lang, langName, toggleLang } = useLang();
   const [notif, setNotif] = useState(true);
-  const rows = profileRows(lang, email);
+  const rows = profileRows(lang, email, joinDate ? rangeStr(joinDate, joinDate, lang) : undefined);
   const userName = name ?? s.home.name;
 
   // Change-password modal state

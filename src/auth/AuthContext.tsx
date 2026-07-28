@@ -13,6 +13,7 @@ export interface Profile {
   role: Role;
   shift: string | null;
   birth_date: string | null;
+  join_date: string | null;
 }
 
 interface AuthValue {
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, employee_id, department, role, shift, birth_date')
+      .select('id, full_name, employee_id, department, role, shift, birth_date, join_date')
       .eq('id', userId)
       .single();
     setProfile((data as Profile) ?? null);

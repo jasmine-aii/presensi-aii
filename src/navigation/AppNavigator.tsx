@@ -212,6 +212,7 @@ export function AppNavigator() {
             empId={profile?.employee_id ?? undefined}
             email={session?.user.email ?? undefined}
             birthDate={profile?.birth_date ?? undefined}
+            joinDate={profile?.join_date ?? undefined}
             isAdmin={isAdmin}
             onOpenAdmin={() => {
               setWorkspace('admin');
