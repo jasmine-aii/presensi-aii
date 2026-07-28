@@ -52,6 +52,7 @@ export function HomeScreen({
 
   // Team highlights carousel (new joiners / birthdays / on-leave today).
   const [feed, setFeed] = useState<HomeFeedItem[]>([]);
+  const [carW, setCarW] = useState(0); // measured carousel width (window width ≠ content column on mobile)
   useEffect(() => {
     let alive = true;
     fetchHomeFeed().then((r) => alive && setFeed(r));
@@ -113,10 +114,10 @@ export function HomeScreen({
   const isWorkday = !holidayToday && !isWeekend;
   const rem = useClockReminders(shift, clockInTime, clockOutTime, isWorkday);
 
-  // Carousel card width: full width for a lone card; otherwise leave a peek of
-  // the next card so it reads as scrollable.
-  const fullCardW = Math.min(width, 440) - space.lg * 2;
-  const cardW = feed.length <= 1 ? fullCardW : fullCardW - 40;
+  // Carousel card width from the measured carousel width (window width would be
+  // wrong on mobile). Lone card fills; multiple cards leave a peek of the next.
+  const availW = carW > 0 ? carW : Math.min(width, 440);
+  const cardW = feed.length <= 1 ? availW - space.lg * 2 : availW - space.lg * 2 - 40;
   const feedCfg = (kind: HomeFeedKind) => {
     switch (kind) {
       case 'welcome':
@@ -262,6 +263,7 @@ export function HomeScreen({
           showsHorizontalScrollIndicator={false}
           snapToInterval={cardW + space.md}
           decelerationRate="fast"
+          onLayout={(e) => setCarW(e.nativeEvent.layout.width)}
           contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.md, paddingTop: space.lg }}
         >
           {feed.map((it, i) => {
