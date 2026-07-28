@@ -18,10 +18,12 @@ export function HRDashboardScreen({
   onNavigate,
   onSwitchEmployee,
   onSelectMember,
+  onManageHolidays,
 }: {
   onNavigate?: (k: AdminNav) => void;
   onSwitchEmployee?: () => void;
   onSelectMember?: (m: AdminMember) => void;
+  onManageHolidays?: () => void;
 }) {
   const { s, lang } = useLang();
   const { profile } = useAuth();
@@ -228,6 +230,7 @@ export function HRDashboardScreen({
           <QuickAction icon={Users} label={s.adm.qDir} onPress={() => onNavigate?.('team')} />
           <QuickAction icon={ClipboardList} label={s.adm.qAppr} badge={pending || undefined} onPress={() => onNavigate?.('approval')} />
           <QuickAction icon={TrendingUp} label={s.adm.qReport} onPress={() => onNavigate?.('report')} />
+          <QuickAction icon={PartyPopper} label={s.adm.qHoliday} onPress={onManageHolidays} />
           <QuickAction icon={UserPlus} label={s.adm.qInvite} filled onPress={() => onNavigate?.('add')} />
         </View>
       </View>
