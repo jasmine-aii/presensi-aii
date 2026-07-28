@@ -3,7 +3,7 @@ import { View, ScrollView, TextInput, Pressable, ActivityIndicator } from 'react
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Trash2, PartyPopper } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Button, TopAppBar, DateField } from '../components';
+import { Txt, Button, TopAppBar, DateField, Toast } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHolidays, addHoliday, deleteHoliday, type Holiday } from '../lib/holidays';
 import { rangeStr } from '../lib/format';
@@ -16,6 +16,7 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
   const [date, setDate] = useState('');
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const load = () => fetchHolidays().then(setRows);
   useEffect(() => {
@@ -23,7 +24,11 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
   }, []);
 
   const add = async () => {
-    if (busy || !date || !name.trim()) return;
+    if (busy) return;
+    if (!date || !name.trim()) {
+      setToast(s.leave.toastRequired);
+      return;
+    }
     setBusy(true);
     const ok = await addHoliday(date, name.trim());
     setBusy(false);
@@ -48,10 +53,11 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
           <Txt w="bold" size={14} color={color.ink}>
             {s.adm.holidayAdd}
           </Txt>
-          <DateField label={s.adm.holidayDate} value={date} onChange={setDate} />
+          <DateField label={s.adm.holidayDate} value={date} onChange={setDate} required />
           <View>
             <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
               {s.adm.holidayName}
+              <Txt color={color.danger}> *</Txt>
             </Txt>
             <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
               <TextInput
@@ -63,7 +69,7 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
               />
             </View>
           </View>
-          <Button label={busy ? s.leave.submitting : s.adm.holidayAddBtn} fullWidth disabled={busy || !date || !name.trim()} onPress={add} />
+          <Button label={busy ? s.leave.submitting : s.adm.holidayAddBtn} fullWidth disabled={busy} onPress={add} />
         </View>
 
         {/* List */}
@@ -101,6 +107,8 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
           </View>
         )}
       </ScrollView>
+
+      <Toast message={toast} onHide={() => setToast(null)} tone="error" />
     </View>
   );
 }
