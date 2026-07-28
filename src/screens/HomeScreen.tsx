@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, BellRing, BellOff, Check, X, Clock as ClockIcon } from 'lucide-react-native';
+import { Bell, BellRing, BellOff, Check, X, PartyPopper, Clock as ClockIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle, Dialog, StatusBadge } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -11,6 +11,7 @@ import { timeStr, dateStr, rangeStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
 import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 import { useClockReminders } from '../lib/useClockReminders';
+import { useTodayHoliday } from '../lib/useTodayHoliday';
 import { useLeaveInbox } from '../lib/useLeaveInbox';
 import { useLeaveBalance } from '../lib/useLeaveBalance';
 import { type LeaveType } from '../lib/leave';
@@ -95,7 +96,11 @@ export function HomeScreen({
     workStr = durationStr(netWorkedMin(toMin(clockInTime), endActual, win), lang);
   }
 
-  const rem = useClockReminders(shift, clockInTime, clockOutTime);
+  // National holiday / weekend → no clock-in expected, reminders off.
+  const holidayToday = useTodayHoliday();
+  const isWeekend = now.getDay() === 0 || now.getDay() === 6;
+  const isWorkday = !holidayToday && !isWeekend;
+  const rem = useClockReminders(shift, clockInTime, clockOutTime, isWorkday);
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: space.xl }}>
@@ -226,6 +231,22 @@ export function HomeScreen({
       {/* Attendance reminders */}
       <Section title={s.home.remindTitle}>
         <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg }}>
+          {holidayToday ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm }}>
+              <View style={{ width: 38, height: 38, borderRadius: radius.sm, backgroundColor: color.humanTint, alignItems: 'center', justifyContent: 'center' }}>
+                <PartyPopper size={20} color={color.deepNavy} strokeWidth={2} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Txt w="semibold" size={14} color={color.ink}>
+                  {s.home.holidayTitle} · {holidayToday}
+                </Txt>
+                <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+                  {s.home.holidayNote}
+                </Txt>
+              </View>
+            </View>
+          ) : (
+          <>
           {/* Notification status / enable */}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingBottom: space.md, marginBottom: space.md, borderBottomWidth: 1, borderBottomColor: color.line }}>
             {rem.permission === 'granted' ? (
@@ -277,6 +298,8 @@ export function HomeScreen({
               )}
             </View>
           ))}
+          </>
+          )}
         </View>
       </Section>
 

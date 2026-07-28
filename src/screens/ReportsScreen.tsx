@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
-import { TrendingUp, Palmtree } from 'lucide-react-native';
+import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import { TrendingUp, Palmtree, PartyPopper } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Avatar, Badge } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -29,7 +29,7 @@ function MetricRow({ items }: { items: Array<[string, string | number, string]> 
  * Reports (Laporan) — real team attendance rate + monthly insights derived live
  * from attendance/leave, plus per-employee annual-leave statistics.
  */
-export function ReportsScreen() {
+export function ReportsScreen({ onManageHolidays }: { onManageHolidays?: () => void }) {
   const { s } = useLang();
   const [ins, setIns] = useState<AttendanceInsights | null>(null);
   const [stats, setStats] = useState<LeaveStat[] | null>(null);
@@ -45,10 +45,20 @@ export function ReportsScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
-      <View style={{ paddingHorizontal: space.lg, paddingVertical: space.lg, backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: color.line }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.lg, paddingVertical: space.lg, backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: color.line }}>
         <Txt w="bold" size={17} color={color.ink}>
           {s.anav.report}
         </Txt>
+        <Pressable
+          onPress={onManageHolidays}
+          hitSlop={8}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingVertical: space.sm, paddingHorizontal: space.md, backgroundColor: color.skyTint, borderRadius: radius.pill }}
+        >
+          <PartyPopper size={14} color={color.anugrahBlue} strokeWidth={2} />
+          <Txt w="semibold" size={12} color={color.anugrahBlue}>
+            {s.adm.holidayManage}
+          </Txt>
+        </Pressable>
       </View>
       <ScrollView contentContainerStyle={{ padding: space.lg, gap: space.md }}>
         {/* Team attendance rate (real, month-to-date) */}

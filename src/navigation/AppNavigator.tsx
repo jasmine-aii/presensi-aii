@@ -25,12 +25,13 @@ import {
   EmployeeDetailScreen,
   ApprovalScreen,
   ReportsScreen,
+  HolidayScreen,
 } from '../screens';
 
 type Workspace = 'employee' | 'admin';
 type EmpTab = 'home' | 'history' | 'leave' | 'profile';
 type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
-type Pushed = 'clockin' | 'clockout' | 'invite' | 'shifts' | 'leaverequest' | null;
+type Pushed = 'clockin' | 'clockout' | 'invite' | 'shifts' | 'leaverequest' | 'holidays' | null;
 
 /**
  * State-based navigator. Two workspaces (employee ⇄ admin), each with a bottom
@@ -122,6 +123,9 @@ export function AppNavigator() {
   if (pushed === 'shifts') {
     return <ShiftScreen onBack={() => setPushed('invite')} />;
   }
+  if (pushed === 'holidays') {
+    return <HolidayScreen onBack={() => setPushed(null)} />;
+  }
   if (pushed === 'leaverequest') {
     return (
       <LeaveRequestScreen
@@ -155,7 +159,7 @@ export function AppNavigator() {
           {admTab === 'dashboard' && <HRDashboardScreen onNavigate={admNavigate} onSwitchEmployee={() => setWorkspace('employee')} onSelectMember={setViewMember} />}
           {admTab === 'team' && <DirectoryScreen onInvite={() => setPushed('invite')} onSelectMember={setViewMember} />}
           {admTab === 'approval' && <ApprovalScreen onChanged={() => pendingLeaveCount().then(setPendingCount)} />}
-          {admTab === 'report' && <ReportsScreen />}
+          {admTab === 'report' && <ReportsScreen onManageHolidays={() => setPushed('holidays')} />}
         </View>
         <TabBar mode="admin" active={admTab} labels={s.anav} onNavigate={admNavigate} badges={{ approval: pendingCount }} bottomInset={insets.bottom} />
       </View>

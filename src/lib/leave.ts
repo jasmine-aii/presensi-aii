@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { fetchHolidaySet } from './holidays';
 
 /** Request types — mirror the reference diagram (cuti / sakit / izin / dinas luar). */
 export type LeaveType = 'cuti_tahunan' | 'sakit' | 'unpaid_leave' | 'dinas_luar';
@@ -77,11 +78,13 @@ function fullMonthsBetween(from: Date, to: Date): number {
 }
 
 /**
- * Whole working days (Mon–Fri) between two dates, inclusive. Falls back to the
- * inclusive calendar-day count when the range is entirely weekend, so a request
- * always spans at least one day (satisfies the DB `days >= 1` check).
+ * Whole working days between two dates, inclusive — excludes weekends and any
+ * dates in `holidays` (national holidays / company days off), so a leave that
+ * spans a holiday doesn't consume quota for it. Falls back to the inclusive
+ * calendar-day count when nothing counts as a working day, so a request always
+ * spans at least one day (satisfies the DB `days >= 1` check).
  */
-export function workingDaysBetween(startISO: string, endISO: string): number {
+export function workingDaysBetween(startISO: string, endISO: string, holidays?: Set<string>): number {
   const start = parseISO(startISO);
   const end = parseISO(endISO);
   if (end < start) return 0;
@@ -90,7 +93,7 @@ export function workingDaysBetween(startISO: string, endISO: string): number {
   for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     cal += 1;
     const wd = d.getDay();
-    if (wd !== 0 && wd !== 6) work += 1;
+    if (wd !== 0 && wd !== 6 && !holidays?.has(toISO(d))) work += 1;
   }
   return work > 0 ? work : cal;
 }
@@ -130,7 +133,8 @@ export async function submitLeave(userId: string, input: NewLeave): Promise<Subm
   if (input.endDate < input.startDate) return { ok: false, code: 'range' };
   if (input.startDate < todayISO()) return { ok: false, code: 'past' };
 
-  const days = workingDaysBetween(input.startDate, input.endDate);
+  const holidays = await fetchHolidaySet();
+  const days = workingDaysBetween(input.startDate, input.endDate, holidays);
 
   if (input.type === 'cuti_tahunan') {
     const bal = await fetchLeaveBalance(userId);

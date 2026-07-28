@@ -13,3 +13,4 @@ export { ShiftScreen } from './ShiftScreen';
 export { EmployeeDetailScreen } from './EmployeeDetailScreen';
 export { ApprovalScreen } from './ApprovalScreen';
 export { ReportsScreen } from './ReportsScreen';
+export { HolidayScreen } from './HolidayScreen';

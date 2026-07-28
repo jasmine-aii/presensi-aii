@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { fetchHolidaySet } from './holidays';
 
 const SHIFT_START_MIN = 8 * 60 + 30; // 08:30 — on-time threshold (matches admin.ts)
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -16,13 +17,13 @@ function parseISO(s: string): Date {
 }
 const fmtMin = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
 
-/** Count Mon–Fri days in [fromISO, toISO] inclusive (0 if from is after to). */
-function weekdaysBetween(fromISO: string, toISO: string): number {
+/** Working days in [fromISO, toISO] inclusive — excludes weekends and holidays. */
+function weekdaysBetween(fromISO: string, toISO: string, holidays?: Set<string>): number {
   if (fromISO > toISO) return 0;
   let n = 0;
   for (const d = parseISO(fromISO), end = parseISO(toISO); d <= end; d.setDate(d.getDate() + 1)) {
     const wd = d.getDay();
-    if (wd !== 0 && wd !== 6) n += 1;
+    if (wd !== 0 && wd !== 6 && !holidays?.has(isoOf(d))) n += 1;
   }
   return n;
 }
@@ -52,17 +53,18 @@ export async function fetchAttendanceInsights(): Promise<AttendanceInsights> {
   const start = monthStartISO();
   const today = isoOf(new Date());
 
-  const [{ data: profs }, { data: att }, { data: leave }, { data: pend }] = await Promise.all([
+  const [{ data: profs }, { data: att }, { data: leave }, { data: pend }, holidays] = await Promise.all([
     supabase.from('profiles').select('id, exclude_from_stats'),
     supabase.from('attendance').select('user_id, work_date, clock_in_at').gte('work_date', start).lte('work_date', today),
     supabase.from('leave_requests').select('user_id, start_date, end_date, days, status').eq('status', 'approved'),
     supabase.from('leave_requests').select('user_id').eq('status', 'pending'),
+    fetchHolidaySet(),
   ]);
 
   // People flagged out of stats (e.g. the founder) never count anywhere here.
   const excluded = new Set((profs ?? []).filter((p) => p.exclude_from_stats).map((p) => p.id as string));
   const employees = (profs ?? []).filter((p) => !p.exclude_from_stats).length;
-  const workingDays = weekdaysBetween(start, today);
+  const workingDays = weekdaysBetween(start, today, holidays);
 
   let present = 0;
   let late = 0;
@@ -86,7 +88,7 @@ export async function fetchAttendanceInsights(): Promise<AttendanceInsights> {
     if (excluded.has(l.user_id as string)) continue;
     const from = (l.start_date as string) > start ? (l.start_date as string) : start;
     const to = (l.end_date as string) < today ? (l.end_date as string) : today;
-    leaveManDays += weekdaysBetween(from, to);
+    leaveManDays += weekdaysBetween(from, to, holidays);
     if ((l.start_date as string) >= start && (l.start_date as string) <= today) leaveDays += (l.days as number) ?? 0;
   }
 

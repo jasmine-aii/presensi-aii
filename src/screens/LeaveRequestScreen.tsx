@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, ScrollView, TextInput } from 'react-native';
 import { CalendarDays, Tag } from 'lucide-react-native';
 import { color, space, radius, interFamily } from '../theme';
@@ -7,6 +7,7 @@ import { TopAppBar } from '../components/TopAppBar';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { uploadLeaveAttachment } from '../lib/storage';
+import { fetchHolidaySet } from '../lib/holidays';
 import {
   submitLeave,
   workingDaysBetween,
@@ -45,6 +46,11 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
   const [toast, setToast] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [holidays, setHolidays] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    fetchHolidaySet().then(setHolidays);
+  }, []);
 
   const typeOptions = useMemo(
     () => LEAVE_TYPES.map((t) => ({ value: t, label: s.leave.kind[t] })),
@@ -52,7 +58,7 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
   );
 
   const datesValid = isValidISO(start) && isValidISO(end);
-  const days = datesValid && end >= start ? workingDaysBetween(start, end) : 0;
+  const days = datesValid && end >= start ? workingDaysBetween(start, end, holidays) : 0;
 
   const errText = (): string | null => {
     switch (errKey) {

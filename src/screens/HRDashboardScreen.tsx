@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, Palmtree, X, type LucideIcon } from 'lucide-react-native';
+import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, Palmtree, PartyPopper, X, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, GlowCircle, Dialog, Badge } from '../components';
 import type { AdminNav } from '../components';
@@ -12,6 +12,7 @@ import { dateStr, rangeStr } from '../lib/format';
 import { fetchTeam, deriveStats, type AdminMember } from '../lib/admin';
 import { fetchOnLeaveToday, pendingLeaveCount, type AdminLeaveRequest } from '../lib/leave';
 import { useAdminLeaveInbox } from '../lib/useAdminLeaveInbox';
+import { useTodayHoliday } from '../lib/useTodayHoliday';
 
 export function HRDashboardScreen({
   onNavigate,
@@ -28,6 +29,8 @@ export function HRDashboardScreen({
   const [team, setTeam] = useState<AdminMember[] | null>(null);
   const [onLeave, setOnLeave] = useState<AdminLeaveRequest[]>([]);
   const [pending, setPending] = useState(0);
+
+  const holidayToday = useTodayHoliday();
 
   // Notification inbox (pending leave requests) behind the header bell.
   const inbox = useAdminLeaveInbox(profile?.id ?? '');
@@ -126,7 +129,22 @@ export function HRDashboardScreen({
         </LinearGradient>
       </View>
 
-      {/* Not clocked in */}
+      {/* Holiday banner — replaces the "not clocked in" list on a day off */}
+      {holidayToday ? (
+        <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.humanTint, borderRadius: radius.md, paddingVertical: space.lg, paddingHorizontal: space.lg }}>
+            <PartyPopper size={22} color={color.deepNavy} strokeWidth={2} />
+            <View style={{ flex: 1 }}>
+              <Txt w="bold" size={14} color={color.deepNavy}>
+                {s.home.holidayTitle} · {holidayToday}
+              </Txt>
+              <Txt size={12} color={color.deepNavy} style={{ marginTop: 2, opacity: 0.75 }}>
+                {s.home.holidayNote}
+              </Txt>
+            </View>
+          </View>
+        </View>
+      ) : (
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
           <Txt w="bold" size={14} color={color.ink}>
@@ -167,6 +185,7 @@ export function HRDashboardScreen({
           )}
         </View>
       </View>
+      )}
 
       {/* On leave today */}
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.xl }}>

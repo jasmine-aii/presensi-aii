@@ -28,7 +28,12 @@ const N: typeof Notification | undefined = typeof window !== 'undefined' && 'Not
  * each per day. Notifications only appear while the app tab is open (no
  * background push). No-op on platforms without the Notification API.
  */
-export function useClockReminders(shift: string | null | undefined, clockInTime: string | null | undefined, clockOutTime: string | null | undefined) {
+export function useClockReminders(
+  shift: string | null | undefined,
+  clockInTime: string | null | undefined,
+  clockOutTime: string | null | undefined,
+  enabled: boolean = true,
+) {
   const { s } = useLang();
   const [permission, setPermission] = useState<NotifPermission>(N ? (N.permission as NotifPermission) : 'unsupported');
   const fired = useRef<Set<string>>(new Set());
@@ -54,7 +59,7 @@ export function useClockReminders(shift: string | null | undefined, clockInTime:
   };
 
   useEffect(() => {
-    if (!N || permission !== 'granted') return;
+    if (!N || permission !== 'granted' || !enabled) return;
 
     const schedule = [
       { min: win.startMin - REMIND_OFFSET, kind: 'in' as const },
