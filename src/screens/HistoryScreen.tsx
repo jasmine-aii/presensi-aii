@@ -158,18 +158,17 @@ export function HistoryScreen() {
                     </Txt>
                   </View>
 
-                  {/* Selfie thumbnail (clock-in), if present — fixed square, cover-cropped */}
-                  {hasPhoto && (
-                    <View style={{ width: 44, height: 44, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
-                      {thumb ? (
-                        <Image source={{ uri: thumb }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                      ) : (
-                        <Camera size={18} color={color.anugrahBlue} strokeWidth={2} />
-                      )}
-                    </View>
-                  )}
-
+                  {/* Status badge — sits just left of the thumbnail (right-aligned) */}
                   <StatusBadge status={statusOf(r.clockInTime)} />
+
+                  {/* Selfie thumbnail — always the rightmost element, fixed square */}
+                  <View style={{ width: 44, height: 44, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+                    {thumb ? (
+                      <Image source={{ uri: thumb }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                    ) : (
+                      <Camera size={18} color={color.anugrahBlue} strokeWidth={2} />
+                    )}
+                  </View>
                 </Pressable>
               );
             })}
