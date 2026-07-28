@@ -10,13 +10,13 @@ import { signedUrlsFor } from '../lib/storage';
 import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
 import type { AttendanceStatus } from '../lib/data';
 
-const SHIFT_START_MIN = 8 * 60 + 30; // 08:30
+const LATE_AFTER_MIN = 9 * 60; // 09:00 — clock-in after 9 counts as late (work hours still start 08:30)
 
 /** ontime / late from the clock-in time; no clock-in → treated as leave/absent. */
 function statusOf(cin: string | null): AttendanceStatus {
   if (!cin) return 'leave';
   const [h, m] = cin.split(':').map(Number);
-  return h * 60 + m > SHIFT_START_MIN ? 'late' : 'ontime';
+  return h * 60 + m > LATE_AFTER_MIN ? 'late' : 'ontime';
 }
 
 export function HistoryScreen() {

@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { fetchHolidaySet } from './holidays';
 import { computeLeaveBalance, type ApprovedLeave } from './leave';
 
-const ONTIME_LIMIT_MIN = 9 * 60; // 09:00 — clock-in before 9 counts as on time
+const LATE_AFTER_MIN = 9 * 60; // 09:00 — clock-in after 9 counts as late (work hours still start 08:30)
 const pad = (n: number) => String(n).padStart(2, '0');
 
 function isoOf(d: Date): string {
@@ -51,7 +51,7 @@ export interface AttendanceInsights {
  * Team attendance insights for the current month-to-date. "Present" counts one
  * man-day per employee per day they clocked in; "expected" is working days ×
  * employees minus approved-leave man-days (someone on leave isn't expected in).
- * The on-time threshold is the shift start (08:30). All derived live from the
+ * Clock-in after 09:00 counts as late (work hours still start at 08:30). All derived live from the
  * attendance / leave tables — no stored aggregates.
  */
 export async function fetchAttendanceInsights(year?: number, month0?: number): Promise<AttendanceInsights> {
@@ -80,7 +80,7 @@ export async function fetchAttendanceInsights(year?: number, month0?: number): P
     const d = new Date(a.clock_in_at as string);
     const m = d.getHours() * 60 + d.getMinutes();
     sumMin += m;
-    if (m >= ONTIME_LIMIT_MIN) late += 1;
+    if (m > LATE_AFTER_MIN) late += 1;
   }
   const onTime = present - late;
   const avgClockIn = present ? fmtMin(Math.round(sumMin / present)) : null;
@@ -110,14 +110,14 @@ export async function fetchAttendanceInsights(year?: number, month0?: number): P
 export interface EmployeeMonthStats {
   rate: number; // present / workingDays, %
   present: number; // days clocked in
-  onTime: number; // clock-in before 09:00
-  late: number; // clock-in 09:00 or later
+  onTime: number; // clock-in at or before 09:00
+  late: number; // clock-in after 09:00
   absent: number; // workingDays − present − leaveDays (≥ 0)
   leaveDays: number; // approved-leave weekdays in window
   workingDays: number; // weekdays from max(join, monthStart) to end (holidays excluded)
 }
 
-/** Attendance split for one clocked-in set: on-time vs late by the 09:00 rule. */
+/** Attendance split for one clocked-in set: late when clock-in is after 09:00. */
 function splitOnTime(rows: Array<{ clock_in_at: string | null }>): { onTime: number; late: number } {
   let onTime = 0;
   let late = 0;
@@ -125,7 +125,7 @@ function splitOnTime(rows: Array<{ clock_in_at: string | null }>): { onTime: num
     if (!a.clock_in_at) continue;
     const d = new Date(a.clock_in_at);
     const m = d.getHours() * 60 + d.getMinutes();
-    if (m >= ONTIME_LIMIT_MIN) late += 1;
+    if (m > LATE_AFTER_MIN) late += 1;
     else onTime += 1;
   }
   return { onTime, late };

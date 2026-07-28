@@ -1,7 +1,7 @@
 import { supabase } from './supabase';
 import type { RosterStatus } from './data';
 
-const SHIFT_START_MIN = 8 * 60 + 30; // 08:30
+const LATE_AFTER_MIN = 9 * 60; // 09:00 — clock-in after 9 counts as late (work hours still start 08:30)
 const pad = (n: number) => String(n).padStart(2, '0');
 
 function todayKey(): string {
@@ -59,7 +59,7 @@ export async function fetchTeam(): Promise<AdminMember[]> {
       st = 'leave';
     } else if (inT) {
       const [h, m] = inT.split(':').map(Number);
-      st = h * 60 + m > SHIFT_START_MIN ? 'late' : 'present';
+      st = h * 60 + m > LATE_AFTER_MIN ? 'late' : 'present';
     }
     return {
       id: p.id as string,
