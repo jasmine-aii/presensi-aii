@@ -12,7 +12,8 @@ import { menuIcons } from '../lib/data';
 import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 import { useClockReminders } from '../lib/useClockReminders';
 import { useLeaveInbox } from '../lib/useLeaveInbox';
-import { fetchLeaveBalance, type LeaveBalance, type LeaveType } from '../lib/leave';
+import { useLeaveBalance } from '../lib/useLeaveBalance';
+import { type LeaveType } from '../lib/leave';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
 const LEAVE_INDEX = 0; // opens the leave-request form (Cuti tahunan)
@@ -44,16 +45,8 @@ export function HomeScreen({
   const userName = name ?? s.home.name;
   const now = useNow(1000);
 
-  // Personal annual-leave balance for the dashboard stats card.
-  const [balance, setBalance] = useState<LeaveBalance | null>(null);
-  useEffect(() => {
-    if (!userId) return;
-    let alive = true;
-    fetchLeaveBalance(userId).then((b) => alive && setBalance(b));
-    return () => {
-      alive = false;
-    };
-  }, [userId]);
+  // Personal annual-leave balance for the dashboard stats card (live).
+  const { balance } = useLeaveBalance(userId);
 
   // Notification inbox (leave decisions) behind the header bell.
   const inbox = useLeaveInbox(userId);

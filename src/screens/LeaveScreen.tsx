@@ -7,6 +7,7 @@ import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { rangeStr } from '../lib/format';
 import { signedLeaveUrls } from '../lib/storage';
+import { supabase } from '../lib/supabase';
 import {
   fetchMyLeaves,
   fetchLeaveBalance,
@@ -56,6 +57,18 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
     setLoading(true);
     load();
   }, [load, reloadKey]);
+
+  // Live-refresh when an admin approves/rejects one of the employee's requests.
+  useEffect(() => {
+    if (!userId) return;
+    const ch = supabase
+      .channel(`leave-screen:${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leave_requests', filter: `user_id=eq.${userId}` }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(ch);
+    };
+  }, [userId, load]);
 
   const canCancel = (r: LeaveRequest) =>
     r.status === 'pending' || (r.status === 'approved' && r.startDate > todayISO());
