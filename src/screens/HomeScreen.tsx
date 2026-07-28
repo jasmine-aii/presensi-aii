@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, BellRing, BellOff, Check, X, PartyPopper, Clock as ClockIcon } from 'lucide-react-native';
+import { Bell, BellRing, BellOff, Check, X, PartyPopper, Clock as ClockIcon, Sparkles, Cake, Palmtree } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle, Dialog, StatusBadge } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -14,6 +14,7 @@ import { useClockReminders } from '../lib/useClockReminders';
 import { useTodayHoliday } from '../lib/useTodayHoliday';
 import { useLeaveInbox } from '../lib/useLeaveInbox';
 import { useLeaveBalance } from '../lib/useLeaveBalance';
+import { fetchHomeFeed, type HomeFeedItem, type HomeFeedKind } from '../lib/homeFeed';
 import { type LeaveType } from '../lib/leave';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
@@ -48,6 +49,16 @@ export function HomeScreen({
 
   // Personal annual-leave balance for the dashboard stats card (live).
   const { balance } = useLeaveBalance(userId);
+
+  // Team highlights carousel (new joiners / birthdays / on-leave today).
+  const [feed, setFeed] = useState<HomeFeedItem[]>([]);
+  useEffect(() => {
+    let alive = true;
+    fetchHomeFeed().then((r) => alive && setFeed(r));
+    return () => {
+      alive = false;
+    };
+  }, []);
 
   // Notification inbox (leave decisions) behind the header bell.
   const inbox = useLeaveInbox(userId);
@@ -101,6 +112,20 @@ export function HomeScreen({
   const isWeekend = now.getDay() === 0 || now.getDay() === 6;
   const isWorkday = !holidayToday && !isWeekend;
   const rem = useClockReminders(shift, clockInTime, clockOutTime, isWorkday);
+
+  // Carousel card width (leaves a peek of the next card so it reads as scrollable).
+  const cardW = Math.min(width, 440) - space.lg * 2 - 40;
+  const feedCfg = (kind: HomeFeedKind) => {
+    switch (kind) {
+      case 'welcome':
+        return { Icon: Sparkles, title: s.home.feedWelcome, bg: color.humanTint, fg: color.deepNavy };
+      case 'birthday':
+        return { Icon: Cake, title: s.home.feedBirthday, bg: color.warningBg, fg: color.warning };
+      case 'leave':
+      default:
+        return { Icon: Palmtree, title: s.home.feedOnLeave, bg: color.skyTint, fg: color.anugrahBlue };
+    }
+  };
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }} contentContainerStyle={{ paddingBottom: space.xl }}>
@@ -227,6 +252,40 @@ export function HomeScreen({
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
         <Button variant="primary" size="lg" fullWidth label={afterNoon ? s.home.clockOut : s.home.clockIn} onPress={() => onClock?.(primaryMode)} />
       </View>
+
+      {/* Team highlights carousel — new joiners, birthdays, on-leave today */}
+      {feed.length > 0 && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={cardW + space.md}
+          decelerationRate="fast"
+          contentContainerStyle={{ paddingHorizontal: space.lg, gap: space.md, paddingTop: space.lg }}
+        >
+          {feed.map((it, i) => {
+            const cfg = feedCfg(it.kind);
+            const Icon = cfg.Icon;
+            return (
+              <View key={`${it.kind}-${it.name}-${i}`} style={{ width: cardW, minHeight: 124, backgroundColor: cfg.bg, borderRadius: radius.lg, padding: space.lg }}>
+                <View style={{ width: 40, height: 40, borderRadius: radius.pill, backgroundColor: color.white, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
+                  <Icon size={22} color={cfg.fg} strokeWidth={2} />
+                </View>
+                <Txt w="bold" size={13} color={cfg.fg}>
+                  {cfg.title}
+                </Txt>
+                <Txt w="extrabold" size={18} color={color.ink} style={{ marginTop: 2 }}>
+                  {it.name}
+                </Txt>
+                {it.kind === 'welcome' && it.role ? (
+                  <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+                    {s.home.feedWelcomeAs.replace('{role}', it.role)}
+                  </Txt>
+                ) : null}
+              </View>
+            );
+          })}
+        </ScrollView>
+      )}
 
       {/* Attendance reminders */}
       <Section title={s.home.remindTitle}>

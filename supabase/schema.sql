@@ -365,6 +365,38 @@ select d::date, n from (values
 ) as v(d, n)
 where not exists (select 1 from public.holidays);
 
+-- ── Home feed (social carousel): new joiners, birthdays, on-leave today ──────
+-- SECURITY DEFINER so any authenticated employee can see these team highlights
+-- without granting broad read access to everyone's profile. Returns only the
+-- name + role + kind needed for the cards — no birth year, join date, etc.
+create or replace function public.home_feed()
+returns table (kind text, name text, role text)
+language sql
+security definer set search_path = public
+stable
+as $$
+  -- New joiners — visible for the first 3 days (join day + 2)
+  select 'welcome'::text, full_name, department
+  from public.profiles
+  where join_date is not null and join_date between current_date - 2 and current_date
+  union all
+  -- Birthdays today (match month + day, any year)
+  select 'birthday'::text, full_name, null::text
+  from public.profiles
+  where birth_date is not null
+    and to_char(birth_date, 'MM-DD') = to_char(current_date, 'MM-DD')
+  union all
+  -- On approved leave that covers today
+  select 'leave'::text, p.full_name, null::text
+  from public.leave_requests lr
+  join public.profiles p on p.id = lr.user_id
+  where lr.status = 'approved'
+    and lr.start_date <= current_date
+    and lr.end_date >= current_date;
+$$;
+
+grant execute on function public.home_feed() to authenticated;
+
 -- ============================================================================
 -- After the first user signs up, promote them to admin (run once, replace email):
 --   update public.profiles set role = 'admin'
