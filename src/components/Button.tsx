@@ -3,7 +3,7 @@ import { Pressable, View, StyleSheet, type ViewStyle } from 'react-native';
 import { color, radius, space, elevation } from '../theme';
 import { Txt } from './Txt';
 
-export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
+export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
 export interface ButtonProps {
@@ -26,6 +26,7 @@ const fills: Record<ButtonVariant, { bg: string; fg: string; border?: string }> 
   primary: { bg: color.anugrahBlue, fg: color.white },
   secondary: { bg: color.white, fg: color.anugrahBlue, border: color.anugrahBlue },
   ghost: { bg: 'transparent', fg: color.deepNavy },
+  danger: { bg: color.danger, fg: color.white },
 };
 
 export function Button({ label, variant = 'primary', size = 'md', fullWidth, disabled, leading, onPress }: ButtonProps) {

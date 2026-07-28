@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, Pressable, ActivityIndicator } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Trash2, PartyPopper } from 'lucide-react-native';
+import { Trash2, PartyPopper, X } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Button, TopAppBar, DateField, Toast } from '../components';
+import { Txt, Button, TopAppBar, DateField, Toast, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHolidays, addHoliday, deleteHoliday, type Holiday } from '../lib/holidays';
 import { rangeStr } from '../lib/format';
@@ -17,6 +17,7 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [pendingDel, setPendingDel] = useState<Holiday | null>(null);
 
   const load = () => fetchHolidays().then(setRows);
   useEffect(() => {
@@ -39,7 +40,10 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
     }
   };
 
-  const remove = async (d: string) => {
+  const confirmDelete = async () => {
+    if (!pendingDel) return;
+    const d = pendingDel.date;
+    setPendingDel(null);
     await deleteHoliday(d);
     load();
   };
@@ -99,7 +103,7 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
                     {rangeStr(h.date, h.date, lang)}
                   </Txt>
                 </View>
-                <Pressable onPress={() => remove(h.date)} hitSlop={8} accessibilityLabel={s.adm.del} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
+                <Pressable onPress={() => setPendingDel(h)} hitSlop={8} accessibilityLabel={s.adm.del} style={{ width: 36, height: 36, alignItems: 'center', justifyContent: 'center' }}>
                   <Trash2 size={18} color={color.danger} strokeWidth={2} />
                 </Pressable>
               </View>
@@ -107,6 +111,36 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
           </View>
         )}
       </ScrollView>
+
+      {/* Delete confirmation */}
+      <Dialog visible={pendingDel !== null} onClose={() => setPendingDel(null)} maxWidth={340}>
+        <View style={{ gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Txt w="bold" size={16} color={color.ink}>
+              {s.adm.holidayDelTitle}
+            </Txt>
+            <Pressable onPress={() => setPendingDel(null)} hitSlop={10}>
+              <X size={20} color={color.muted} strokeWidth={2} />
+            </Pressable>
+          </View>
+          {pendingDel && (
+            <Txt size={12} color={color.muted} tabular>
+              {pendingDel.name} · {rangeStr(pendingDel.date, pendingDel.date, lang)}
+            </Txt>
+          )}
+          <Txt size={14} color={color.ink} style={{ lineHeight: 20 }}>
+            {s.adm.holidayDelMsg}
+          </Txt>
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Button variant="secondary" size="md" fullWidth label={s.adm.cancel} onPress={() => setPendingDel(null)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button variant="danger" size="md" fullWidth label={s.adm.holidayDelYes} onPress={confirmDelete} />
+            </View>
+          </View>
+        </View>
+      </Dialog>
 
       <Toast message={toast} onHide={() => setToast(null)} tone="error" />
     </View>
