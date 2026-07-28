@@ -44,7 +44,10 @@ export function useLeaveInbox(userId: string, reloadKey?: number) {
     };
   }, [userId, load]);
 
-  const unseen = items.filter((i) => (i.reviewedAt ?? '') > lastSeen).length;
+  // Only notifications the employee hasn't acknowledged yet — they drop off once
+  // the panel is opened and closed (markSeen).
+  const unseenItems = items.filter((i) => (i.reviewedAt ?? '') > lastSeen);
+  const unseen = unseenItems.length;
 
   const markSeen = useCallback(async () => {
     const newest = items[0]?.reviewedAt ?? '';
@@ -54,5 +57,5 @@ export function useLeaveInbox(userId: string, reloadKey?: number) {
     }
   }, [items, lastSeen, userId]);
 
-  return { items, unseen, markSeen };
+  return { items, unseenItems, unseen, markSeen };
 }

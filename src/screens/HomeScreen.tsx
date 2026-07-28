@@ -51,9 +51,10 @@ export function HomeScreen({
   // Notification inbox (leave decisions) behind the header bell.
   const inbox = useLeaveInbox(userId);
   const [inboxOpen, setInboxOpen] = useState(false);
-  const openInbox = () => {
-    setInboxOpen(true);
-    inbox.markSeen();
+  const openInbox = () => setInboxOpen(true);
+  const closeInbox = () => {
+    inbox.markSeen(); // acknowledge on close → unread items drop off
+    setInboxOpen(false);
   };
   const { width } = useWindowDimensions();
   // Tile width derives from the actual quick-menu row width (measured on layout),
@@ -350,23 +351,23 @@ export function HomeScreen({
         </View>
       </Section>
 
-      {/* Notification inbox */}
-      <Dialog visible={inboxOpen} onClose={() => setInboxOpen(false)} maxWidth={400}>
+      {/* Notification inbox — unread leave decisions only */}
+      <Dialog visible={inboxOpen} onClose={closeInbox} maxWidth={400}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
           <Txt w="extrabold" size={17} color={color.ink}>
             {s.home.notifTitle}
           </Txt>
-          <Pressable onPress={() => setInboxOpen(false)} hitSlop={10} accessibilityLabel={s.hist.close}>
+          <Pressable onPress={closeInbox} hitSlop={10} accessibilityLabel={s.hist.close}>
             <X size={20} color={color.muted} strokeWidth={2} />
           </Pressable>
         </View>
-        {inbox.items.length === 0 ? (
+        {inbox.unseenItems.length === 0 ? (
           <Txt size={13} color={color.muted} style={{ paddingVertical: space.lg, textAlign: 'center' }}>
             {s.home.notifEmpty}
           </Txt>
         ) : (
           <ScrollView style={{ maxHeight: 360 }} contentContainerStyle={{ gap: space.md }}>
-            {inbox.items.slice(0, 20).map((n) => (
+            {inbox.unseenItems.slice(0, 20).map((n) => (
               <View key={n.id} style={{ borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.md, gap: space.xs }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                   <Txt w="semibold" size={14} color={color.ink}>
