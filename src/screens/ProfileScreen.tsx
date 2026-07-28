@@ -16,6 +16,7 @@ export function ProfileScreen({
   role,
   dept,
   empId,
+  email,
   birthDate,
   isAdmin,
 }: {
@@ -25,12 +26,13 @@ export function ProfileScreen({
   role?: string;
   dept?: string;
   empId?: string;
+  email?: string;
   birthDate?: string | null;
   isAdmin?: boolean;
 }) {
   const { s, lang, langName, toggleLang } = useLang();
   const [notif, setNotif] = useState(true);
-  const rows = profileRows(lang);
+  const rows = profileRows(lang, email);
   const userName = name ?? s.home.name;
 
   // Change-password modal state

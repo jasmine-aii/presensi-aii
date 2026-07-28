@@ -7,7 +7,6 @@ import {
   History,
   Baby,
   Mail,
-  Phone,
   CalendarDays,
   UserRound,
   MapPin,
@@ -49,17 +48,16 @@ export interface ProfileRow {
   value: string;
 }
 
-/** Profile label→value rows (sample). */
-export function profileRows(lang: Lang): ProfileRow[] {
+/** Profile label→value rows. Email comes from the signed-in account; the rest are sample. */
+export function profileRows(lang: Lang, email?: string): ProfileRow[] {
   const L =
     lang === 'id'
-      ? { email: 'Email', phone: 'Telepon', joined: 'Bergabung', manager: 'Atasan', location: 'Lokasi' }
-      : { email: 'Email', phone: 'Phone', joined: 'Joined', manager: 'Manager', location: 'Location' };
+      ? { email: 'Email', joined: 'Bergabung', manager: 'Atasan', location: 'Lokasi' }
+      : { email: 'Email', joined: 'Joined', manager: 'Manager', location: 'Location' };
   return [
-    { icon: Mail, label: L.email, value: 'andi.p@anugerah.ai' },
-    { icon: Phone, label: L.phone, value: '+62 812 3456 7890' },
+    { icon: Mail, label: L.email, value: email ?? '—' },
     { icon: CalendarDays, label: L.joined, value: '12 Jan 2023' },
-    { icon: UserRound, label: L.manager, value: 'Rina Wijaya' },
+    { icon: UserRound, label: L.manager, value: 'Monthy' },
     { icon: MapPin, label: L.location, value: lang === 'id' ? 'Kantor Pusat, Jakarta' : 'HQ, Jakarta' },
   ];
 }

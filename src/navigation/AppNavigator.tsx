@@ -210,6 +210,7 @@ export function AppNavigator() {
             role={profile?.role === 'admin' ? s.adm.role : s.prof.role}
             dept={profile?.department ?? s.prof.dept}
             empId={profile?.employee_id ?? undefined}
+            email={session?.user.email ?? undefined}
             birthDate={profile?.birth_date ?? undefined}
             isAdmin={isAdmin}
             onOpenAdmin={() => {
