@@ -113,8 +113,10 @@ export function HomeScreen({
   const isWorkday = !holidayToday && !isWeekend;
   const rem = useClockReminders(shift, clockInTime, clockOutTime, isWorkday);
 
-  // Carousel card width (leaves a peek of the next card so it reads as scrollable).
-  const cardW = Math.min(width, 440) - space.lg * 2 - 40;
+  // Carousel card width: full width for a lone card; otherwise leave a peek of
+  // the next card so it reads as scrollable.
+  const fullCardW = Math.min(width, 440) - space.lg * 2;
+  const cardW = feed.length <= 1 ? fullCardW : fullCardW - 40;
   const feedCfg = (kind: HomeFeedKind) => {
     switch (kind) {
       case 'welcome':
@@ -274,7 +276,7 @@ export function HomeScreen({
                   <Txt w="bold" size={13} color={cfg.fg}>
                     {cfg.title}
                   </Txt>
-                  <Txt w="extrabold" size={18} color={color.ink} style={{ marginTop: 2 }}>
+                  <Txt w="regular" size={18} color={color.ink} style={{ marginTop: 2 }}>
                     {it.name}
                   </Txt>
                   {it.kind === 'welcome' && it.role ? (
@@ -288,6 +290,53 @@ export function HomeScreen({
           })}
         </ScrollView>
       )}
+
+      {/* Quick menu */}
+      <Section title={s.home.menuTitle}>
+        <View onLayout={(e) => setRowW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
+          {s.menu.map((label, i) => {
+            if (HIDDEN_MENU.has(i)) return null;
+            const disabled = DISABLED_MENU.has(i);
+            const tileStyle = {
+              width: tile,
+              backgroundColor: color.white,
+              borderWidth: 1,
+              borderColor: color.line,
+              borderRadius: radius.md,
+              paddingVertical: space.md,
+              paddingHorizontal: space.sm,
+              alignItems: 'center' as const,
+              gap: space.sm,
+              opacity: disabled ? 0.4 : 1,
+            };
+            const inner = (
+              <>
+                <IconTile icon={menuIcons[i]} bg={disabled ? color.paper : color.skyTint} fg={disabled ? color.muted : color.anugrahBlue} />
+                <Txt w="semibold" size={12} color={disabled ? color.muted : color.ink} style={{ textAlign: 'center' }}>
+                  {label}
+                </Txt>
+              </>
+            );
+            const onPress =
+              i === RIWAYAT_INDEX
+                ? onOpenHistory
+                : i === LEAVE_INDEX
+                  ? () => onOpenLeave?.('cuti_tahunan')
+                  : i === SICK_INDEX
+                    ? () => onOpenLeave?.('sakit')
+                    : undefined;
+            return onPress && !disabled ? (
+              <Pressable key={label} onPress={onPress} style={tileStyle}>
+                {inner}
+              </Pressable>
+            ) : (
+              <View key={label} style={tileStyle}>
+                {inner}
+              </View>
+            );
+          })}
+        </View>
+      </Section>
 
       {/* Attendance reminders */}
       <Section title={s.home.remindTitle}>
@@ -387,53 +436,6 @@ export function HomeScreen({
           </View>
         </Section>
       )}
-
-      {/* Quick menu */}
-      <Section title={s.home.menuTitle}>
-        <View onLayout={(e) => setRowW(e.nativeEvent.layout.width)} style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md }}>
-          {s.menu.map((label, i) => {
-            if (HIDDEN_MENU.has(i)) return null;
-            const disabled = DISABLED_MENU.has(i);
-            const tileStyle = {
-              width: tile,
-              backgroundColor: color.white,
-              borderWidth: 1,
-              borderColor: color.line,
-              borderRadius: radius.md,
-              paddingVertical: space.md,
-              paddingHorizontal: space.sm,
-              alignItems: 'center' as const,
-              gap: space.sm,
-              opacity: disabled ? 0.4 : 1,
-            };
-            const inner = (
-              <>
-                <IconTile icon={menuIcons[i]} bg={disabled ? color.paper : color.skyTint} fg={disabled ? color.muted : color.anugrahBlue} />
-                <Txt w="semibold" size={12} color={disabled ? color.muted : color.ink} style={{ textAlign: 'center' }}>
-                  {label}
-                </Txt>
-              </>
-            );
-            const onPress =
-              i === RIWAYAT_INDEX
-                ? onOpenHistory
-                : i === LEAVE_INDEX
-                  ? () => onOpenLeave?.('cuti_tahunan')
-                  : i === SICK_INDEX
-                    ? () => onOpenLeave?.('sakit')
-                    : undefined;
-            return onPress && !disabled ? (
-              <Pressable key={label} onPress={onPress} style={tileStyle}>
-                {inner}
-              </Pressable>
-            ) : (
-              <View key={label} style={tileStyle}>
-                {inner}
-              </View>
-            );
-          })}
-        </View>
-      </Section>
 
       {/* Notification inbox — unread leave decisions only */}
       <Dialog visible={inboxOpen} onClose={closeInbox} maxWidth={400}>
