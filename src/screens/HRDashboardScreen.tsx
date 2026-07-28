@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, Palmtree, type LucideIcon } from 'lucide-react-native';
+import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, Palmtree, X, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, GlowCircle } from '../components';
+import { Txt, Avatar, AdminStatusBadge, GlowCircle, Dialog, Badge } from '../components';
 import type { AdminNav } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
@@ -11,6 +11,7 @@ import { useNow } from '../lib/useNow';
 import { dateStr, rangeStr } from '../lib/format';
 import { fetchTeam, deriveStats, type AdminMember } from '../lib/admin';
 import { fetchOnLeaveToday, pendingLeaveCount, type AdminLeaveRequest } from '../lib/leave';
+import { useAdminLeaveInbox } from '../lib/useAdminLeaveInbox';
 
 export function HRDashboardScreen({
   onNavigate,
@@ -27,6 +28,14 @@ export function HRDashboardScreen({
   const [team, setTeam] = useState<AdminMember[] | null>(null);
   const [onLeave, setOnLeave] = useState<AdminLeaveRequest[]>([]);
   const [pending, setPending] = useState(0);
+
+  // Notification inbox (pending leave requests) behind the header bell.
+  const inbox = useAdminLeaveInbox(profile?.id ?? '');
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const openInbox = () => {
+    setInboxOpen(true);
+    inbox.markSeen();
+  };
 
   useEffect(() => {
     let alive = true;
@@ -78,7 +87,16 @@ export function HRDashboardScreen({
             </Pressable>
           </View>
         </View>
-        <Bell size={22} color={color.muted} strokeWidth={2} />
+        <Pressable onPress={openInbox} hitSlop={8} accessibilityRole="button" accessibilityLabel={s.home.notifTitle}>
+          <Bell size={22} color={color.muted} strokeWidth={2} />
+          {inbox.unseen > 0 && (
+            <View style={{ position: 'absolute', top: -5, right: -5, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: radius.pill, backgroundColor: color.danger, alignItems: 'center', justifyContent: 'center' }}>
+              <Txt w="bold" size={10} color={color.white}>
+                {inbox.unseen}
+              </Txt>
+            </View>
+          )}
+        </Pressable>
       </View>
 
       {/* Attendance card — AII-blue → navy gradient (matches the employee hero) */}
@@ -194,6 +212,60 @@ export function HRDashboardScreen({
           <QuickAction icon={UserPlus} label={s.adm.qInvite} filled onPress={() => onNavigate?.('add')} />
         </View>
       </View>
+
+      {/* Notification inbox — pending leave requests */}
+      <Dialog visible={inboxOpen} onClose={() => setInboxOpen(false)} maxWidth={400}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
+          <Txt w="extrabold" size={17} color={color.ink}>
+            {s.home.notifTitle}
+          </Txt>
+          <Pressable onPress={() => setInboxOpen(false)} hitSlop={10} accessibilityLabel={s.hist.close}>
+            <X size={20} color={color.muted} strokeWidth={2} />
+          </Pressable>
+        </View>
+        {inbox.items.length === 0 ? (
+          <Txt size={13} color={color.muted} style={{ paddingVertical: space.lg, textAlign: 'center' }}>
+            {s.adm.apprEmpty}
+          </Txt>
+        ) : (
+          <>
+            <ScrollView style={{ maxHeight: 340 }} contentContainerStyle={{ gap: space.md }}>
+              {inbox.items.slice(0, 20).map((n) => (
+                <Pressable
+                  key={n.id}
+                  onPress={() => {
+                    setInboxOpen(false);
+                    onNavigate?.('approval');
+                  }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.md }}
+                >
+                  <Avatar name={n.employeeName} size={36} />
+                  <View style={{ flex: 1 }}>
+                    <Txt w="semibold" size={14} color={color.ink}>
+                      {n.employeeName}
+                    </Txt>
+                    <Txt size={12} color={color.muted} tabular style={{ marginTop: space.xs }}>
+                      {s.leave.kind[n.type]} · {rangeStr(n.startDate, n.endDate, lang)}
+                    </Txt>
+                  </View>
+                  <Badge tone="warning" variant="soft" label={s.status.pending} />
+                </Pressable>
+              ))}
+            </ScrollView>
+            <Pressable
+              onPress={() => {
+                setInboxOpen(false);
+                onNavigate?.('approval');
+              }}
+              style={{ marginTop: space.md, alignItems: 'center', paddingVertical: space.md, borderRadius: radius.md, backgroundColor: color.anugrahBlue }}
+            >
+              <Txt w="semibold" size={14} color={color.white}>
+                {s.adm.apprTitle}
+              </Txt>
+            </Pressable>
+          </>
+        )}
+      </Dialog>
     </ScrollView>
   );
 }
