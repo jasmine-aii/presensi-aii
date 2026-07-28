@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, BellRing, BellOff, Check, Clock as ClockIcon } from 'lucide-react-native';
+import { Bell, BellRing, BellOff, Check, X, Clock as ClockIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle } from '../components';
+import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle, Dialog, StatusBadge } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { useNow } from '../lib/useNow';
-import { timeStr, dateStr } from '../lib/format';
+import { timeStr, dateStr, rangeStr } from '../lib/format';
 import { menuIcons } from '../lib/data';
 import { parseShiftWindow, netWorkedMin, durationStr } from '../lib/shifts';
 import { useClockReminders } from '../lib/useClockReminders';
+import { useLeaveInbox } from '../lib/useLeaveInbox';
 import { fetchLeaveBalance, type LeaveBalance, type LeaveType } from '../lib/leave';
 
 // Quick-menu (order: Cuti, Sakit, Izin khusus, Lembur, Dinas luar, Riwayat):
@@ -53,6 +54,14 @@ export function HomeScreen({
       alive = false;
     };
   }, [userId]);
+
+  // Notification inbox (leave decisions) behind the header bell.
+  const inbox = useLeaveInbox(userId);
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const openInbox = () => {
+    setInboxOpen(true);
+    inbox.markSeen();
+  };
   const { width } = useWindowDimensions();
   // Tile width derives from the actual quick-menu row width (measured on layout),
   // not the window — on desktop the app is a narrow centered column, so the
@@ -120,7 +129,16 @@ export function HomeScreen({
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-          <Bell size={22} color={color.muted} strokeWidth={2} />
+          <Pressable onPress={openInbox} hitSlop={8} accessibilityRole="button" accessibilityLabel={s.home.notifTitle}>
+            <Bell size={22} color={color.muted} strokeWidth={2} />
+            {inbox.unseen > 0 && (
+              <View style={{ position: 'absolute', top: -5, right: -5, minWidth: 16, height: 16, paddingHorizontal: 3, borderRadius: radius.pill, backgroundColor: color.danger, alignItems: 'center', justifyContent: 'center' }}>
+                <Txt w="bold" size={10} color={color.white}>
+                  {inbox.unseen}
+                </Txt>
+              </View>
+            )}
+          </Pressable>
           <LogoMark height={26} />
         </View>
       </View>
@@ -339,6 +357,43 @@ export function HomeScreen({
         </View>
       </Section>
 
+      {/* Notification inbox */}
+      <Dialog visible={inboxOpen} onClose={() => setInboxOpen(false)} maxWidth={400}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.md }}>
+          <Txt w="extrabold" size={17} color={color.ink}>
+            {s.home.notifTitle}
+          </Txt>
+          <Pressable onPress={() => setInboxOpen(false)} hitSlop={10} accessibilityLabel={s.hist.close}>
+            <X size={20} color={color.muted} strokeWidth={2} />
+          </Pressable>
+        </View>
+        {inbox.items.length === 0 ? (
+          <Txt size={13} color={color.muted} style={{ paddingVertical: space.lg, textAlign: 'center' }}>
+            {s.home.notifEmpty}
+          </Txt>
+        ) : (
+          <ScrollView style={{ maxHeight: 360 }} contentContainerStyle={{ gap: space.md }}>
+            {inbox.items.slice(0, 20).map((n) => (
+              <View key={n.id} style={{ borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.md, gap: space.xs }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Txt w="semibold" size={14} color={color.ink}>
+                    {s.leave.kind[n.type]}
+                  </Txt>
+                  <StatusBadge status={n.status} />
+                </View>
+                <Txt size={12} color={color.muted} tabular>
+                  {rangeStr(n.startDate, n.endDate, lang)} · {n.days} {s.leave.daysWork}
+                </Txt>
+                {n.reviewNote ? (
+                  <Txt size={12} color={color.muted} style={{ lineHeight: 16 }}>
+                    {s.leave.reviewNote}: {n.reviewNote}
+                  </Txt>
+                ) : null}
+              </View>
+            ))}
+          </ScrollView>
+        )}
+      </Dialog>
     </ScrollView>
   );
 }
