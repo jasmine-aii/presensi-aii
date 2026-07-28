@@ -133,7 +133,7 @@ export function ReportsScreen({ onSelectMember }: { onSelectMember?: (m: AdminMe
             </Txt>
             <MetricRow
               items={[
-                [s.adm.iOnTime, ins.onTime, color.success],
+                [s.adm.iOnTime, `${ins.present ? Math.round((ins.onTime / ins.present) * 100) : 0}%`, color.success],
                 [s.adm.iLate, ins.late, color.danger],
                 [s.adm.iAvgIn, ins.avgClockIn ?? s.home.dash, color.deepNavy],
               ]}
