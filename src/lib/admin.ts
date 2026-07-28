@@ -25,6 +25,7 @@ export interface AdminMember {
   in: string; // HH:MM or —
   out: string;
   excludeFromStats: boolean; // founder / flagged: shown in directory, omitted from stats
+  birthDate: string | null; // YYYY-MM-DD
 }
 
 export interface AdminStats {
@@ -39,7 +40,7 @@ export interface AdminStats {
 export async function fetchTeam(): Promise<AdminMember[]> {
   const today = todayKey();
   const [{ data: profiles }, { data: att }, { data: leave }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, department, email, shift, exclude_from_stats').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, department, email, shift, exclude_from_stats, birth_date').order('full_name'),
     supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', today),
     supabase.from('leave_requests').select('user_id').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ]);
@@ -70,6 +71,7 @@ export async function fetchTeam(): Promise<AdminMember[]> {
       in: inT ?? '—',
       out: outT ?? '—',
       excludeFromStats: (p.exclude_from_stats as boolean) ?? false,
+      birthDate: (p.birth_date as string) ?? null,
     };
   });
 }

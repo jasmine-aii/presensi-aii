@@ -33,6 +33,7 @@ create table if not exists public.profiles (
 );
 
 alter table public.profiles add column if not exists email text;
+alter table public.profiles add column if not exists birth_date date;
 
 -- ── attendance ──────────────────────────────────────────────────────────────
 -- One row per employee per calendar day (work_date). Clock-out fills in later.

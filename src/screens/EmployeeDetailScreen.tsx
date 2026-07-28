@@ -10,7 +10,7 @@ import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 import { setMemberShift, resetMemberPassword, setExcludeFromStats, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
-import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
+import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
   const { s, lang } = useLang();
@@ -163,6 +163,11 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             {!!member.email && (
               <Txt size={12} color={color.muted} numberOfLines={1} style={{ marginTop: space.xs }}>
                 {member.email}
+              </Txt>
+            )}
+            {!!member.birthDate && (
+              <Txt size={12} color={color.muted} tabular style={{ marginTop: space.xs }}>
+                {s.adm.fBirth}: {rangeStr(member.birthDate, member.birthDate, lang)}
               </Txt>
             )}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.sm }}>

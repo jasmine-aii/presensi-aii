@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     }
 
     // Default action: create a new employee account.
-    const { email, password, full_name, job_role, access_role, shift } = body;
+    const { email, password, full_name, job_role, access_role, shift, birth_date } = body;
     if (!email || !password) return json({ error: 'Email dan kata sandi wajib diisi.' });
     if (String(password).length < 6) return json({ error: 'Kata sandi minimal 6 karakter.' });
 
@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     //    auto employee_id). Set the access role + shift on it.
     await admin
       .from('profiles')
-      .update({ role: access_role === 'admin' ? 'admin' : 'employee', shift: shift ?? null })
+      .update({ role: access_role === 'admin' ? 'admin' : 'employee', shift: shift ?? null, birth_date: birth_date || null })
       .eq('id', created.user.id);
 
     return json({ ok: true, userId: created.user.id });

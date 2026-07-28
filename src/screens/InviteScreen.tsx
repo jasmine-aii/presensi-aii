@@ -3,7 +3,7 @@ import { View, ScrollView, TextInput, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, Lock, Settings2, TriangleAlert, type LucideIcon } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, ResultDialog, type SelectOption } from '../components';
+import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, DateField, ResultDialog, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { supabase } from '../lib/supabase';
 import { nextEmployeeIdPreview } from '../lib/admin';
@@ -16,6 +16,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [jobRole, setJobRole] = useState('');
+  const [birth, setBirth] = useState('');
   const [access, setAccess] = useState('employee');
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftId, setShiftId] = useState('');
@@ -62,6 +63,7 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         job_role: jobRole.trim(),
         access_role: access,
         shift: shiftSel ? shiftLabel(shiftSel) : null,
+        birth_date: birth || null,
       },
     });
     setBusy(false);
@@ -82,6 +84,8 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         <TextField label={s.adm.fEmail} icon={Mail} value={email} onChangeText={setEmail} placeholder={s.adm.fEmailPh} keyboardType="email-address" autoCapitalize="none" autoComplete="off" />
         <TextField label={s.adm.fPassword} icon={Lock} value={password} onChangeText={setPassword} placeholder={s.adm.fPasswordPh} secureTextEntry autoCapitalize="none" autoComplete="off" />
         <Field label={s.adm.fId} value={idValue} icon={BadgeCheck} variant="readonly" />
+
+        <DateField label={s.adm.fBirth} value={birth} onChange={setBirth} max={new Date().toISOString().slice(0, 10)} />
 
         <View style={{ flexDirection: 'row', gap: space.md }}>
           <View style={{ flex: 1 }}>
