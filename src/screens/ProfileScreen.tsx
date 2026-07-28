@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable, TextInput } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, KeyRound, Cake, X } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, Toggle, Button, GlowCircle, Dialog } from '../components';
@@ -63,8 +64,14 @@ export function ProfileScreen({
 
   return (
     <ScrollView style={{ backgroundColor: color.paper }}>
-      {/* Navy header */}
-      <View style={{ backgroundColor: color.deepNavy, paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.xl, overflow: 'hidden' }}>
+      {/* Header — AII-blue → navy gradient (matches the dashboard clock card) */}
+      <LinearGradient
+        colors={[color.anugrahBlue, color.anugrahBlue, color.deepNavy]}
+        locations={[0, 0.55, 1]}
+        start={{ x: 0.5, y: 1 }}
+        end={{ x: 0.5, y: 0 }}
+        style={{ paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.xl, overflow: 'hidden' }}
+      >
         <GlowCircle size={200} top={-70} right={-50} />
         <Txt w="bold" size={17} color={color.white} style={{ marginBottom: space.lg }}>
           {s.prof.title}
@@ -96,7 +103,7 @@ export function ProfileScreen({
             </View>
           </View>
         </View>
-      </View>
+      </LinearGradient>
 
       <View style={{ padding: space.lg, gap: space.lg }}>
         {/* Detail list */}
