@@ -1,10 +1,10 @@
 import { supabase } from './supabase';
 
 /** Request types — mirror the reference diagram (cuti / sakit / izin / dinas luar). */
-export type LeaveType = 'cuti_tahunan' | 'sakit' | 'izin' | 'dinas_luar';
+export type LeaveType = 'cuti_tahunan' | 'sakit' | 'unpaid_leave' | 'dinas_luar';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
-export const LEAVE_TYPES: LeaveType[] = ['cuti_tahunan', 'sakit', 'izin', 'dinas_luar'];
+export const LEAVE_TYPES: LeaveType[] = ['cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar'];
 
 export interface LeaveRequest {
   id: string;

@@ -20,7 +20,7 @@ import {
 const typeIcon: Record<LeaveType, LucideIcon> = {
   cuti_tahunan: Sun,
   sakit: Thermometer,
-  izin: FileText,
+  unpaid_leave: FileText,
   dinas_luar: Briefcase,
 };
 
