@@ -266,21 +266,23 @@ export function HomeScreen({
             const cfg = feedCfg(it.kind);
             const Icon = cfg.Icon;
             return (
-              <View key={`${it.kind}-${it.name}-${i}`} style={{ width: cardW, minHeight: 124, backgroundColor: cfg.bg, borderRadius: radius.lg, padding: space.lg }}>
-                <View style={{ width: 40, height: 40, borderRadius: radius.pill, backgroundColor: color.white, alignItems: 'center', justifyContent: 'center', marginBottom: space.md }}>
+              <View key={`${it.kind}-${it.name}-${i}`} style={{ width: cardW, backgroundColor: cfg.bg, borderRadius: radius.lg, padding: space.lg, flexDirection: 'row', alignItems: 'flex-start', gap: space.md }}>
+                <View style={{ width: 40, height: 40, borderRadius: radius.pill, backgroundColor: color.white, alignItems: 'center', justifyContent: 'center' }}>
                   <Icon size={22} color={cfg.fg} strokeWidth={2} />
                 </View>
-                <Txt w="bold" size={13} color={cfg.fg}>
-                  {cfg.title}
-                </Txt>
-                <Txt w="extrabold" size={18} color={color.ink} style={{ marginTop: 2 }}>
-                  {it.name}
-                </Txt>
-                {it.kind === 'welcome' && it.role ? (
-                  <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
-                    {s.home.feedWelcomeAs.replace('{role}', it.role)}
+                <View style={{ flex: 1 }}>
+                  <Txt w="bold" size={13} color={cfg.fg}>
+                    {cfg.title}
                   </Txt>
-                ) : null}
+                  <Txt w="extrabold" size={18} color={color.ink} style={{ marginTop: 2 }}>
+                    {it.name}
+                  </Txt>
+                  {it.kind === 'welcome' && it.role ? (
+                    <Txt size={12} color={color.muted} style={{ marginTop: 2 }}>
+                      {s.home.feedWelcomeAs.replace('{role}', it.role)}
+                    </Txt>
+                  ) : null}
+                </View>
               </View>
             );
           })}
