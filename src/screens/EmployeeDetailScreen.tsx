@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
@@ -14,6 +15,8 @@ import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/for
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
   const { s, lang } = useLang();
+  const { session } = useAuth();
+  const isSelf = session?.user.id === member.id;
   const [rows, setRows] = useState<HistoryEntry[] | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<HistoryEntry | null>(null);
@@ -51,11 +54,18 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           { value: 'employee', label: 'Employee' },
           { value: 'admin', label: 'Admin' },
         ];
+  const [pendingRole, setPendingRole] = useState<'employee' | 'admin' | null>(null);
   const onPickRole = (v: string) => {
     const r = v as 'employee' | 'admin';
-    setRole(r); // optimistic
-    setMemberRole(member.id, r);
+    if (r !== role) setPendingRole(r); // confirm before applying
   };
+  const confirmRole = () => {
+    if (!pendingRole) return;
+    setRole(pendingRole); // optimistic
+    setMemberRole(member.id, pendingRole);
+    setPendingRole(null);
+  };
+  const pendingRoleLabel = accessOptions.find((o) => o.value === pendingRole)?.label ?? '';
 
   const toggleStats = (countIn: boolean) => {
     setExcluded(!countIn); // optimistic
@@ -581,6 +591,42 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={rpBusy} onPress={doReset} />
               </View>
             )}
+        </View>
+      </Dialog>
+
+      {/* Access-role change confirmation */}
+      <Dialog visible={pendingRole !== null} onClose={() => setPendingRole(null)} maxWidth={340}>
+        <View style={{ gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <Txt w="bold" size={16} color={color.ink}>
+              {s.adm.roleWarnTitle}
+            </Txt>
+            <Pressable onPress={() => setPendingRole(null)} hitSlop={10}>
+              <X size={20} color={color.muted} strokeWidth={2} />
+            </Pressable>
+          </View>
+          <Txt size={12} color={color.muted}>
+            {member.name}
+          </Txt>
+          <Txt size={14} color={color.ink} style={{ lineHeight: 20 }}>
+            {s.adm.roleWarnMsg.replace('{role}', pendingRoleLabel)}
+          </Txt>
+          {isSelf && pendingRole === 'employee' && (
+            <View style={{ flexDirection: 'row', gap: space.sm, backgroundColor: color.dangerBg, borderRadius: radius.sm, padding: space.md }}>
+              <AlertTriangle size={18} color={color.danger} strokeWidth={2} style={{ marginTop: 1 }} />
+              <Txt size={12} color={color.danger} style={{ flex: 1, lineHeight: 17 }}>
+                {s.adm.roleWarnSelf}
+              </Txt>
+            </View>
+          )}
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Button variant="secondary" size="md" fullWidth label={s.adm.cancel} onPress={() => setPendingRole(null)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button variant="primary" size="md" fullWidth label={s.adm.roleWarnConfirm} onPress={confirmRole} />
+            </View>
+          </View>
         </View>
       </Dialog>
 
