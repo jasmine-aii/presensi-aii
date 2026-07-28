@@ -14,6 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import type { Lang, Dict } from '../i18n/strings';
+import { OFFICE } from './office';
 
 /** Icons for the Home quick-menu grid — parallel to `s.menu`. */
 export const menuIcons: LucideIcon[] = [Sun, Thermometer, FileText, Timer, Briefcase, History];
@@ -58,7 +59,7 @@ export function profileRows(lang: Lang, email?: string, joined?: string): Profil
     { icon: Mail, label: L.email, value: email ?? '—' },
     { icon: CalendarDays, label: L.joined, value: joined ?? '—' },
     { icon: UserRound, label: L.manager, value: 'Monthy' },
-    { icon: MapPin, label: L.location, value: lang === 'id' ? 'Kantor Pusat, Jakarta' : 'HQ, Jakarta' },
+    { icon: MapPin, label: L.location, value: OFFICE.name[lang] },
   ];
 }
 
