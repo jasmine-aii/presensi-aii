@@ -677,7 +677,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               <Button variant="secondary" size="md" fullWidth label={s.adm.cancel} onPress={() => setPendingRole(null)} />
             </View>
             <View style={{ flex: 1 }}>
-              <Button variant="primary" size="md" fullWidth label={s.adm.roleWarnConfirm} onPress={confirmRole} />
+              <Button variant="danger" size="md" fullWidth label={s.adm.roleWarnConfirm} onPress={confirmRole} />
             </View>
           </View>
         </View>
