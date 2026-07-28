@@ -19,7 +19,8 @@ export interface AdminMember {
   name: string;
   email: string;
   employeeId: string;
-  dept: string;
+  dept: string; // job title / position (profiles.department)
+  role: 'employee' | 'admin'; // access role (profiles.role)
   shift: string | null;
   st: RosterStatus; // present | late | not | leave
   in: string; // HH:MM or —
@@ -40,7 +41,7 @@ export interface AdminStats {
 export async function fetchTeam(): Promise<AdminMember[]> {
   const today = todayKey();
   const [{ data: profiles }, { data: att }, { data: leave }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, department, email, shift, exclude_from_stats, birth_date').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, department, role, email, shift, exclude_from_stats, birth_date').order('full_name'),
     supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', today),
     supabase.from('leave_requests').select('user_id').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ]);
@@ -66,6 +67,7 @@ export async function fetchTeam(): Promise<AdminMember[]> {
       email: (p.email as string) ?? '',
       employeeId: (p.employee_id as string) ?? '—',
       dept: (p.department as string) ?? '—',
+      role: (p.role as 'employee' | 'admin') ?? 'employee',
       shift: (p.shift as string) ?? null,
       st,
       in: inT ?? '—',
@@ -107,6 +109,16 @@ export async function setMemberShift(userId: string, shift: string | null): Prom
 }
 
 /** Set / clear an employee's date of birth (admin only). '' clears it. */
+export async function setMemberDept(userId: string, dept: string): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ department: dept }).eq('id', userId);
+  if (error) console.warn('[setMemberDept]', error.message);
+  return !error;
+}
+export async function setMemberRole(userId: string, role: 'employee' | 'admin'): Promise<boolean> {
+  const { error } = await supabase.from('profiles').update({ role }).eq('id', userId);
+  if (error) console.warn('[setMemberRole]', error.message);
+  return !error;
+}
 export async function setMemberBirthDate(userId: string, birthDate: string): Promise<boolean> {
   const { error } = await supabase.from('profiles').update({ birth_date: birthDate || null }).eq('id', userId);
   if (error) console.warn('[setMemberBirthDate]', error.message);

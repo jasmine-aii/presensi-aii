@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
-import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberBirthDate, type AdminMember } from '../lib/admin';
+import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
 
@@ -20,6 +20,42 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
   const [excluded, setExcluded] = useState(member.excludeFromStats);
+
+  // Job title (profiles.department) — editable
+  const [dept, setDept] = useState(member.dept);
+  const [deptDraft, setDeptDraft] = useState(member.dept === '—' ? '' : member.dept);
+  const [deptBusy, setDeptBusy] = useState(false);
+  const [deptSaved, setDeptSaved] = useState(false);
+
+  const saveDept = async () => {
+    if (deptBusy || !deptDraft.trim()) return;
+    setDeptBusy(true);
+    const ok = await setMemberDept(member.id, deptDraft.trim());
+    setDeptBusy(false);
+    if (ok) {
+      setDept(deptDraft.trim());
+      setDeptSaved(true);
+      setTimeout(() => setDeptSaved(false), 2000);
+    }
+  };
+
+  // Access role (profiles.role) — editable
+  const [role, setRole] = useState(member.role);
+  const accessOptions =
+    lang === 'id'
+      ? [
+          { value: 'employee', label: 'Karyawan' },
+          { value: 'admin', label: 'Admin' },
+        ]
+      : [
+          { value: 'employee', label: 'Employee' },
+          { value: 'admin', label: 'Admin' },
+        ];
+  const onPickRole = (v: string) => {
+    const r = v as 'employee' | 'admin';
+    setRole(r); // optimistic
+    setMemberRole(member.id, r);
+  };
 
   const toggleStats = (countIn: boolean) => {
     setExcluded(!countIn); // optimistic
@@ -176,7 +212,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               {member.name}
             </Txt>
             <Txt size={12} color={color.muted} tabular style={{ marginTop: space.xs }}>
-              {member.dept} · {member.employeeId}
+              {dept} · {member.employeeId}
             </Txt>
             {!!member.email && (
               <Txt size={12} color={color.muted} numberOfLines={1} style={{ marginTop: space.xs }}>
@@ -209,6 +245,54 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             />
           </View>
         )}
+
+        {/* Job title (position) */}
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+            <Briefcase size={18} color={color.anugrahBlue} strokeWidth={2} />
+            <Txt w="semibold" size={13} color={color.muted} style={{ flex: 1 }}>
+              {s.adm.fJobRole}
+            </Txt>
+            {deptSaved && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+                <Check size={15} color={color.success} strokeWidth={2.5} />
+                <Txt w="semibold" size={12} color={color.success}>
+                  {s.adm.saved}
+                </Txt>
+              </View>
+            )}
+          </View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md }}>
+              <TextInput
+                value={deptDraft}
+                onChangeText={setDeptDraft}
+                placeholder={s.adm.fJobRolePh}
+                placeholderTextColor={color.muted}
+                autoCapitalize="words"
+                style={{ flex: 1, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink, padding: 0 }}
+              />
+            </View>
+            <Button
+              variant="secondary"
+              size="md"
+              label={s.prof.save}
+              disabled={deptBusy || !deptDraft.trim() || deptDraft.trim() === (dept === '—' ? '' : dept)}
+              onPress={saveDept}
+            />
+          </View>
+        </View>
+
+        {/* Access role */}
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg }}>
+          <SelectField
+            label={s.adm.fRole}
+            value={role}
+            options={accessOptions}
+            onChange={onPickRole}
+            icon={ShieldCheck}
+          />
+        </View>
 
         {/* Date of birth */}
         <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
