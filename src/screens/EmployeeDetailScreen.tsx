@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -11,6 +11,7 @@ import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
+import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
 import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
 
 export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; onBack?: () => void }) {
@@ -23,6 +24,16 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [shifts, setShifts] = useState<Shift[]>([]);
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
   const [excluded, setExcluded] = useState(member.excludeFromStats);
+
+  // Attendance this month (present / working days since join)
+  const [att, setAtt] = useState<EmployeeMonthStats | null>(null);
+  useEffect(() => {
+    let alive = true;
+    fetchEmployeeMonthStats(member.id).then((r) => alive && setAtt(r));
+    return () => {
+      alive = false;
+    };
+  }, [member.id]);
 
   // Job title (profiles.department) — editable
   const [dept, setDept] = useState(member.dept);
@@ -241,6 +252,48 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               </Txt>
             </View>
           </View>
+        </View>
+
+        {/* Attendance this month */}
+        <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+            <CalendarCheck size={18} color={color.anugrahBlue} strokeWidth={2} />
+            <Txt w="semibold" size={13} color={color.muted} style={{ flex: 1 }}>
+              {s.adm.attendanceTitle}
+            </Txt>
+          </View>
+          {att === null ? (
+            <ActivityIndicator color={color.anugrahBlue} />
+          ) : (
+            <>
+              <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: space.sm }}>
+                <Txt w="extrabold" size={34} color={color.anugrahBlue} tabular style={{ letterSpacing: -0.5 }}>
+                  {att.rate}%
+                </Txt>
+                <Txt size={12} color={color.muted} tabular style={{ marginBottom: space.xs }}>
+                  {att.present}/{att.workingDays} {s.adm.workDaysUnit}
+                </Txt>
+              </View>
+              <View style={{ flexDirection: 'row', backgroundColor: color.paper, borderRadius: radius.sm, paddingVertical: space.md }}>
+                {(
+                  [
+                    [s.adm.iOnTime, att.onTime, color.success],
+                    [s.adm.iLate, att.late, color.danger],
+                    [s.adm.iAbsent, att.absent, color.muted],
+                  ] as const
+                ).map(([label, value, hex], i) => (
+                  <View key={label} style={{ flex: 1, alignItems: 'center', borderLeftWidth: i === 0 ? 0 : 1, borderLeftColor: color.line }}>
+                    <Txt w="extrabold" size={18} color={hex} tabular>
+                      {value}
+                    </Txt>
+                    <Txt size={11} color={color.muted} style={{ marginTop: 2, textAlign: 'center' }}>
+                      {label}
+                    </Txt>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
         </View>
 
         {/* Assign shift */}

@@ -31,6 +31,9 @@ export const weekdayShort = (d: Date, lang: Lang) => dNames[lang][d.getDay()].sl
 /** Short month + year, e.g. id "Jul 2026" · en "Jul 2026". */
 export const monthYear = (d: Date, lang: Lang) => `${mNames[lang][d.getMonth()]} ${d.getFullYear()}`;
 
+/** Short month name by 0-based index, e.g. monthName(6,'id') → "Jul". */
+export const monthName = (index: number, lang: Lang) => mNames[lang][index] ?? '';
+
 /** Compact day + short month, e.g. "23 Jul". */
 export const dayMonth = (d: Date, lang: Lang) => `${d.getDate()} ${mNames[lang][d.getMonth()]}`;
 
