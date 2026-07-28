@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable, TextInput } from 'react-native';
-import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, KeyRound, X } from 'lucide-react-native';
+import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, KeyRound, Cake, X } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, Toggle, Button, GlowCircle, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { supabase } from '../lib/supabase';
+import { rangeStr } from '../lib/format';
 import { profileRows } from '../lib/data';
 
 export function ProfileScreen({
@@ -14,6 +15,7 @@ export function ProfileScreen({
   role,
   dept,
   empId,
+  birthDate,
   isAdmin,
 }: {
   onOpenAdmin?: () => void;
@@ -22,6 +24,7 @@ export function ProfileScreen({
   role?: string;
   dept?: string;
   empId?: string;
+  birthDate?: string | null;
   isAdmin?: boolean;
 }) {
   const { s, lang, langName, toggleLang } = useLang();
@@ -98,6 +101,17 @@ export function ProfileScreen({
       <View style={{ padding: space.lg, gap: space.lg }}>
         {/* Detail list */}
         <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.lg, overflow: 'hidden' }}>
+          {!!birthDate && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg, borderBottomWidth: 1, borderBottomColor: color.line }}>
+              <Cake size={20} color={color.muted} strokeWidth={2} />
+              <Txt size={13} color={color.muted} style={{ width: 96 }}>
+                {s.adm.fBirth}
+              </Txt>
+              <Txt w="semibold" size={14} color={color.ink} tabular style={{ flex: 1, textAlign: 'right' }}>
+                {rangeStr(birthDate, birthDate, lang)}
+              </Txt>
+            </View>
+          )}
           {rows.map((r) => {
             const Icon = r.icon;
             return (

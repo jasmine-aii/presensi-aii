@@ -206,6 +206,7 @@ export function AppNavigator() {
             role={profile?.role === 'admin' ? s.adm.role : s.prof.role}
             dept={profile?.department ?? s.prof.dept}
             empId={profile?.employee_id ?? undefined}
+            birthDate={profile?.birth_date ?? undefined}
             isAdmin={isAdmin}
             onOpenAdmin={() => {
               setWorkspace('admin');
