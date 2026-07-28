@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
 import { useLang } from '../i18n/LangContext';
-import { parseShiftWindow } from './shifts';
+import { parseShiftWindow, FULL_DAY_MIN, BREAK_MIN } from './shifts';
 
 export type NotifPermission = 'unsupported' | 'default' | 'granted' | 'denied';
 
 const REMIND_OFFSET = 10; // minutes before & after the scheduled time
 const pad = (n: number) => String(n).padStart(2, '0');
 const fmt = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const toMin = (t: string) => {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+};
 
 export interface ReminderItem {
   kind: 'in' | 'out';
@@ -30,9 +34,17 @@ export function useClockReminders(shift: string | null | undefined, clockInTime:
   const fired = useRef<Set<string>>(new Set());
 
   const win = parseShiftWindow(shift);
+
+  // Clock-out reminder is based on completing 8 *working* hours from the actual
+  // clock-in (8h work + 1h break = 9h elapsed), not the fixed shift end — so a
+  // late clock-in pushes the reminder later. Falls back to shift end until the
+  // employee has clocked in.
+  const clockInMin = clockInTime ? toMin(clockInTime) : null;
+  const outMin = clockInMin != null ? clockInMin + FULL_DAY_MIN + BREAK_MIN : win.endMin;
+
   const items: ReminderItem[] = [
     { kind: 'in', before: fmt(win.startMin - REMIND_OFFSET), after: fmt(win.startMin + REMIND_OFFSET), done: !!clockInTime },
-    { kind: 'out', before: fmt(win.endMin - REMIND_OFFSET), after: fmt(win.endMin + REMIND_OFFSET), done: !!clockOutTime },
+    { kind: 'out', before: fmt(outMin - REMIND_OFFSET), after: fmt(outMin + REMIND_OFFSET), done: !!clockOutTime },
   ];
 
   const requestPermission = async () => {
@@ -47,8 +59,8 @@ export function useClockReminders(shift: string | null | undefined, clockInTime:
     const schedule = [
       { min: win.startMin - REMIND_OFFSET, kind: 'in' as const },
       { min: win.startMin + REMIND_OFFSET, kind: 'in' as const },
-      { min: win.endMin - REMIND_OFFSET, kind: 'out' as const },
-      { min: win.endMin + REMIND_OFFSET, kind: 'out' as const },
+      { min: outMin - REMIND_OFFSET, kind: 'out' as const },
+      { min: outMin + REMIND_OFFSET, kind: 'out' as const },
     ];
 
     const tick = () => {
@@ -76,7 +88,7 @@ export function useClockReminders(shift: string | null | undefined, clockInTime:
     tick();
     const id = setInterval(tick, 30_000);
     return () => clearInterval(id);
-  }, [permission, win.startMin, win.endMin, clockInTime, clockOutTime, s]);
+  }, [permission, win.startMin, outMin, clockInTime, clockOutTime, s]);
 
   return { supported: !!N, permission, requestPermission, items };
 }
