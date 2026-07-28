@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, ArrowLeftRight, Users, ClipboardList, TrendingUp, UserPlus, Palmtree, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, GlowCircle } from '../components';
@@ -80,9 +81,15 @@ export function HRDashboardScreen({
         <Bell size={22} color={color.muted} strokeWidth={2} />
       </View>
 
-      {/* Navy attendance card */}
+      {/* Attendance card — AII-blue → navy gradient (matches the employee hero) */}
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
-        <View style={{ backgroundColor: color.deepNavy, borderRadius: radius.lg, padding: space.lg, overflow: 'hidden' }}>
+        <LinearGradient
+          colors={[color.anugrahBlue, color.anugrahBlue, color.deepNavy]}
+          locations={[0, 0.55, 1]}
+          start={{ x: 0.5, y: 1 }}
+          end={{ x: 0.5, y: 0 }}
+          style={{ borderRadius: radius.lg, padding: space.lg, overflow: 'hidden' }}
+        >
           <GlowCircle size={180} top={-70} right={-40} />
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.lg }}>
             <Txt w="bold" size={14} color={color.white}>
@@ -98,7 +105,7 @@ export function HRDashboardScreen({
             <NavyTile value={stats.late} label={s.adm.late} valueColor="#FF9D9D" />
             <NavyTile value={stats.leave} label={s.adm.leave} valueColor={color.humanAccent} />
           </View>
-        </View>
+        </LinearGradient>
       </View>
 
       {/* Not clocked in */}
