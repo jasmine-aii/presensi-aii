@@ -156,7 +156,7 @@ export async function fetchEmployeeReports(year?: number, month0?: number): Prom
   const { start, end } = monthBounds(year ?? now.getFullYear(), month0 ?? now.getMonth());
 
   const [{ data: allProfs }, { data: att }, { data: leave }, holidays] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, join_date, leave_quota_adjust, exclude_from_stats').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, join_date, leave_quota_adjust, exclude_from_stats').order('employee_id'),
     supabase.from('attendance').select('user_id, clock_in_at').gte('work_date', start).lte('work_date', end),
     supabase.from('leave_requests').select('user_id, type, status, days, start_date, end_date'),
     fetchHolidaySet(),
