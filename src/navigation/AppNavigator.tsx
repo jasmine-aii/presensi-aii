@@ -159,7 +159,7 @@ export function AppNavigator() {
           {admTab === 'dashboard' && <HRDashboardScreen onNavigate={admNavigate} onSwitchEmployee={() => setWorkspace('employee')} onSelectMember={setViewMember} onManageHolidays={() => setPushed('holidays')} />}
           {admTab === 'team' && <DirectoryScreen onInvite={() => setPushed('invite')} onSelectMember={setViewMember} />}
           {admTab === 'approval' && <ApprovalScreen onChanged={() => pendingLeaveCount().then(setPendingCount)} />}
-          {admTab === 'report' && <ReportsScreen />}
+          {admTab === 'report' && <ReportsScreen onSelectMember={setViewMember} />}
         </View>
         <TabBar mode="admin" active={admTab} labels={s.anav} onNavigate={admNavigate} badges={{ approval: pendingCount }} bottomInset={insets.bottom} />
       </View>

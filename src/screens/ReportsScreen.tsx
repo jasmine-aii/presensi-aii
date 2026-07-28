@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator } from 'react-native';
-import { TrendingUp, Palmtree } from 'lucide-react-native';
+import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
+import { TrendingUp, Palmtree, ChevronRight } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Avatar, Badge, SelectField } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { monthName } from '../lib/format';
+import { fetchTeam, type AdminMember } from '../lib/admin';
 import { fetchAttendanceInsights, fetchEmployeeReports, type AttendanceInsights, type EmployeeReport } from '../lib/reports';
 
 /** A card of labelled metric columns separated by dividers. */
@@ -30,13 +31,14 @@ function MetricRow({ items }: { items: Array<[string, string | number, string]> 
  * month/year, plus per-employee attendance (present / working days since join)
  * and a simplified leave balance. All derived live from attendance / leave.
  */
-export function ReportsScreen() {
+export function ReportsScreen({ onSelectMember }: { onSelectMember?: (m: AdminMember) => void }) {
   const { s, lang } = useLang();
   const now = new Date();
   const [year, setYear] = useState(now.getFullYear());
   const [month0, setMonth0] = useState(now.getMonth());
   const [ins, setIns] = useState<AttendanceInsights | null>(null);
   const [emps, setEmps] = useState<EmployeeReport[] | null>(null);
+  const [roster, setRoster] = useState<Map<string, AdminMember>>(new Map());
 
   useEffect(() => {
     let alive = true;
@@ -48,6 +50,20 @@ export function ReportsScreen() {
       alive = false;
     };
   }, [year, month0]);
+
+  // Roster resolves a report row → full member so tapping a card opens detail.
+  useEffect(() => {
+    let alive = true;
+    fetchTeam().then((team) => alive && setRoster(new Map(team.map((m) => [m.id, m]))));
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const openMember = (id: string) => {
+    const m = roster.get(id);
+    if (m) onSelectMember?.(m);
+  };
 
   // Month options are capped at the current month for the current year (no future).
   const maxMonth = year === now.getFullYear() ? now.getMonth() : 11;
@@ -151,20 +167,28 @@ export function ReportsScreen() {
           <View style={{ gap: space.md }}>
             {emps.map((m) => (
               <View key={m.id} style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>
-                {/* Header — identity left, attendance rate aligned right */}
+                {/* Header — tap identity to open the employee, attendance rate aligned right */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-                  <Avatar name={m.name} size={38} />
-                  <View style={{ flex: 1 }}>
-                    <Txt w="semibold" size={14} color={color.ink}>
-                      {m.name}
-                    </Txt>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.xs }}>
-                      <Txt size={12} color={color.muted} tabular>
-                        {m.employeeId}
+                  <Pressable
+                    onPress={() => openMember(m.id)}
+                    disabled={!roster.has(m.id)}
+                    style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: space.md }}
+                    accessibilityRole="button"
+                  >
+                    <Avatar name={m.name} size={38} />
+                    <View style={{ flex: 1 }}>
+                      <Txt w="semibold" size={14} color={color.ink}>
+                        {m.name}
                       </Txt>
-                      {m.pending > 0 && <Badge tone="warning" variant="soft" label={`${m.pending} ${s.adm.statPending}`} />}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.xs }}>
+                        <Txt size={12} color={color.muted} tabular>
+                          {m.employeeId}
+                        </Txt>
+                        {m.pending > 0 && <Badge tone="warning" variant="soft" label={`${m.pending} ${s.adm.statPending}`} />}
+                      </View>
                     </View>
-                  </View>
+                    {roster.has(m.id) && <ChevronRight size={18} color={color.muted} strokeWidth={2} />}
+                  </Pressable>
                   <View style={{ alignItems: 'flex-end' }}>
                     <Txt w="extrabold" size={22} color={color.anugrahBlue} tabular>
                       {m.rate}%
