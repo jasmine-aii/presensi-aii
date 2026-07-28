@@ -81,6 +81,7 @@ const id = {
     successTitle: 'Clock In berhasil',
     successMsg: 'Kehadiran Anda hari ini tercatat. Selamat bekerja!',
     alreadyDone: 'Anda sudah clock in hari ini.',
+    holidayMsg: 'Hari ini libur, Anda tidak perlu clock in hari ini.',
   },
   out: {
     title: 'Clock Out',
@@ -407,6 +408,7 @@ const en = {
     successTitle: 'Clock In successful',
     successMsg: "Today's attendance is recorded. Have a great day!",
     alreadyDone: 'You have already clocked in today.',
+    holidayMsg: "Today is a holiday, you don't need to clock in today.",
   },
   out: {
     title: 'Clock Out',

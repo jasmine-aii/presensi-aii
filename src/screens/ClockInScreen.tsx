@@ -12,6 +12,7 @@ import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
 import { captureSelfie } from '../lib/camera';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
+import { useTodayHoliday } from '../lib/useTodayHoliday';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
@@ -26,9 +27,10 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
   const [submitting, setSubmitting] = useState(false);
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const confirmedTime = useRef<string>('');
+  const holidayToday = useTodayHoliday();
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
-  const canConfirm = loc.inRadius === true;
+  const canConfirm = loc.inRadius === true && !holidayToday;
 
   const geo: { tone: BadgeTone; label: string } =
     loc.status === 'locating'
@@ -123,7 +125,11 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.lg + insets.bottom, backgroundColor: color.paper }}>
         <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm || submitting || alreadyDone} onPress={onConfirmPress} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, marginTop: space.md, paddingHorizontal: space.sm }}>
-          {alreadyDone ? (
+          {holidayToday ? (
+            <Txt w="semibold" size={12} color={color.anugrahBlue} style={{ textAlign: 'center' }}>
+              {s.in.holidayMsg}
+            </Txt>
+          ) : alreadyDone ? (
             <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center' }}>
               {s.in.alreadyDone}
             </Txt>
