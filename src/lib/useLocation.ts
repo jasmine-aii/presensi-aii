@@ -2,6 +2,9 @@ import { useCallback, useEffect, useState } from 'react';
 import * as Location from 'expo-location';
 import { OFFICE, distanceToOffice } from './office';
 
+/** Cap how much a coarse GPS fix can widen the geofence (anti-spoof). */
+const MAX_ACCURACY_ALLOWANCE_M = 50;
+
 export type LocationStatus = 'locating' | 'ready' | 'denied' | 'error';
 
 export interface LocationState {
@@ -41,7 +44,8 @@ export function useLocation(): LocationState & { refresh: () => void } {
         distanceM,
         // Accuracy-aware: give the benefit of the doubt when the fix is coarse
         // (indoors / high floors), so a noisy GPS doesn't reject someone inside.
-        inRadius: distanceM - accuracy <= OFFICE.radiusM,
+        // Capped at 50m so a spoofed huge accuracy can't widen the geofence.
+        inRadius: distanceM - Math.min(accuracy, MAX_ACCURACY_ALLOWANCE_M) <= OFFICE.radiusM,
       });
     } catch {
       setState({ status: 'error' });
