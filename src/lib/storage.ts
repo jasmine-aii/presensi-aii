@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from './supabase';
 
@@ -53,16 +54,53 @@ export async function signedUrlsFor(paths: string[], expiresInSec = 60 * 60): Pr
 }
 
 /**
+ * Downscale + re-encode an image File on web (canvas) so a phone photo of a
+ * document (surat dokter) doesn't upload at multiple MB. PDFs / non-images and
+ * anything already smaller are returned untouched. Best-effort: falls back to
+ * the original on any failure. No-op off web.
+ */
+async function compressImageWeb(file: any, maxWidth = 1400, quality = 0.6): Promise<any> {
+  if (Platform.OS !== 'web') return file;
+  const g: any = globalThis as any;
+  if (!file?.type || !String(file.type).startsWith('image/') || !g?.document || !g?.URL) return file;
+  try {
+    const url = g.URL.createObjectURL(file);
+    const img: any = await new Promise((res, rej) => {
+      const i = new g.Image();
+      i.onload = () => res(i);
+      i.onerror = rej;
+      i.src = url;
+    });
+    const scale = Math.min(1, maxWidth / img.width);
+    const w = Math.max(1, Math.round(img.width * scale));
+    const h = Math.max(1, Math.round(img.height * scale));
+    const canvas: any = g.document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    g.URL.revokeObjectURL(url);
+    const blob: any = await new Promise((res) => canvas.toBlob(res, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file; // keep original if not smaller
+    const base = String(file.name || 'attachment').replace(/\.[^.]+$/, '');
+    return new g.File([blob], `${base}.jpg`, { type: 'image/jpeg' });
+  } catch {
+    return file;
+  }
+}
+
+/**
  * Upload a leave-request attachment (surat dokter, dsb.) to the private
  * leave-attachments bucket at `{userId}/{timestamp}.{ext}`. Accepts a web File
- * / Blob directly. Returns the object path, or null on error.
+ * / Blob directly; image files are compressed first. Returns the object path,
+ * or null on error.
  */
 export async function uploadLeaveAttachment(userId: string, file: Blob & { name?: string; type?: string }): Promise<string | null> {
-  const name = (file as { name?: string }).name ?? '';
+  const prepared = await compressImageWeb(file);
+  const name = (prepared as { name?: string }).name ?? '';
   const ext = name.includes('.') ? name.slice(name.lastIndexOf('.') + 1).toLowerCase() : 'bin';
   const path = `${userId}/${Date.now()}.${ext}`;
-  const { error } = await supabase.storage.from(LEAVE_BUCKET).upload(path, file, {
-    contentType: file.type || undefined,
+  const { error } = await supabase.storage.from(LEAVE_BUCKET).upload(path, prepared, {
+    contentType: prepared.type || undefined,
     upsert: false,
   });
   if (error) {
