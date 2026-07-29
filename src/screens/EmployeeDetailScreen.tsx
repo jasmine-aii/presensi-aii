@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
+import { Txt, Avatar, AdminStatusBadge, Badge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
-import { fetchHistory, type HistoryEntry } from '../lib/attendance';
+import { fetchHistory, saveAttendanceCorrection, deleteAttendanceDay, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
@@ -25,6 +25,9 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [shiftText, setShiftText] = useState<string | null>(member.shift);
   const [excluded, setExcluded] = useState(member.excludeFromStats);
 
+  // Reload key — bumped after an admin correction to refresh the list + stats.
+  const [refresh, setRefresh] = useState(0);
+
   // Attendance this month (present / working days since join)
   const [att, setAtt] = useState<EmployeeMonthStats | null>(null);
   useEffect(() => {
@@ -33,7 +36,63 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     return () => {
       alive = false;
     };
-  }, [member.id]);
+  }, [member.id, refresh]);
+
+  // Attendance correction (admin edits another employee's day)
+  type Corr = { workDate: string; clockIn: string; clockOut: string; note: string; isNew: boolean };
+  const [corr, setCorr] = useState<Corr | null>(null);
+  const [corrBusy, setCorrBusy] = useState(false);
+  const [corrErr, setCorrErr] = useState<string | null>(null);
+  const [corrDelOpen, setCorrDelOpen] = useState(false);
+  const timeRe = /^([01]\d|2[0-3]):[0-5]\d$/;
+  const todayIso = new Date().toISOString().slice(0, 10);
+
+  const openAddCorr = () => {
+    setCorrErr(null);
+    setCorr({ workDate: todayIso, clockIn: '', clockOut: '', note: '', isNew: true });
+  };
+  const openEditCorr = (r: HistoryEntry) => {
+    setCorrErr(null);
+    setCorr({ workDate: r.date, clockIn: r.clockInTime ?? '', clockOut: r.clockOutTime ?? '', note: '', isNew: false });
+  };
+  const timeToISO = (workDate: string, t: string): string | null => {
+    if (!t) return null;
+    const [h, m] = t.split(':').map(Number);
+    const [y, mo, dd] = workDate.split('-').map(Number);
+    return new Date(y, mo - 1, dd, h, m).toISOString();
+  };
+  const saveCorr = async () => {
+    if (!corr || corrBusy) return;
+    if ((corr.clockIn && !timeRe.test(corr.clockIn)) || (corr.clockOut && !timeRe.test(corr.clockOut))) {
+      return setCorrErr(s.adm.corrTimeErr);
+    }
+    setCorrErr(null);
+    setCorrBusy(true);
+    const ok = await saveAttendanceCorrection({
+      userId: member.id,
+      workDate: corr.workDate,
+      clockInAt: timeToISO(corr.workDate, corr.clockIn),
+      clockOutAt: timeToISO(corr.workDate, corr.clockOut),
+      correctedBy: session?.user.id ?? '',
+      note: corr.note.trim() || null,
+    });
+    setCorrBusy(false);
+    if (ok) {
+      setCorr(null);
+      setRefresh((x) => x + 1);
+    }
+  };
+  const doDeleteCorr = async () => {
+    if (!corr || corrBusy) return;
+    setCorrBusy(true);
+    const ok = await deleteAttendanceDay(member.id, corr.workDate);
+    setCorrBusy(false);
+    setCorrDelOpen(false);
+    if (ok) {
+      setCorr(null);
+      setRefresh((x) => x + 1);
+    }
+  };
 
   // Job title (profiles.department) — editable
   const [dept, setDept] = useState(member.dept);
@@ -219,7 +278,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     return () => {
       alive = false;
     };
-  }, [member.id]);
+  }, [member.id, refresh]);
 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
@@ -497,9 +556,17 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </Txt>
         </Pressable>
 
-        <Txt w="bold" size={14} color={color.ink} style={{ marginTop: space.xs }}>
-          {s.adm.recentAtt}
-        </Txt>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xs }}>
+          <Txt w="bold" size={14} color={color.ink}>
+            {s.adm.recentAtt}
+          </Txt>
+          <Pressable onPress={openAddCorr} style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs, paddingVertical: space.xs, paddingHorizontal: space.md, borderRadius: radius.pill, backgroundColor: color.skyTint }}>
+            <Plus size={15} color={color.anugrahBlue} strokeWidth={2.5} />
+            <Txt w="semibold" size={12} color={color.anugrahBlue}>
+              {s.adm.corrAdd}
+            </Txt>
+          </Pressable>
+        </View>
 
         {rows === null ? (
           <View style={{ paddingTop: space.xl, alignItems: 'center' }}>
@@ -517,9 +584,8 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             const thumb = r.clockInPhoto ? urls[r.clockInPhoto] : undefined;
             const hasPhoto = !!(r.clockInPhoto || r.clockOutPhoto);
             return (
-              <Pressable
+              <View
                 key={r.date}
-                onPress={hasPhoto ? () => setSel(r) : undefined}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.md }}
               >
                 <View style={{ width: 44, height: 44, borderRadius: radius.sm, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
@@ -530,7 +596,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                     {String(d.getDate()).padStart(2, '0')}
                   </Txt>
                 </View>
-                <View style={{ flex: 1 }}>
+                <Pressable disabled={!hasPhoto} onPress={hasPhoto ? () => setSel(r) : undefined} style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', gap: space.md }}>
                     <Txt size={14} color={color.ink} tabular>
                       <Txt size={12} color={color.muted}>
@@ -545,10 +611,13 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                       {r.clockOutTime ?? '—'}
                     </Txt>
                   </View>
-                  <Txt size={12} color={color.muted} style={{ marginTop: space.xs }}>
-                    {monthYear(d, lang)}
-                  </Txt>
-                </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.xs }}>
+                    <Txt size={12} color={color.muted}>
+                      {monthYear(d, lang)}
+                    </Txt>
+                    {r.correctedBy && <Badge tone="warning" variant="soft" label={s.adm.corrEdited} />}
+                  </View>
+                </Pressable>
                 {hasPhoto && (
                   <View style={{ width: 44, height: 44, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                     {thumb ? (
@@ -558,7 +627,10 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                     )}
                   </View>
                 )}
-              </Pressable>
+                <Pressable onPress={() => openEditCorr(r)} hitSlop={8} accessibilityLabel={s.adm.corrTitle} style={{ width: 34, height: 34, borderRadius: radius.sm, backgroundColor: color.paper, alignItems: 'center', justifyContent: 'center' }}>
+                  <Pencil size={16} color={color.muted} strokeWidth={2} />
+                </Pressable>
+              </View>
             );
           })
         )}
@@ -678,6 +750,117 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             </View>
             <View style={{ flex: 1 }}>
               <Button variant="danger" size="md" fullWidth label={s.adm.roleWarnConfirm} onPress={confirmRole} />
+            </View>
+          </View>
+        </View>
+      </Dialog>
+
+      {/* Attendance correction */}
+      <Dialog visible={corr !== null} onClose={() => setCorr(null)} maxWidth={360}>
+        {corr && (
+          <View style={{ gap: space.md }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Txt w="bold" size={16} color={color.ink}>
+                {s.adm.corrTitle}
+              </Txt>
+              <Pressable onPress={() => setCorr(null)} hitSlop={10}>
+                <X size={20} color={color.muted} strokeWidth={2} />
+              </Pressable>
+            </View>
+            <Txt size={12} color={color.muted}>
+              {member.name}
+            </Txt>
+
+            {corr.isNew ? (
+              <View>
+                <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+                  {s.adm.corrDate}
+                </Txt>
+                <DateField value={corr.workDate} onChange={(v) => setCorr({ ...corr, workDate: v })} max={todayIso} />
+              </View>
+            ) : (
+              <Txt size={13} color={color.ink}>
+                {s.adm.corrDate}: {rangeStr(corr.workDate, corr.workDate, lang)}
+              </Txt>
+            )}
+
+            <View style={{ flexDirection: 'row', gap: space.md }}>
+              <View style={{ flex: 1 }}>
+                <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+                  {s.adm.corrIn}
+                </Txt>
+                <TextInput
+                  value={corr.clockIn}
+                  onChangeText={(v) => setCorr({ ...corr, clockIn: v })}
+                  placeholder="08:30"
+                  placeholderTextColor={color.muted}
+                  keyboardType="numbers-and-punctuation"
+                  style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink }}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+                  {s.adm.corrOut}
+                </Txt>
+                <TextInput
+                  value={corr.clockOut}
+                  onChangeText={(v) => setCorr({ ...corr, clockOut: v })}
+                  placeholder="17:30"
+                  placeholderTextColor={color.muted}
+                  keyboardType="numbers-and-punctuation"
+                  style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink }}
+                />
+              </View>
+            </View>
+
+            <View>
+              <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+                {s.adm.corrNote}
+              </Txt>
+              <TextInput
+                value={corr.note}
+                onChangeText={(v) => setCorr({ ...corr, note: v })}
+                placeholder={s.adm.corrNotePh}
+                placeholderTextColor={color.muted}
+                style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink }}
+              />
+            </View>
+
+            {corrErr && (
+              <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
+                {corrErr}
+              </Txt>
+            )}
+
+            <View style={{ flexDirection: 'row', gap: space.md }}>
+              {!corr.isNew && (
+                <View style={{ flex: 1 }}>
+                  <Button variant="danger" size="md" fullWidth label={s.adm.del} disabled={corrBusy} onPress={() => setCorrDelOpen(true)} />
+                </View>
+              )}
+              <View style={{ flex: 1 }}>
+                <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={corrBusy} onPress={saveCorr} />
+              </View>
+            </View>
+          </View>
+        )}
+      </Dialog>
+
+      {/* Delete attendance confirmation */}
+      <Dialog visible={corrDelOpen} onClose={() => setCorrDelOpen(false)} maxWidth={320}>
+        <View style={{ gap: space.md }}>
+          <Txt w="bold" size={16} color={color.ink}>
+            {s.adm.corrDelTitle}
+          </Txt>
+          <Txt size={14} color={color.ink} style={{ lineHeight: 20 }}>
+            {s.adm.corrDelMsg}
+          </Txt>
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Button variant="secondary" size="md" fullWidth label={s.adm.cancel} onPress={() => setCorrDelOpen(false)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button variant="danger" size="md" fullWidth label={s.adm.holidayDelYes} disabled={corrBusy} onPress={doDeleteCorr} />
             </View>
           </View>
         </View>

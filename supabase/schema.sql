@@ -56,6 +56,10 @@ create table if not exists public.attendance (
 -- Add the photo columns to an already-created table (safe to re-run).
 alter table public.attendance add column if not exists clock_in_photo  text;
 alter table public.attendance add column if not exists clock_out_photo text;
+-- Admin attendance-correction audit trail.
+alter table public.attendance add column if not exists corrected_by    uuid references auth.users (id);
+alter table public.attendance add column if not exists corrected_at    timestamptz;
+alter table public.attendance add column if not exists correction_note text;
 
 create index if not exists attendance_user_date_idx on public.attendance (user_id, work_date desc);
 
@@ -70,6 +74,10 @@ returns trigger
 language plpgsql
 as $$
 begin
+  -- Admin corrections of another employee's row keep the admin-set time.
+  if public.is_admin() and new.user_id <> auth.uid() then
+    return new;
+  end if;
   if new.clock_in_at is not null
      and (tg_op = 'INSERT' or new.clock_in_at is distinct from old.clock_in_at) then
     new.clock_in_at := now();
@@ -103,6 +111,10 @@ declare
   earth_r    constant double precision := 6371000;     -- meters
   dist       double precision;
 begin
+  -- Admin corrections of another employee's row bypass the geofence.
+  if public.is_admin() and new.user_id <> auth.uid() then
+    return new;
+  end if;
   if new.clock_in_at is not null
      and (tg_op = 'INSERT' or new.clock_in_at is distinct from old.clock_in_at) then
     if new.clock_in_lat is null or new.clock_in_lng is null then
@@ -212,6 +224,15 @@ create policy "attendance all own" on public.attendance
   with check (auth.uid() = user_id);
 create policy "attendance select admin" on public.attendance
   for select using (public.is_admin());
+
+-- Admins may correct OTHER employees' attendance (add / edit / delete). Editing
+-- one's own row is excluded so an admin can't fake their own attendance; that
+-- path stays under the server-time + geofence triggers.
+drop policy if exists "attendance correct admin" on public.attendance;
+create policy "attendance correct admin" on public.attendance
+  for all
+  using (public.is_admin() and auth.uid() <> user_id)
+  with check (public.is_admin() and auth.uid() <> user_id);
 
 -- ── shifts ──────────────────────────────────────────────────────────────────
 -- Work-shift options managed by admins; everyone can read them for dropdowns.

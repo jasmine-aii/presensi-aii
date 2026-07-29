@@ -95,13 +95,14 @@ export interface HistoryEntry {
   clockOutTime: string | null;
   clockInPhoto: string | null; // storage object path
   clockOutPhoto: string | null;
+  correctedBy: string | null; // admin user id if this day was manually corrected
 }
 
 /** Recent attendance rows for the signed-in user, newest day first. */
 export async function fetchHistory(userId: string, limit = 60): Promise<HistoryEntry[]> {
   const { data } = await supabase
     .from('attendance')
-    .select('work_date, clock_in_at, clock_out_at, clock_in_photo, clock_out_photo')
+    .select('work_date, clock_in_at, clock_out_at, clock_in_photo, clock_out_photo, corrected_by')
     .eq('user_id', userId)
     .order('work_date', { ascending: false })
     .limit(limit);
@@ -111,5 +112,43 @@ export async function fetchHistory(userId: string, limit = 60): Promise<HistoryE
     clockOutTime: hhmm(r.clock_out_at),
     clockInPhoto: (r.clock_in_photo as string) ?? null,
     clockOutPhoto: (r.clock_out_photo as string) ?? null,
+    correctedBy: (r.corrected_by as string) ?? null,
   }));
+}
+
+/**
+ * Admin: create or correct an employee's attendance for a day. Writes the given
+ * clock-in/out times (null clears) plus the audit trail. Editing another
+ * employee's row bypasses the server-time + geofence triggers (see schema.sql),
+ * so the admin-set times are kept as-is.
+ */
+export async function saveAttendanceCorrection(p: {
+  userId: string;
+  workDate: string; // YYYY-MM-DD
+  clockInAt: string | null; // ISO or null
+  clockOutAt: string | null; // ISO or null
+  correctedBy: string;
+  note: string | null;
+}): Promise<boolean> {
+  const { error } = await supabase.from('attendance').upsert(
+    {
+      user_id: p.userId,
+      work_date: p.workDate,
+      clock_in_at: p.clockInAt,
+      clock_out_at: p.clockOutAt,
+      corrected_by: p.correctedBy,
+      corrected_at: new Date().toISOString(),
+      correction_note: p.note,
+    },
+    { onConflict: 'user_id,work_date' },
+  );
+  if (error) console.warn('[saveAttendanceCorrection]', error.message);
+  return !error;
+}
+
+/** Admin: delete an employee's attendance row for a day. */
+export async function deleteAttendanceDay(userId: string, workDate: string): Promise<boolean> {
+  const { error } = await supabase.from('attendance').delete().eq('user_id', userId).eq('work_date', workDate);
+  if (error) console.warn('[deleteAttendanceDay]', error.message);
+  return !error;
 }
