@@ -87,6 +87,61 @@ create trigger attendance_stamp_times
   before insert or update on public.attendance
   for each row execute function public.stamp_attendance_times();
 
+-- ── Server-side geofence ────────────────────────────────────────────────────
+-- Reject a clock-in/out whose coordinates are missing or outside the office
+-- radius, so bypassing the app's client-side check (e.g. calling the API
+-- directly) can't record attendance from elsewhere. Keep the office coords /
+-- radius in sync with src/lib/office.ts. (Cannot detect a spoofed GPS fix.)
+create or replace function public.enforce_attendance_geofence()
+returns trigger
+language plpgsql
+as $$
+declare
+  office_lat constant double precision := -6.20361;   -- keep in sync with OFFICE
+  office_lng constant double precision := 106.82;
+  radius_m   constant double precision := 50;
+  earth_r    constant double precision := 6371000;     -- meters
+  dist       double precision;
+begin
+  if new.clock_in_at is not null
+     and (tg_op = 'INSERT' or new.clock_in_at is distinct from old.clock_in_at) then
+    if new.clock_in_lat is null or new.clock_in_lng is null then
+      raise exception 'clock-in requires a location';
+    end if;
+    dist := 2 * earth_r * asin(sqrt(
+      power(sin(radians(new.clock_in_lat - office_lat) / 2), 2) +
+      cos(radians(office_lat)) * cos(radians(new.clock_in_lat)) *
+      power(sin(radians(new.clock_in_lng - office_lng) / 2), 2)
+    ));
+    if dist > radius_m then
+      raise exception 'clock-in outside office geofence (% m)', round(dist);
+    end if;
+  end if;
+
+  if new.clock_out_at is not null
+     and (tg_op = 'INSERT' or new.clock_out_at is distinct from old.clock_out_at) then
+    if new.clock_out_lat is null or new.clock_out_lng is null then
+      raise exception 'clock-out requires a location';
+    end if;
+    dist := 2 * earth_r * asin(sqrt(
+      power(sin(radians(new.clock_out_lat - office_lat) / 2), 2) +
+      cos(radians(office_lat)) * cos(radians(new.clock_out_lat)) *
+      power(sin(radians(new.clock_out_lng - office_lng) / 2), 2)
+    ));
+    if dist > radius_m then
+      raise exception 'clock-out outside office geofence (% m)', round(dist);
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists attendance_geofence on public.attendance;
+create trigger attendance_geofence
+  before insert or update on public.attendance
+  for each row execute function public.enforce_attendance_geofence();
+
 -- ── auto-create a profile when a user signs up ──────────────────────────────
 create or replace function public.handle_new_user()
 returns trigger
