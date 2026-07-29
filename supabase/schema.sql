@@ -59,6 +59,34 @@ alter table public.attendance add column if not exists clock_out_photo text;
 
 create index if not exists attendance_user_date_idx on public.attendance (user_id, work_date desc);
 
+-- ── Server-authoritative clock timestamps ───────────────────────────────────
+-- Clock in/out time must come from the server, not the device clock (which a
+-- user could change to fake on-time/late or work hours). This trigger overwrites
+-- any client-sent clock_in_at / clock_out_at with now() whenever they are being
+-- set, so the stored time is always the server's. (If attendance correction is
+-- added later, route it through an admin-only path that bypasses this.)
+create or replace function public.stamp_attendance_times()
+returns trigger
+language plpgsql
+as $$
+begin
+  if new.clock_in_at is not null
+     and (tg_op = 'INSERT' or new.clock_in_at is distinct from old.clock_in_at) then
+    new.clock_in_at := now();
+  end if;
+  if new.clock_out_at is not null
+     and (tg_op = 'INSERT' or new.clock_out_at is distinct from old.clock_out_at) then
+    new.clock_out_at := now();
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists attendance_stamp_times on public.attendance;
+create trigger attendance_stamp_times
+  before insert or update on public.attendance
+  for each row execute function public.stamp_attendance_times();
+
 -- ── auto-create a profile when a user signs up ──────────────────────────────
 create or replace function public.handle_new_user()
 returns trigger

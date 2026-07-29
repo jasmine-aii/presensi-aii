@@ -56,7 +56,7 @@ export async function recordClockIn(userId: string, p: ClockPayload): Promise<bo
     {
       user_id: userId,
       work_date: todayKey(),
-      clock_in_at: new Date().toISOString(),
+      clock_in_at: new Date().toISOString(), // stamped server-side with now() (trigger stamp_attendance_times)
       clock_in_lat: p.lat,
       clock_in_lng: p.lng,
       clock_in_photo: p.photo ?? null,
@@ -78,7 +78,7 @@ export async function recordClockOut(userId: string, p: ClockPayload): Promise<b
     {
       user_id: userId,
       work_date: todayKey(),
-      clock_out_at: new Date().toISOString(),
+      clock_out_at: new Date().toISOString(), // stamped server-side with now() (trigger stamp_attendance_times)
       clock_out_lat: p.lat,
       clock_out_lng: p.lng,
       clock_out_photo: p.photo ?? null,
