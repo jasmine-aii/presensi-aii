@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
-import { Plus, Sun, Thermometer, FileText, Briefcase, Star, Paperclip, type LucideIcon } from 'lucide-react-native';
+import { View, ScrollView, Pressable, Linking } from 'react-native';
+import { Plus, Sun, Thermometer, FileText, Briefcase, Star, Palmtree, Paperclip, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, IconTile, StatusBadge, Dialog, Button } from '../components';
+import { Txt, IconTile, StatusBadge, Dialog, Button, EmptyState, SkeletonList } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { rangeStr } from '../lib/format';
@@ -122,8 +122,8 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
       </View>
 
       {loading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color={color.anugrahBlue} />
+        <View style={{ flex: 1, padding: space.lg }}>
+          <SkeletonList count={4} />
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl }}>
@@ -172,9 +172,7 @@ export function LeaveScreen({ onNew, reloadKey }: LeaveScreenProps) {
             {s.leave.reqTitle}
           </Txt>
           {reqs.length === 0 ? (
-            <Txt size={13} color={color.muted} style={{ paddingVertical: space.lg }}>
-              {s.leave.empty}
-            </Txt>
+            <EmptyState icon={Palmtree} title={s.leave.empty} subtitle={s.leave.emptyHint} />
           ) : (
             <View style={{ gap: space.md }}>
               {reqs.map((r) => {

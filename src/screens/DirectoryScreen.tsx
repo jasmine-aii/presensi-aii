@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
-import { UserPlus } from 'lucide-react-native';
+import { View, ScrollView, Pressable } from 'react-native';
+import { UserPlus, Users } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, SearchField } from '../components';
+import { Txt, Avatar, AdminStatusBadge, SearchField, EmptyState, SkeletonList } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { fetchTeam, type AdminMember } from '../lib/admin';
 
@@ -50,9 +50,9 @@ export function DirectoryScreen({ onInvite, onSelectMember }: { onInvite?: () =>
       {/* List */}
       <ScrollView contentContainerStyle={{ padding: space.lg, paddingBottom: space.xl, gap: space.md }}>
         {team === null ? (
-          <View style={{ paddingTop: space['2xl'], alignItems: 'center' }}>
-            <ActivityIndicator color={color.anugrahBlue} />
-          </View>
+          <SkeletonList count={5} />
+        ) : list.length === 0 ? (
+          <EmptyState icon={Users} title={s.adm.statEmpty} />
         ) : (
           list.map((m) => (
             <Pressable key={m.id} onPress={() => onSelectMember?.(m)} style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.md }}>

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, ActivityIndicator, Image, Pressable } from 'react-native';
-import { ChevronDown, Camera, X } from 'lucide-react-native';
+import { View, ScrollView, Image, Pressable } from 'react-native';
+import { ChevronDown, Camera, X, CalendarClock } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, StatusBadge, Dialog } from '../components';
+import { Txt, StatusBadge, Dialog, EmptyState, SkeletonList } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
@@ -99,15 +99,11 @@ export function HistoryScreen() {
         </View>
 
         {loading ? (
-          <View style={{ paddingTop: space['2xl'], alignItems: 'center' }}>
-            <ActivityIndicator color={color.anugrahBlue} />
+          <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
+            <SkeletonList count={5} />
           </View>
         ) : rows.length === 0 ? (
-          <View style={{ paddingTop: space['2xl'], paddingHorizontal: space.lg, alignItems: 'center' }}>
-            <Txt size={14} color={color.muted} style={{ textAlign: 'center' }}>
-              {s.hist.empty}
-            </Txt>
-          </View>
+          <EmptyState icon={CalendarClock} title={s.hist.empty} subtitle={s.hist.emptyHint} />
         ) : (
           <View style={{ gap: space.md, paddingHorizontal: space.lg, paddingTop: space.lg }}>
             {rows.map((r) => {

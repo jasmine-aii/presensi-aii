@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Pressable } from 'react-native';
 import { TrendingUp, Palmtree, ChevronRight } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, Avatar, Badge, SelectField } from '../components';
+import { Txt, Avatar, Badge, SelectField, EmptyState, SkeletonList } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { monthName } from '../lib/format';
 import { fetchTeam, type AdminMember } from '../lib/admin';
@@ -172,13 +172,9 @@ export function ReportsScreen({ onSelectMember }: { onSelectMember?: (m: AdminMe
         </View>
 
         {emps === null ? (
-          <View style={{ paddingVertical: space.xl, alignItems: 'center' }}>
-            <ActivityIndicator color={color.anugrahBlue} />
-          </View>
+          <SkeletonList count={3} />
         ) : emps.length === 0 ? (
-          <Txt size={13} color={color.muted} style={{ paddingVertical: space.lg, textAlign: 'center' }}>
-            {s.adm.statEmpty}
-          </Txt>
+          <EmptyState icon={Palmtree} title={s.adm.statEmpty} />
         ) : (
           <View style={{ gap: space.md }}>
             {emps.map((m) => (
