@@ -39,13 +39,19 @@ export function ReportsScreen({ onSelectMember }: { onSelectMember?: (m: AdminMe
   const [ins, setIns] = useState<AttendanceInsights | null>(null);
   const [emps, setEmps] = useState<EmployeeReport[] | null>(null);
   const [roster, setRoster] = useState<Map<string, AdminMember>>(new Map());
+  const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    setIns(null);
-    setEmps(null);
-    fetchAttendanceInsights(year, month0).then((r) => alive && setIns(r));
-    fetchEmployeeReports(year, month0).then((r) => alive && setEmps(r));
+    // Keep the previous month's data on screen while the new month loads (no
+    // full-screen blank flash) — just dim it and show a small loading row.
+    setBusy(true);
+    Promise.all([
+      fetchAttendanceInsights(year, month0).then((r) => alive && setIns(r)),
+      fetchEmployeeReports(year, month0).then((r) => alive && setEmps(r)),
+    ]).finally(() => {
+      if (alive) setBusy(false);
+    });
     return () => {
       alive = false;
     };
@@ -93,6 +99,16 @@ export function ReportsScreen({ onSelectMember }: { onSelectMember?: (m: AdminMe
             <SelectField label={s.adm.selYear} value={String(year)} options={yearOptions} onChange={onPickYear} />
           </View>
         </View>
+
+        {/* Refreshing a new period — keep the old data visible, just hint loading */}
+        {busy && ins !== null && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+            <ActivityIndicator size="small" color={color.anugrahBlue} />
+            <Txt size={12} color={color.muted}>
+              {s.dlg.processing}
+            </Txt>
+          </View>
+        )}
 
         {/* Team attendance rate */}
         <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.lg, padding: space.xl, overflow: 'hidden' }}>
