@@ -2,10 +2,10 @@ import { supabase } from './supabase';
 import { fetchHolidaySet } from './holidays';
 
 /** Request types — mirror the reference diagram (cuti / sakit / izin / dinas luar). */
-export type LeaveType = 'cuti_tahunan' | 'sakit' | 'unpaid_leave' | 'dinas_luar';
+export type LeaveType = 'cuti_tahunan' | 'sakit' | 'unpaid_leave' | 'dinas_luar' | 'izin_khusus';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
-export const LEAVE_TYPES: LeaveType[] = ['cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar'];
+export const LEAVE_TYPES: LeaveType[] = ['cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar', 'izin_khusus'];
 
 export interface LeaveRequest {
   id: string;
@@ -46,13 +46,23 @@ export interface ApprovedLeave {
 /** Discriminated result so the UI can map a code to a localized message. */
 export type SubmitResult =
   | { ok: true; id: string }
-  | { ok: false; code: 'range' | 'past' | 'quota' | 'overlap' | 'db' };
+  | { ok: false; code: 'range' | 'past' | 'advance' | 'quota' | 'overlap' | 'db' };
+
+/** Annual leave must be requested at least this many days before it starts. */
+export const ANNUAL_LEAVE_LEAD_DAYS = 10;
 
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /** Local calendar day as YYYY-MM-DD. */
 export function todayISO(): string {
   const d = new Date();
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+/** Earliest allowed start date for annual leave (today + lead days), YYYY-MM-DD. */
+export function annualLeaveMinStart(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + ANNUAL_LEAVE_LEAD_DAYS);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
@@ -132,6 +142,11 @@ export interface NewLeave {
 export async function submitLeave(userId: string, input: NewLeave): Promise<SubmitResult> {
   if (input.endDate < input.startDate) return { ok: false, code: 'range' };
   if (input.startDate < todayISO()) return { ok: false, code: 'past' };
+  // Annual leave needs advance notice; other types (sick / exceptional / trip)
+  // are often urgent and exempt.
+  if (input.type === 'cuti_tahunan' && input.startDate < annualLeaveMinStart()) {
+    return { ok: false, code: 'advance' };
+  }
 
   const holidays = await fetchHolidaySet();
   const days = workingDaysBetween(input.startDate, input.endDate, holidays);

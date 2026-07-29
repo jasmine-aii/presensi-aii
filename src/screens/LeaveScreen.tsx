@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, ActivityIndicator, Linking } from 'react-native';
-import { Plus, Sun, Thermometer, FileText, Briefcase, Paperclip, type LucideIcon } from 'lucide-react-native';
+import { Plus, Sun, Thermometer, FileText, Briefcase, Star, Paperclip, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, IconTile, StatusBadge, Dialog, Button } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -23,6 +23,7 @@ const typeIcon: Record<LeaveType, LucideIcon> = {
   sakit: Thermometer,
   unpaid_leave: FileText,
   dinas_luar: Briefcase,
+  izin_khusus: Star,
 };
 
 export interface LeaveScreenProps {

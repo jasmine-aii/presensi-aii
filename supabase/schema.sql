@@ -205,7 +205,7 @@ create extension if not exists btree_gist;
 create table if not exists public.leave_requests (
   id             uuid primary key default gen_random_uuid(),
   user_id        uuid not null references auth.users (id) on delete cascade,
-  type           text not null check (type in ('cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar')),
+  type           text not null check (type in ('cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar', 'izin_khusus')),
   start_date     date not null,
   end_date       date not null,
   days           int  not null default 1 check (days >= 1),  -- working days, computed by the app
@@ -225,10 +225,12 @@ create index if not exists leave_status_idx on public.leave_requests (status, st
 
 -- Rename the legacy 'izin' type to 'unpaid_leave' (UI now reads "Unpaid leave").
 -- Idempotent: refresh the type check constraint and migrate any old rows.
+-- 'izin_khusus' (exceptional leave) is a separate type — needs approval like the
+-- others, and does NOT consume the annual-leave quota.
 alter table public.leave_requests drop constraint if exists leave_requests_type_check;
 update public.leave_requests set type = 'unpaid_leave' where type = 'izin';
 alter table public.leave_requests add constraint leave_requests_type_check
-  check (type in ('cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar'));
+  check (type in ('cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar', 'izin_khusus'));
 
 -- No overlapping *active* (pending/approved) requests for the same employee.
 alter table public.leave_requests drop constraint if exists leave_no_overlap;

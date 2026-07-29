@@ -12,6 +12,7 @@ import {
   submitLeave,
   workingDaysBetween,
   todayISO,
+  annualLeaveMinStart,
   LEAVE_TYPES,
   type LeaveType,
   type SubmitResult,
@@ -60,6 +61,18 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
   const datesValid = isValidISO(start) && isValidISO(end);
   const days = datesValid && end >= start ? workingDaysBetween(start, end, holidays) : 0;
 
+  // Annual leave needs 10 days' notice; other types can start today.
+  const minStart = type === 'cuti_tahunan' ? annualLeaveMinStart() : todayISO();
+  const onChangeType = (v: string) => {
+    const t = v as LeaveType;
+    setType(t);
+    const min = t === 'cuti_tahunan' ? annualLeaveMinStart() : todayISO();
+    if (start && start < min) {
+      setStart('');
+      setEnd('');
+    }
+  };
+
   const errText = (): string | null => {
     switch (errKey) {
       case 'date':
@@ -68,6 +81,8 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
         return s.leave.errRange;
       case 'past':
         return s.leave.errPast;
+      case 'advance':
+        return s.leave.errAdvance;
       case 'quota':
         return s.leave.errQuota;
       case 'overlap':
@@ -152,17 +167,17 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
           label={s.leave.fType}
           value={type}
           options={typeOptions}
-          onChange={(v) => setType(v as LeaveType)}
+          onChange={onChangeType}
           icon={Tag}
           required
         />
 
         <View style={{ flexDirection: 'row', gap: space.md }}>
           <View style={{ flex: 1 }}>
-            <DateField label={s.leave.fStart} value={start} onChange={setStart} min={todayISO()} required />
+            <DateField label={s.leave.fStart} value={start} onChange={setStart} min={minStart} required />
           </View>
           <View style={{ flex: 1 }}>
-            <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || todayISO()} required />
+            <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || minStart} required />
           </View>
         </View>
 

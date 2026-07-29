@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Pressable, TextInput, Linking, Image } from 'react-native';
-import { Sun, Thermometer, FileText, Briefcase, Paperclip, type LucideIcon } from 'lucide-react-native';
+import { Sun, Thermometer, FileText, Briefcase, Star, Paperclip, type LucideIcon } from 'lucide-react-native';
 import { color, space, radius, interFamily } from '../theme';
 import { Txt, Avatar, Button, StatusBadge, SegmentedTabs, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -19,6 +19,7 @@ const typeIcon: Record<LeaveType, LucideIcon> = {
   sakit: Thermometer,
   unpaid_leave: FileText,
   dinas_luar: Briefcase,
+  izin_khusus: Star,
 };
 
 type Decision = { req: AdminLeaveRequest; kind: 'approved' | 'rejected' };
