@@ -501,6 +501,10 @@ as $$
     and lr.end_date >= current_date;
 $$;
 
+-- Postgres grants EXECUTE to PUBLIC by default, which would let an
+-- UNauthenticated caller run this SECURITY DEFINER function and read names.
+-- Revoke that, then grant only to logged-in users.
+revoke execute on function public.home_feed() from public;
 grant execute on function public.home_feed() to authenticated;
 
 -- ============================================================================
