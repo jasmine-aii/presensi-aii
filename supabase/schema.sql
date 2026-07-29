@@ -107,7 +107,7 @@ as $$
 declare
   office_lat constant double precision := -6.20361;   -- keep in sync with OFFICE
   office_lng constant double precision := 106.82;
-  radius_m   constant double precision := 30;
+  radius_m   constant double precision := 50;
   earth_r    constant double precision := 6371000;     -- meters
   dist       double precision;
 begin
