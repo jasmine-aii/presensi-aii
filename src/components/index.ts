@@ -23,5 +23,6 @@ export { SelectField, type SelectOption } from './SelectField';
 export { SegmentedTabs } from './SegmentedTabs';
 export { Stepper } from './Stepper';
 export { DateField } from './DateField';
+export { TimeField } from './TimeField';
 export { AttachmentField } from './AttachmentField';
 export { Toast } from './Toast';

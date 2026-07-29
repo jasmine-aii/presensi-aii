@@ -3,7 +3,7 @@ import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from
 import * as Clipboard from 'expo-clipboard';
 import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
-import { Txt, Avatar, AdminStatusBadge, Badge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, Toggle } from '../components';
+import { Txt, Avatar, AdminStatusBadge, Badge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, TimeField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, saveAttendanceCorrection, deleteAttendanceDay, type HistoryEntry } from '../lib/attendance';
@@ -776,7 +776,20 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
                   {s.adm.corrDate}
                 </Txt>
-                <DateField value={corr.workDate} onChange={(v) => setCorr({ ...corr, workDate: v })} max={todayIso} />
+                <DateField
+                  value={corr.workDate}
+                  onChange={(v) => {
+                    // Prefill from an existing row so picking a filled date doesn't clear it.
+                    const ex = rows?.find((r) => r.date === v);
+                    setCorr({ ...corr, workDate: v, clockIn: ex?.clockInTime ?? corr.clockIn, clockOut: ex?.clockOutTime ?? corr.clockOut });
+                  }}
+                  max={todayIso}
+                />
+                {rows?.some((r) => r.date === corr.workDate) && (
+                  <Txt size={12} color={color.warning} style={{ marginTop: space.sm, lineHeight: 16 }}>
+                    {s.adm.corrExists}
+                  </Txt>
+                )}
               </View>
             ) : (
               <Txt size={13} color={color.ink}>
@@ -785,31 +798,11 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             )}
 
             <View style={{ flexDirection: 'row', gap: space.md }}>
-              <View style={{ flex: 1 }}>
-                <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
-                  {s.adm.corrIn}
-                </Txt>
-                <TextInput
-                  value={corr.clockIn}
-                  onChangeText={(v) => setCorr({ ...corr, clockIn: v })}
-                  placeholder="08:30"
-                  placeholderTextColor={color.muted}
-                  keyboardType="numbers-and-punctuation"
-                  style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink }}
-                />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <TimeField label={s.adm.corrIn} value={corr.clockIn} onChange={(v) => setCorr({ ...corr, clockIn: v })} />
               </View>
-              <View style={{ flex: 1 }}>
-                <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
-                  {s.adm.corrOut}
-                </Txt>
-                <TextInput
-                  value={corr.clockOut}
-                  onChangeText={(v) => setCorr({ ...corr, clockOut: v })}
-                  placeholder="17:30"
-                  placeholderTextColor={color.muted}
-                  keyboardType="numbers-and-punctuation"
-                  style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink }}
-                />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <TimeField label={s.adm.corrOut} value={corr.clockOut} onChange={(v) => setCorr({ ...corr, clockOut: v })} />
               </View>
             </View>
 
