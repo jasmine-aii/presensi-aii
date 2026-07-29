@@ -76,7 +76,7 @@ export function HRDashboardScreen({
                 {adminName}
               </Txt>
               <View style={{ paddingVertical: space.xs, paddingHorizontal: space.sm, borderRadius: radius.pill, backgroundColor: color.humanTint }}>
-                <Txt w="bold" size={11} color="#0F766E">
+                <Txt w="bold" size={11} color={color.deepNavy}>
                   {s.adm.role}
                 </Txt>
               </View>

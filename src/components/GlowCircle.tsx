@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, type DimensionValue } from 'react-native';
 import Svg, { Defs, RadialGradient, Stop, Circle } from 'react-native-svg';
+import { color as palette } from '../theme';
 
 export interface GlowCircleProps {
   size: number;
@@ -15,7 +16,7 @@ export interface GlowCircleProps {
  * Decorative radial glow behind the navy hero surfaces (Home clock card,
  * Profile header). react-native has no CSS radial-gradient, so we draw one.
  */
-export function GlowCircle({ size, top, right, left, color = '#1F46DE' }: GlowCircleProps) {
+export function GlowCircle({ size, top, right, left, color = palette.anugrahBlue }: GlowCircleProps) {
   const pos =
     right != null
       ? { right: right as DimensionValue }

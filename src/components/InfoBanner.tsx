@@ -14,7 +14,7 @@ export function InfoBanner({ text, icon: Icon = ShieldCheck }: InfoBannerProps) 
   return (
     <View style={{ flexDirection: 'row', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, overflow: 'hidden' }}>
       <View style={{ position: 'absolute', top: 0, left: 0, bottom: 0, width: 4, backgroundColor: color.humanAccent }} />
-      <Icon size={22} color="#0F766E" strokeWidth={2} />
+      <Icon size={22} color={color.deepNavy} strokeWidth={2} />
       <Txt size={13} color={color.ink} style={{ flex: 1, lineHeight: 20 }}>
         {text}
       </Txt>
