@@ -173,10 +173,10 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
         />
 
         <View style={{ flexDirection: 'row', gap: space.md }}>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
             <DateField label={s.leave.fStart} value={start} onChange={setStart} min={minStart} required />
           </View>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, minWidth: 0 }}>
             <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || minStart} required />
           </View>
         </View>

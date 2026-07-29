@@ -38,6 +38,8 @@ export function DateField({ label, value, onChange, min, max, placeholder, requi
       onChange: (e: any) => onChange(e.target.value),
       style: {
         width: '100%',
+        minWidth: 0, // iOS Safari: let the native date input shrink below its intrinsic width
+        maxWidth: '100%',
         boxSizing: 'border-box',
         height: 46,
         border: `1px solid ${color.line}`,
