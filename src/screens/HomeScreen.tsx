@@ -84,8 +84,8 @@ export function HomeScreen({
   const sc = clockInTime
     ? { fg: color.humanAccent, bg: 'rgba(149,252,246,0.14)', bd: 'rgba(149,252,246,0.4)' }
     : { fg: '#FFCB47', bg: 'rgba(255,203,71,0.16)', bd: 'rgba(255,203,71,0.45)' };
-  // Primary action flips to Clock Out from 12:00 noon until midnight.
-  const afterNoon = now.getHours() >= 12;
+  // Primary action flips to Clock Out from 13:00 until midnight.
+  const afterNoon = now.getHours() >= 13;
   const primaryMode: 'in' | 'out' = afterNoon ? 'out' : 'in';
 
   // Time-of-day greeting: pagi 05–10 · siang 11–14 · sore 15–18 · malam 19–04.
