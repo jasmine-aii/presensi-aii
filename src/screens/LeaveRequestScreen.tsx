@@ -172,13 +172,20 @@ export function LeaveRequestScreen({ onBack, onSubmitted, initialType }: LeaveRe
           required
         />
 
-        <View style={{ flexDirection: 'row', gap: space.md }}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <DateField label={s.leave.fStart} value={start} onChange={setStart} min={minStart} required />
+        <View style={{ gap: space.sm }}>
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <DateField label={s.leave.fStart} value={start} onChange={setStart} min={minStart} required />
+            </View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || minStart} required />
+            </View>
           </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <DateField label={s.leave.fEnd} value={end} onChange={setEnd} min={start || minStart} required />
-          </View>
+          {type === 'cuti_tahunan' && (
+            <Txt size={12} color={color.muted} style={{ lineHeight: 16 }}>
+              {s.leave.advanceNote}
+            </Txt>
+          )}
         </View>
 
         <View>

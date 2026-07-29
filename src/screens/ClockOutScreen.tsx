@@ -171,6 +171,11 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
               </Txt>
             )}
           </View>
+          {loc.coords && loc.coords.accuracy > 30 && (
+            <Txt size={12} color={color.warning} style={{ marginTop: space.sm, lineHeight: 16 }}>
+              {s.loc.lowAccuracy}
+            </Txt>
+          )}
         </View>
       </ScrollView>
 

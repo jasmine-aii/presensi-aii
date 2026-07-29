@@ -112,6 +112,11 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
                 {formatDistance(loc.distanceM, lang)} {s.loc.away}
               </Txt>
             )}
+            {loc.coords && loc.coords.accuracy > 30 && (
+              <Txt size={12} color={color.warning} style={{ marginTop: space.sm, lineHeight: 16 }}>
+                {s.loc.lowAccuracy}
+              </Txt>
+            )}
           </View>
 
           <View style={{ flexDirection: 'row', gap: space.sm, marginTop: space.md, flexWrap: 'wrap' }}>
