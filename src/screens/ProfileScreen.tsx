@@ -215,7 +215,7 @@ export function ProfileScreen({
           <Txt w="bold" size={16} color={color.ink}>
             {s.prof.changePw}
           </Txt>
-          <Pressable onPress={closePw} hitSlop={10}>
+          <Pressable onPress={closePw} hitSlop={10} accessibilityLabel={s.hist.close}>
             <X size={20} color={color.muted} strokeWidth={2} />
           </Pressable>
         </View>

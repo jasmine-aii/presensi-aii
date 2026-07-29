@@ -119,7 +119,7 @@ export function HolidayScreen({ onBack }: { onBack?: () => void }) {
             <Txt w="bold" size={16} color={color.ink}>
               {s.adm.holidayDelTitle}
             </Txt>
-            <Pressable onPress={() => setPendingDel(null)} hitSlop={10}>
+            <Pressable onPress={() => setPendingDel(null)} hitSlop={10} accessibilityLabel={s.hist.close}>
               <X size={20} color={color.muted} strokeWidth={2} />
             </Pressable>
           </View>

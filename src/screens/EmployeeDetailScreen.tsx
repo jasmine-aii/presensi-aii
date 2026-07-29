@@ -643,7 +643,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               <Txt w="bold" size={16} color={color.ink}>
                 {s.adm.resetPw}
               </Txt>
-              <Pressable onPress={closeReset} hitSlop={10}>
+              <Pressable onPress={closeReset} hitSlop={10} accessibilityLabel={s.hist.close}>
                 <X size={20} color={color.muted} strokeWidth={2} />
               </Pressable>
             </View>
@@ -726,7 +726,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             <Txt w="bold" size={16} color={color.ink}>
               {s.adm.roleWarnTitle}
             </Txt>
-            <Pressable onPress={() => setPendingRole(null)} hitSlop={10}>
+            <Pressable onPress={() => setPendingRole(null)} hitSlop={10} accessibilityLabel={s.hist.close}>
               <X size={20} color={color.muted} strokeWidth={2} />
             </Pressable>
           </View>
@@ -763,7 +763,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               <Txt w="bold" size={16} color={color.ink}>
                 {s.adm.corrTitle}
               </Txt>
-              <Pressable onPress={() => setCorr(null)} hitSlop={10}>
+              <Pressable onPress={() => setCorr(null)} hitSlop={10} accessibilityLabel={s.hist.close}>
                 <X size={20} color={color.muted} strokeWidth={2} />
               </Pressable>
             </View>
