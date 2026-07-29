@@ -4,13 +4,14 @@ import type { Lang } from '../i18n/strings';
  * Kantor AII — Wisma 46 (Kota BNI), Jl. Jend. Sudirman Kav. 1, Karet Tengsin,
  * Tanah Abang, Jakarta Pusat 10220. Koordinat dari Wikipedia (Wisma 46).
  * Clock in/out hanya diizinkan dalam `radiusM` meter dari titik ini (geofence).
- * Radius nominal ketat (100 m); drift GPS indoor/lantai tinggi dikompensasi
- * lewat `accuracy` di useLocation (inside jika distance - accuracy <= radius).
+ * Radius nominal sangat ketat (30 m); drift GPS indoor/lantai tinggi
+ * dikompensasi lewat `accuracy` di useLocation (inside jika distance - accuracy
+ * <= radius).
  */
 export const OFFICE = {
   lat: -6.20361,
   lng: 106.82,
-  radiusM: 100,
+  radiusM: 30,
   floor: 39,
   name: {
     id: 'Kantor AII · Wisma 46',
