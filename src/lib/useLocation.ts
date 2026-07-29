@@ -33,12 +33,15 @@ export function useLocation(): LocationState & { refresh: () => void } {
       const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
+      const accuracy = pos.coords.accuracy ?? 0;
       const distanceM = distanceToOffice(lat, lng);
       setState({
         status: 'ready',
-        coords: { lat, lng, accuracy: pos.coords.accuracy ?? 0 },
+        coords: { lat, lng, accuracy },
         distanceM,
-        inRadius: distanceM <= OFFICE.radiusM,
+        // Accuracy-aware: give the benefit of the doubt when the fix is coarse
+        // (indoors / high floors), so a noisy GPS doesn't reject someone inside.
+        inRadius: distanceM - accuracy <= OFFICE.radiusM,
       });
     } catch {
       setState({ status: 'error' });
