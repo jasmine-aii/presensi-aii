@@ -13,7 +13,8 @@ import {
 } from '@expo-google-fonts/inter';
 import { JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
 
-import { color } from './src/theme';
+import { color, space } from './src/theme';
+import { Txt } from './src/components';
 import { LangProvider } from './src/i18n/LangContext';
 import { AuthProvider, useAuth } from './src/auth/AuthContext';
 import { AppNavigator } from './src/navigation/AppNavigator';
@@ -45,8 +46,11 @@ function Root() {
   let content: React.ReactNode;
   if (loading) {
     content = (
-      <View style={{ flex: 1, backgroundColor: color.deepNavy, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, backgroundColor: color.deepNavy, alignItems: 'center', justifyContent: 'center', gap: space.xl }}>
         <StatusBar style="light" />
+        <Txt w="extrabold" size={32} color={color.white} style={{ letterSpacing: -0.5 }}>
+          Presenta
+        </Txt>
         <ActivityIndicator color={color.humanAccent} />
       </View>
     );
