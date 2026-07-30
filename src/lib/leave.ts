@@ -80,14 +80,11 @@ function toISO(d: Date): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
-const addYears = (d: Date, n: number) => new Date(d.getFullYear() + n, d.getMonth(), d.getDate());
-const addMonths = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth() + n, d.getDate());
-
-/** Completed whole months from `from` to `to` (0 if to is before from). */
-function fullMonthsBetween(from: Date, to: Date): number {
-  let m = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth());
-  if (to.getDate() < from.getDate()) m -= 1;
-  return Math.max(0, m);
+const MS_DAY = 24 * 60 * 60 * 1000;
+const addDays = (d: Date, n: number) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+/** Whole days from `from` to `to` (negative if `to` precedes `from`). */
+function daysBetween(from: Date, to: Date): number {
+  return Math.round((to.getTime() - from.getTime()) / MS_DAY);
 }
 
 /**
@@ -201,15 +198,17 @@ export async function fetchMyLeaves(userId: string, limit = 60): Promise<LeaveRe
   return (data ?? []).map(mapRow);
 }
 
-const MONTHLY_ACCRUAL_CAP = 12; // days per service year
-const CARRYOVER_GRACE_MONTHS = 6; // prior-year balance expires this far into the new year
+const ACCRUAL_PERIOD_DAYS = 30; // +1 leave day per completed 30-day period
+const ACCRUAL_CAP = 12; // days accrued per service year
+const SERVICE_YEAR_DAYS = ACCRUAL_PERIOD_DAYS * ACCRUAL_CAP; // 360 days
+const CARRYOVER_GRACE_DAYS = 6 * ACCRUAL_PERIOD_DAYS; // 180 days into the new year
 
 /**
- * Pure annual-leave accrual: +1 day per completed month since `joinDate`,
- * capped at 12 per service year. Any unused balance from the previous service
- * year carries over but expires `CARRYOVER_GRACE_MONTHS` into the new one.
- * `adjust` is an admin correction added on top. `approved` is every approved
- * cuti_tahunan request; only those inside the active window count as taken.
+ * Pure annual-leave accrual: +1 day per completed 30 days since `joinDate`,
+ * capped at 12 per service year (= 360 days). Any unused balance from the
+ * previous service year carries over but expires `CARRYOVER_GRACE_DAYS` (180)
+ * into the new one. `adjust` is an admin correction added on top. `approved` is
+ * every approved cuti_tahunan request; only those inside the active window count.
  */
 export function computeLeaveBalance(
   joinDateISO: string | null,
@@ -223,16 +222,17 @@ export function computeLeaveBalance(
     return { ...empty, quota: q, remaining: q };
   }
   const join = parseISO(joinDateISO);
-  const now = parseISO(today);
-  if (now < join) return empty; // employment hasn't started
+  const elapsedDays = daysBetween(join, parseISO(today));
+  if (elapsedDays < 0) return empty; // employment hasn't started
 
-  const years = Math.floor(fullMonthsBetween(join, now) / 12);
-  const anniv = addYears(join, years); // start of the current service year
-  const accrued = Math.min(MONTHLY_ACCRUAL_CAP, fullMonthsBetween(anniv, now));
+  const totalPeriods = Math.floor(elapsedDays / ACCRUAL_PERIOD_DAYS); // 30-day periods completed
+  const years = Math.floor(totalPeriods / ACCRUAL_CAP); // completed service years (12 periods each)
+  const accrued = Math.min(ACCRUAL_CAP, totalPeriods - years * ACCRUAL_CAP);
 
-  const carryActive = years >= 1 && now < addMonths(anniv, CARRYOVER_GRACE_MONTHS);
-  const carryOver = carryActive ? MONTHLY_ACCRUAL_CAP : 0; // a full prior year accrues to the cap
-  const windowStart = toISO(carryActive ? addYears(join, years - 1) : anniv);
+  const daysIntoYear = elapsedDays - years * SERVICE_YEAR_DAYS;
+  const carryActive = years >= 1 && daysIntoYear < CARRYOVER_GRACE_DAYS;
+  const carryOver = carryActive ? ACCRUAL_CAP : 0; // a full prior year accrues to the cap
+  const windowStart = toISO(addDays(join, (carryActive ? years - 1 : years) * SERVICE_YEAR_DAYS));
   const taken = approved.filter((r) => r.startDate >= windowStart).reduce((s, r) => s + r.days, 0);
 
   const quota = accrued + carryOver + adjust;
