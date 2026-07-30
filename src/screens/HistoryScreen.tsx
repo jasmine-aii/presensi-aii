@@ -92,11 +92,12 @@ export function HistoryScreen() {
           </View>
         </View>
 
-        {/* Summary — Hadir n/working days, Terlambat, Tidak hadir */}
-        <View style={{ flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingTop: space.md }}>
+        {/* Summary — Hadir n/working days (from join), Terlambat, Tanpa keterangan, Izin */}
+        <View style={{ flexDirection: 'row', gap: space.sm, paddingHorizontal: space.lg, paddingTop: space.md }}>
           <HistStat value={stats ? `${stats.present}/${stats.workingDays}` : '—'} label={s.hist.present} valueColor={color.success} />
-          <HistStat value={stats ? String(stats.late) : '—'} label={s.hist.late} valueColor={color.danger} />
-          <HistStat value={stats ? String(stats.absent) : '—'} label={s.adm.iAbsent} valueColor={color.muted} />
+          <HistStat value={stats ? String(stats.late) : '—'} label={s.hist.late} valueColor={color.warning} />
+          <HistStat value={stats ? String(stats.absent) : '—'} label={s.hist.noRecord} valueColor={color.danger} />
+          <HistStat value={stats ? String(stats.leaveDays) : '—'} label={s.hist.leave} valueColor={color.muted} />
         </View>
 
         {/* View toggle */}
@@ -119,7 +120,7 @@ export function HistoryScreen() {
                   items={[
                     [color.successBg, s.hist.present],
                     [color.warningBg, s.hist.late],
-                    [color.dangerBg, s.adm.iAbsent],
+                    [color.dangerBg, s.hist.noRecord],
                     [LEAVE_TINT, s.hist.leave],
                   ]}
                 />
@@ -257,10 +258,10 @@ function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string 
 function HistStat({ value, label, valueColor }: { value: string; label: string; valueColor: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.xs }}>
-      <Txt w="extrabold" size={20} color={valueColor} tabular>
+      <Txt w="extrabold" size={18} color={valueColor} tabular>
         {value}
       </Txt>
-      <Txt size={12} color={color.muted} style={{ marginTop: space.xs, textAlign: 'center' }}>
+      <Txt size={11} color={color.muted} style={{ marginTop: space.xs, textAlign: 'center' }}>
         {label}
       </Txt>
     </View>
