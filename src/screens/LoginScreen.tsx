@@ -42,10 +42,7 @@ export function LoginScreen() {
             <LogoMark height={30} fill={color.white} />
             <LangSwitch />
           </View>
-          <Txt w="bold" size={12} color={color.humanAccent} style={{ letterSpacing: 2, textTransform: 'uppercase', marginTop: space.xl }}>
-            Presenta
-          </Txt>
-          <Txt w="extrabold" size={30} color={color.white} style={{ marginTop: space.sm, letterSpacing: -0.5 }}>
+          <Txt w="extrabold" size={30} color={color.white} style={{ marginTop: space['2xl'], letterSpacing: -0.5 }}>
             {s.auth.welcome}
           </Txt>
           <Txt size={15} color="rgba(255,255,255,0.72)" style={{ marginTop: space.sm }}>

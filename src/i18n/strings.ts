@@ -8,7 +8,7 @@ export type Lang = 'id' | 'en';
 
 const id = {
   auth: {
-    welcome: 'Selamat datang',
+    welcome: 'Selamat datang di Presenta',
     subtitle: 'Masuk untuk mencatat kehadiran Anda',
     email: 'Email kerja',
     emailPh: 'nama@anugrahintelligentia.id',
@@ -372,7 +372,7 @@ const id = {
 
 const en = {
   auth: {
-    welcome: 'Welcome',
+    welcome: 'Welcome to Presenta',
     subtitle: 'Sign in to record your attendance',
     email: 'Work email',
     emailPh: 'name@anugrahintelligentia.id',
