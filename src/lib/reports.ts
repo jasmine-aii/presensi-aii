@@ -231,3 +231,49 @@ export async function fetchEmployeeMonthStats(userId: string, year?: number, mon
   const rate = workingDays > 0 ? Math.min(100, Math.round((present / workingDays) * 100)) : 0;
   return { rate, present, onTime, late, absent, leaveDays, workingDays };
 }
+
+// ── Calendar view ───────────────────────────────────────────────────────────
+
+export type DayCode = 'ontime' | 'late' | 'leave' | 'absent' | 'off' | 'future';
+
+/** Per-day status for one employee's month, for the calendar view. */
+export async function fetchMonthCalendar(userId: string, year: number, month0: number): Promise<Record<string, DayCode>> {
+  const monthStart = `${year}-${pad(month0 + 1)}-01`;
+  const lastDay = new Date(year, month0 + 1, 0).getDate();
+  const monthEnd = `${year}-${pad(month0 + 1)}-${pad(lastDay)}`;
+  const today = isoOf(new Date());
+
+  const [{ data: att }, { data: leave }, holidays] = await Promise.all([
+    supabase.from('attendance').select('work_date, clock_in_at').eq('user_id', userId).gte('work_date', monthStart).lte('work_date', monthEnd),
+    supabase.from('leave_requests').select('start_date, end_date').eq('user_id', userId).eq('status', 'approved').lte('start_date', monthEnd).gte('end_date', monthStart),
+    fetchHolidaySet(),
+  ]);
+
+  const clockIn = new Map<string, string | null>();
+  for (const a of att ?? []) clockIn.set(a.work_date as string, a.clock_in_at as string | null);
+
+  const onLeave = new Set<string>();
+  for (const l of leave ?? []) {
+    const from = (l.start_date as string) > monthStart ? (l.start_date as string) : monthStart;
+    const to = (l.end_date as string) < monthEnd ? (l.end_date as string) : monthEnd;
+    for (const d = parseISO(from), end = parseISO(to); d <= end; d.setDate(d.getDate() + 1)) onLeave.add(isoOf(d));
+  }
+
+  const out: Record<string, DayCode> = {};
+  for (let day = 1; day <= lastDay; day++) {
+    const iso = `${year}-${pad(month0 + 1)}-${pad(day)}`;
+    const cin = clockIn.get(iso);
+    if (cin) {
+      const t = new Date(cin);
+      out[iso] = t.getHours() * 60 + t.getMinutes() > LATE_AFTER_MIN ? 'late' : 'ontime';
+    } else if (onLeave.has(iso)) {
+      out[iso] = 'leave';
+    } else {
+      const wd = new Date(year, month0, day).getDay();
+      if (wd === 0 || wd === 6 || holidays.has(iso)) out[iso] = 'off';
+      else if (iso > today) out[iso] = 'future';
+      else out[iso] = 'absent';
+    }
+  }
+  return out;
+}

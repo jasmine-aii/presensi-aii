@@ -2,11 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Image, Pressable } from 'react-native';
 import { Camera, X, CalendarClock } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, StatusBadge, Dialog, EmptyState, SkeletonList, SelectField } from '../components';
+import { Txt, StatusBadge, Dialog, EmptyState, SkeletonList, SelectField, SegmentedTabs } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
-import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
+import { fetchEmployeeMonthStats, fetchMonthCalendar, type EmployeeMonthStats, type DayCode } from '../lib/reports';
 import { signedUrlsFor } from '../lib/storage';
 import { parseYmd, weekdayShort, monthYear, monthName, dateStr } from '../lib/format';
 import type { AttendanceStatus } from '../lib/data';
@@ -31,6 +31,8 @@ export function HistoryScreen() {
   const [month0, setMonth0] = useState(now.getMonth());
   const [rows, setRows] = useState<HistoryEntry[] | null>(null);
   const [stats, setStats] = useState<EmployeeMonthStats | null>(null);
+  const [cal, setCal] = useState<Record<string, DayCode> | null>(null);
+  const [view, setView] = useState<'calendar' | 'list'>('calendar');
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<HistoryEntry | null>(null);
 
@@ -39,9 +41,11 @@ export function HistoryScreen() {
     let alive = true;
     setRows(null);
     setStats(null);
+    setCal(null);
     const start = `${year}-${pad(month0 + 1)}-01`;
     const end = `${year}-${pad(month0 + 1)}-${pad(new Date(year, month0 + 1, 0).getDate())}`;
     fetchEmployeeMonthStats(userId, year, month0).then((r) => alive && setStats(r));
+    fetchMonthCalendar(userId, year, month0).then((r) => alive && setCal(r));
     fetchHistory(userId, 62, start, end).then(async (r) => {
       if (!alive) return;
       setRows(r);
@@ -95,7 +99,34 @@ export function HistoryScreen() {
           <HistStat value={stats ? String(stats.absent) : '—'} label={s.adm.iAbsent} valueColor={color.muted} />
         </View>
 
-        {loading ? (
+        {/* View toggle */}
+        <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
+          <SegmentedTabs
+            tabs={[{ key: 'calendar', label: s.hist.calendar }, { key: 'list', label: s.hist.list }]}
+            active={view}
+            onChange={(k) => setView(k as 'calendar' | 'list')}
+          />
+        </View>
+
+        {view === 'calendar' ? (
+          <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
+            {cal === null ? (
+              <SkeletonList count={3} />
+            ) : (
+              <>
+                <MonthCalendar year={year} month0={month0} cal={cal} rows={rows ?? []} lang={lang} onSelect={setSel} />
+                <CalendarLegend
+                  items={[
+                    [color.successBg, s.hist.present],
+                    [color.warningBg, s.hist.late],
+                    [color.dangerBg, s.adm.iAbsent],
+                    [LEAVE_TINT, s.hist.leave],
+                  ]}
+                />
+              </>
+            )}
+          </View>
+        ) : loading ? (
           <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg }}>
             <SkeletonList count={5} />
           </View>
@@ -232,6 +263,86 @@ function HistStat({ value, label, valueColor }: { value: string; label: string; 
       <Txt size={12} color={color.muted} style={{ marginTop: space.xs, textAlign: 'center' }}>
         {label}
       </Txt>
+    </View>
+  );
+}
+
+const LEAVE_TINT = '#E9ECF1';
+const CAL_STYLE: Record<DayCode, { bg: string; fg: string }> = {
+  ontime: { bg: color.successBg, fg: color.success },
+  late: { bg: color.warningBg, fg: color.warning },
+  absent: { bg: color.dangerBg, fg: color.danger },
+  leave: { bg: LEAVE_TINT, fg: color.muted },
+  off: { bg: color.white, fg: '#AEB6C2' },
+  future: { bg: color.white, fg: '#AEB6C2' },
+};
+
+/** Month grid, Monday-first, each day tinted by attendance status. */
+function MonthCalendar({
+  year,
+  month0,
+  cal,
+  rows,
+  lang,
+  onSelect,
+}: {
+  year: number;
+  month0: number;
+  cal: Record<string, DayCode>;
+  rows: HistoryEntry[];
+  lang: 'id' | 'en';
+  onSelect: (r: HistoryEntry) => void;
+}) {
+  const lead = (new Date(year, month0, 1).getDay() + 6) % 7; // Monday-first leading blanks
+  const lastDay = new Date(year, month0 + 1, 0).getDate();
+  const cells: (number | null)[] = [...Array(lead).fill(null), ...Array.from({ length: lastDay }, (_, i) => i + 1)];
+  const wLabels = lang === 'id' ? ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  return (
+    <View>
+      <View style={{ flexDirection: 'row' }}>
+        {wLabels.map((w) => (
+          <Txt key={w} size={11} color={color.muted} style={{ width: '14.2857%', textAlign: 'center' }}>
+            {w}
+          </Txt>
+        ))}
+      </View>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: space.sm }}>
+        {cells.map((day, i) => {
+          if (day === null) return <View key={i} style={{ width: '14.2857%', aspectRatio: 1, padding: 2 }} />;
+          const iso = `${year}-${pad(month0 + 1)}-${pad(day)}`;
+          const st = CAL_STYLE[cal[iso] ?? 'future'];
+          const row = rows.find((r) => r.date === iso);
+          const tappable = !!(row && (row.clockInPhoto || row.clockOutPhoto));
+          return (
+            <View key={i} style={{ width: '14.2857%', padding: 2 }}>
+              <Pressable
+                disabled={!tappable}
+                onPress={tappable && row ? () => onSelect(row) : undefined}
+                style={{ aspectRatio: 1, borderRadius: radius.sm, borderWidth: 1, borderColor: color.line, backgroundColor: st.bg, alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Txt w="semibold" size={13} color={st.fg} tabular>
+                  {day}
+                </Txt>
+              </Pressable>
+            </View>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function CalendarLegend({ items }: { items: [string, string][] }) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md, marginTop: space.lg }}>
+      {items.map(([bg, label]) => (
+        <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
+          <View style={{ width: 14, height: 14, borderRadius: 4, borderWidth: 1, borderColor: color.line, backgroundColor: bg }} />
+          <Txt size={12} color={color.muted}>
+            {label}
+          </Txt>
+        </View>
+      ))}
     </View>
   );
 }

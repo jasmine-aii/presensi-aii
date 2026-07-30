@@ -105,7 +105,7 @@ const id = {
     earlyMsg: 'Anda belum menyelesaikan 8 jam kerja hari ini. Yakin ingin clock out sekarang?',
     earlyConfirm: 'Ya, clock out',
   },
-  hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat absensi.', emptyHint: 'Absensimu akan muncul di sini setelah clock in pertama.', loading: 'Memuat…', photoTitle: 'Foto kehadiran', noPhoto: 'Tidak ada foto', close: 'Tutup' },
+  hist: { title: 'Riwayat absensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat absensi.', emptyHint: 'Absensimu akan muncul di sini setelah clock in pertama.', loading: 'Memuat…', photoTitle: 'Foto kehadiran', noPhoto: 'Tidak ada foto', close: 'Tutup', calendar: 'Kalender', list: 'Daftar' },
   prof: {
     title: 'Profil',
     role: 'AI Engineer',
@@ -469,7 +469,7 @@ const en = {
     earlyMsg: "You haven't completed 8 work hours today. Are you sure you want to clock out now?",
     earlyConfirm: 'Yes, clock out',
   },
-  hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave', empty: 'No attendance history yet.', emptyHint: 'Your attendance shows up here after your first clock-in.', loading: 'Loading…', photoTitle: 'Attendance photo', noPhoto: 'No photo', close: 'Close' },
+  hist: { title: 'Attendance history', month: 'May 2025', present: 'Present', late: 'Late', leave: 'Leave', empty: 'No attendance history yet.', emptyHint: 'Your attendance shows up here after your first clock-in.', loading: 'Loading…', photoTitle: 'Attendance photo', noPhoto: 'No photo', close: 'Close', calendar: 'Calendar', list: 'List' },
   prof: {
     title: 'Profile',
     role: 'AI Engineer',
