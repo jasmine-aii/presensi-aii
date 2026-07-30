@@ -68,7 +68,7 @@ export function SelectField({ label, value, options, onChange, icon: Icon, requi
         accessibilityRole="button"
         onPress={openMenu}
         onLayout={measure}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: color.white, borderWidth: 1, borderColor: open ? color.anugrahBlue : color.line, borderRadius: radius.sm, padding: space.md }}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm, backgroundColor: color.white, borderWidth: 1, borderColor: open ? color.anugrahBlue : color.line, borderRadius: radius.sm, padding: space.md, ...elevation('soft') }}
       >
         {Icon && <Icon size={20} color={color.anugrahBlue} strokeWidth={2} />}
         <Txt w="regular" size={14} color={color.ink} style={{ flex: 1 }}>

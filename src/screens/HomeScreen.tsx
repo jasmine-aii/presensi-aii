@@ -189,7 +189,7 @@ export function HomeScreen({
             {s.home.shift}
           </Txt>
           <Txt w="semibold" size={13} color="rgba(255,255,255,0.78)" tabular>
-            {win.startStr} – {win.endStr}
+            ({win.inWindow}) – ({win.outWindow})
           </Txt>
         </View>
         <Txt size={14} color="rgba(255,255,255,0.7)" style={{ marginTop: space.md }}>

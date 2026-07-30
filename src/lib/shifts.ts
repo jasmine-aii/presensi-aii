@@ -6,9 +6,14 @@ export interface ShiftWindow {
   endMin: number;
   startStr: string; // "08:00"
   endStr: string; // "17:00"
+  inWindow: string; // flexi clock-in range, e.g. "08:00 – 09:00"
+  outWindow: string; // flexi clock-out range, e.g. "17:00 – 18:00"
 }
 
 const fmtMin = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+/** Flexi grace after the shift start (on-time window) / end (clock-out window). */
+const FLEXI_GRACE_MIN = 60;
 
 /**
  * The single company shift (flexi time): clock in 08:00–09:00, clock out
@@ -19,7 +24,14 @@ const fmtMin = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${
 export function parseShiftWindow(): ShiftWindow {
   const startMin = 8 * 60; // 08:00 — flexi in-window start & work-hours floor
   const endMin = 17 * 60; // 17:00 — nominal end (clock-out is flexi up to 18:00)
-  return { startMin, endMin, startStr: fmtMin(startMin), endStr: fmtMin(endMin) };
+  return {
+    startMin,
+    endMin,
+    startStr: fmtMin(startMin),
+    endStr: fmtMin(endMin),
+    inWindow: `${fmtMin(startMin)} – ${fmtMin(startMin + FLEXI_GRACE_MIN)}`,
+    outWindow: `${fmtMin(endMin)} – ${fmtMin(endMin + FLEXI_GRACE_MIN)}`,
+  };
 }
 
 /** Unpaid break deducted from each full workday (minutes). */
