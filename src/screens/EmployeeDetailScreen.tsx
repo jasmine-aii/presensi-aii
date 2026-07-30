@@ -221,7 +221,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     const b = await fetchLeaveBalance(member.id);
     setBalance(b);
     setJoinDraft(b.joinDate ?? '');
-    setAdjustVal(b.adjust);
+    setAdjustVal(0); // the stepper is a delta to add/subtract, not the absolute value
   };
 
   useEffect(() => {
@@ -250,9 +250,10 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   };
 
   const saveAdjust = async () => {
-    if (quotaBusy) return;
+    if (quotaBusy || !balance || adjustVal === 0) return;
     setQuotaBusy(true);
-    const ok = await setLeaveQuotaAdjust(member.id, adjustVal);
+    // Add the delta to the current adjustment (not replace it), then reset to 0.
+    const ok = await setLeaveQuotaAdjust(member.id, balance.adjust + adjustVal);
     if (ok) await loadBalance();
     setQuotaBusy(false);
     if (ok) flashSaved();
@@ -486,18 +487,23 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
               ))}
             </View>
 
-            {/* Manual adjustment — stepper */}
+            {/* Manual adjustment — a delta added to the current adjustment */}
             <View>
-              <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
-                {s.adm.adjustLabel}
-              </Txt>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm }}>
+                <Txt w="semibold" size={12} color={color.muted}>
+                  {s.adm.adjustLabel}
+                </Txt>
+                <Txt size={12} color={color.muted} tabular>
+                  {s.adm.adjustCurrent}: {balance.adjust > 0 ? `+${balance.adjust}` : balance.adjust} {s.adm.adjustUnit}
+                </Txt>
+              </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: space.md }}>
                 <Stepper value={adjustVal} onChange={setAdjustVal} min={-30} max={30} step={1} units={s.adm.adjustUnit} signed />
                 <Button
                   variant="secondary"
                   size="md"
                   label={s.prof.save}
-                  disabled={quotaBusy || adjustVal === balance.adjust}
+                  disabled={quotaBusy || adjustVal === 0}
                   onPress={saveAdjust}
                 />
               </View>
