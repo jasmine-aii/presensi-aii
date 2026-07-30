@@ -39,11 +39,11 @@ export function useClockReminders(
 
   const win = parseShiftWindow();
 
-  // Clock-out reminder is based on completing 8 *working* hours from the actual
-  // clock-in (8h work + 1h break = 9h elapsed), not the fixed shift end — so a
-  // late clock-in pushes the reminder later. Falls back to shift end until the
-  // employee has clocked in.
-  const clockInMin = clockInTime ? toMin(clockInTime) : null;
+  // Clock-out reminder = 8 working hours + 1h break = 9h of presence, measured
+  // from when work actually starts counting: max(clock-in, 08:00). Arriving
+  // early isn't credited, so a 07:44 clock-in still targets 17:00, not 16:44; a
+  // late clock-in pushes it later. Falls back to shift end until clocked in.
+  const clockInMin = clockInTime ? Math.max(toMin(clockInTime), win.startMin) : null;
   const outMin = clockInMin != null ? clockInMin + FULL_DAY_MIN + BREAK_MIN : win.endMin;
 
   const items: ReminderItem[] = [
