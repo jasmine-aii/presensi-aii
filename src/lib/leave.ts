@@ -34,7 +34,7 @@ export interface AdminLeaveRequest extends LeaveRequest {
 export interface LeaveBalance {
   quota: number; // total days currently available = accrued (this service year) + carryOver + adjust
   taken: number; // approved cuti_tahunan days counted in the active window
-  remaining: number; // quota − taken, never below 0
+  remaining: number; // quota − taken (may be negative when over-drawn / adjusted down)
   accrued: number; // accrued in the current service year (capped at 12)
   carryOver: number; // still-valid balance carried from the previous year (0 once expired)
   adjust: number; // admin manual correction (+/-)
@@ -218,8 +218,7 @@ export function computeLeaveBalance(
 ): LeaveBalance {
   const empty: LeaveBalance = { quota: 0, taken: 0, remaining: 0, accrued: 0, carryOver: 0, adjust, joinDate: joinDateISO };
   if (!joinDateISO) {
-    const q = Math.max(0, adjust);
-    return { ...empty, quota: q, remaining: q };
+    return { ...empty, quota: adjust, remaining: adjust };
   }
   const join = parseISO(joinDateISO);
   const elapsedDays = daysBetween(join, parseISO(today));
@@ -236,7 +235,7 @@ export function computeLeaveBalance(
   const taken = approved.filter((r) => r.startDate >= windowStart).reduce((s, r) => s + r.days, 0);
 
   const quota = accrued + carryOver + adjust;
-  return { quota, taken, remaining: Math.max(0, quota - taken), accrued, carryOver, adjust, joinDate: joinDateISO };
+  return { quota, taken, remaining: quota - taken, accrued, carryOver, adjust, joinDate: joinDateISO };
 }
 
 /** Annual-leave balance for one employee, derived from join_date + accrual. */
