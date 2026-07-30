@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Image, Pressable } from 'react-native';
-import { ChevronDown, Camera, X, CalendarClock } from 'lucide-react-native';
+import { Camera, X, CalendarClock } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
-import { Txt, StatusBadge, Dialog, EmptyState, SkeletonList } from '../components';
+import { Txt, StatusBadge, Dialog, EmptyState, SkeletonList, SelectField } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, type HistoryEntry } from '../lib/attendance';
+import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
 import { signedUrlsFor } from '../lib/storage';
-import { parseYmd, weekdayShort, monthYear, dateStr } from '../lib/format';
+import { parseYmd, weekdayShort, monthYear, monthName, dateStr } from '../lib/format';
 import type { AttendanceStatus } from '../lib/data';
 
-const LATE_AFTER_MIN = 9 * 60; // 09:00 — clock-in after 9 counts as late (work hours still start 08:30)
+const LATE_AFTER_MIN = 9 * 60; // 09:00 — clock-in after 9 counts as late (work hours still start 08:00)
+const pad = (n: number) => String(n).padStart(2, '0');
 
 /** ontime / late from the clock-in time; no clock-in → treated as leave/absent. */
 function statusOf(cin: string | null): AttendanceStatus {
@@ -23,14 +25,24 @@ export function HistoryScreen() {
   const { s, lang } = useLang();
   const { session } = useAuth();
   const userId = session?.user.id ?? '';
+  const now = new Date();
+
+  const [year, setYear] = useState(now.getFullYear());
+  const [month0, setMonth0] = useState(now.getMonth());
   const [rows, setRows] = useState<HistoryEntry[] | null>(null);
+  const [stats, setStats] = useState<EmployeeMonthStats | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<HistoryEntry | null>(null);
 
   useEffect(() => {
     if (!userId) return;
     let alive = true;
-    fetchHistory(userId).then(async (r) => {
+    setRows(null);
+    setStats(null);
+    const start = `${year}-${pad(month0 + 1)}-01`;
+    const end = `${year}-${pad(month0 + 1)}-${pad(new Date(year, month0 + 1, 0).getDate())}`;
+    fetchEmployeeMonthStats(userId, year, month0).then((r) => alive && setStats(r));
+    fetchHistory(userId, 62, start, end).then(async (r) => {
       if (!alive) return;
       setRows(r);
       const paths = r.flatMap((e) => [e.clockInPhoto, e.clockOutPhoto]).filter((p): p is string => !!p);
@@ -42,60 +54,45 @@ export function HistoryScreen() {
     return () => {
       alive = false;
     };
-  }, [userId]);
+  }, [userId, year, month0]);
 
   const loading = rows === null;
-  const stats = (rows ?? []).reduce(
-    (acc, r) => {
-      acc[statusOf(r.clockInTime)] += 1;
-      return acc;
-    },
-    { ontime: 0, late: 0, leave: 0 } as Record<AttendanceStatus, number>,
-  );
-  const headerMonth = rows && rows.length > 0 ? monthYear(parseYmd(rows[0].date), lang) : s.hist.month;
+
+  // Month options are capped at the current month for the current year (no future).
+  const maxMonth = year === now.getFullYear() ? now.getMonth() : 11;
+  const monthOptions = Array.from({ length: maxMonth + 1 }, (_, i) => ({ value: String(i), label: monthName(i, lang) }));
+  const yearOptions = [now.getFullYear() - 2, now.getFullYear() - 1, now.getFullYear()].map((y) => ({ value: String(y), label: String(y) }));
+  const onPickYear = (v: string) => {
+    const y = Number(v);
+    setYear(y);
+    if (y === now.getFullYear() && month0 > now.getMonth()) setMonth0(now.getMonth());
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: color.paper }}>
       {/* Header */}
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingHorizontal: space.lg,
-          paddingVertical: space.lg,
-          backgroundColor: color.white,
-          borderBottomWidth: 1,
-          borderBottomColor: color.line,
-        }}
-      >
+      <View style={{ paddingHorizontal: space.lg, paddingVertical: space.lg, backgroundColor: color.white, borderBottomWidth: 1, borderBottomColor: color.line }}>
         <Txt w="bold" size={17} color={color.ink}>
           {s.hist.title}
         </Txt>
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: space.xs,
-            paddingVertical: space.sm,
-            paddingHorizontal: space.md,
-            backgroundColor: color.skyTint,
-            borderRadius: radius.pill,
-          }}
-        >
-          <Txt w="semibold" size={13} color={color.deepNavy}>
-            {headerMonth}
-          </Txt>
-          <ChevronDown size={15} color={color.deepNavy} strokeWidth={2} />
-        </View>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: space.xl }}>
-        {/* Stat cells */}
+        {/* Month / year picker */}
         <View style={{ flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingTop: space.lg }}>
-          <HistStat value={String(stats.ontime)} label={s.hist.present} valueColor={color.success} />
-          <HistStat value={String(stats.late)} label={s.hist.late} valueColor={color.danger} />
-          <HistStat value={String(stats.leave)} label={s.hist.leave} valueColor={color.anugrahBlue} />
+          <View style={{ flex: 2 }}>
+            <SelectField label={s.adm.selMonth} value={String(month0)} options={monthOptions} onChange={(v) => setMonth0(Number(v))} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <SelectField label={s.adm.selYear} value={String(year)} options={yearOptions} onChange={onPickYear} />
+          </View>
+        </View>
+
+        {/* Summary — Hadir n/working days, Terlambat, Tidak hadir */}
+        <View style={{ flexDirection: 'row', gap: space.md, paddingHorizontal: space.lg, paddingTop: space.md }}>
+          <HistStat value={stats ? `${stats.present}/${stats.workingDays}` : '—'} label={s.hist.present} valueColor={color.success} />
+          <HistStat value={stats ? String(stats.late) : '—'} label={s.hist.late} valueColor={color.danger} />
+          <HistStat value={stats ? String(stats.absent) : '—'} label={s.adm.iAbsent} valueColor={color.muted} />
         </View>
 
         {loading ? (
@@ -154,10 +151,8 @@ export function HistoryScreen() {
                     </Txt>
                   </View>
 
-                  {/* Status badge — sits just left of the thumbnail (right-aligned) */}
                   <StatusBadge status={statusOf(r.clockInTime)} />
 
-                  {/* Selfie thumbnail — always the rightmost element, fixed square */}
                   <View style={{ width: 44, height: 44, borderRadius: radius.sm, overflow: 'hidden', backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
                     {thumb ? (
                       <Image source={{ uri: thumb }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
@@ -231,10 +226,10 @@ function PhotoCell({ label, time, uri, noPhoto }: { label: string; time: string 
 function HistStat({ value, label, valueColor }: { value: string; label: string; valueColor: string }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.xs }}>
-      <Txt w="extrabold" size={22} color={valueColor} tabular>
+      <Txt w="extrabold" size={20} color={valueColor} tabular>
         {value}
       </Txt>
-      <Txt size={12} color={color.muted} style={{ marginTop: space.xs }}>
+      <Txt size={12} color={color.muted} style={{ marginTop: space.xs, textAlign: 'center' }}>
         {label}
       </Txt>
     </View>

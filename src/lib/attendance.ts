@@ -98,14 +98,15 @@ export interface HistoryEntry {
   correctedBy: string | null; // admin user id if this day was manually corrected
 }
 
-/** Recent attendance rows for the signed-in user, newest day first. */
-export async function fetchHistory(userId: string, limit = 60): Promise<HistoryEntry[]> {
-  const { data } = await supabase
+/** Attendance rows for a user, newest day first. Optionally scoped to a date range. */
+export async function fetchHistory(userId: string, limit = 60, fromISO?: string, toISO?: string): Promise<HistoryEntry[]> {
+  let q = supabase
     .from('attendance')
     .select('work_date, clock_in_at, clock_out_at, clock_in_photo, clock_out_photo, corrected_by')
-    .eq('user_id', userId)
-    .order('work_date', { ascending: false })
-    .limit(limit);
+    .eq('user_id', userId);
+  if (fromISO) q = q.gte('work_date', fromISO);
+  if (toISO) q = q.lte('work_date', toISO);
+  const { data } = await q.order('work_date', { ascending: false }).limit(limit);
   return (data ?? []).map((r) => ({
     date: r.work_date as string,
     clockInTime: hhmm(r.clock_in_at),
