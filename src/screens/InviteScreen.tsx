@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, TextInput, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { User, Mail, BadgeCheck, Clock, ShieldCheck, Briefcase, Lock, Settings2, TriangleAlert, type LucideIcon } from 'lucide-react-native';
+import { User, Mail, BadgeCheck, ShieldCheck, Briefcase, Lock, TriangleAlert, type LucideIcon } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Button, TopAppBar, InfoBanner, Field, SelectField, DateField, ResultDialog, type SelectOption } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { supabase } from '../lib/supabase';
 import { nextEmployeeIdPreview } from '../lib/admin';
-import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
 
-export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; onManageShifts?: () => void }) {
+export function InviteScreen({ onBack }: { onBack?: () => void }) {
   const { s, lang } = useLang();
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
@@ -18,18 +17,12 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
   const [jobRole, setJobRole] = useState('');
   const [birth, setBirth] = useState('');
   const [access, setAccess] = useState('employee');
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [shiftId, setShiftId] = useState('');
   const [nextId, setNextId] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   useEffect(() => {
-    fetchShifts().then((list) => {
-      setShifts(list);
-      setShiftId((cur) => cur || list[0]?.id || '');
-    });
     nextEmployeeIdPreview().then(setNextId);
   }, []);
 
@@ -54,7 +47,6 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
     }
     setError(null);
     setBusy(true);
-    const shiftSel = shifts.find((x) => x.id === shiftId);
     const { data, error: fnErr } = await supabase.functions.invoke('create-employee', {
       body: {
         email: email.trim(),
@@ -62,7 +54,6 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
         full_name: name.trim(),
         job_role: jobRole.trim(),
         access_role: access,
-        shift: shiftSel ? shiftLabel(shiftSel) : null,
         birth_date: birth || null,
       },
     });
@@ -94,25 +85,6 @@ export function InviteScreen({ onBack, onManageShifts }: { onBack?: () => void; 
           <View style={{ flex: 1 }}>
             <SelectField label={s.adm.fRole} value={access} options={accessOptions} onChange={setAccess} />
           </View>
-        </View>
-
-        <View>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: space.sm }}>
-            <Txt w="semibold" size={13} color={color.muted}>
-              {s.adm.fShift}
-            </Txt>
-            <Pressable onPress={onManageShifts} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
-              <Settings2 size={14} color={color.anugrahBlue} strokeWidth={2} />
-              <Txt w="semibold" size={12} color={color.anugrahBlue}>
-                {s.adm.manageShift}
-              </Txt>
-            </Pressable>
-          </View>
-          {shifts.length > 0 ? (
-            <SelectField label="" value={shiftId} options={shifts.map((sh) => ({ value: sh.id, label: shiftLabel(sh) }))} onChange={setShiftId} icon={Clock} />
-          ) : (
-            <Field label="" value={s.adm.fShiftV} icon={Clock} variant="select" />
-          )}
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>

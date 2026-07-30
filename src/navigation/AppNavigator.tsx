@@ -21,7 +21,6 @@ import {
   HRDashboardScreen,
   DirectoryScreen,
   InviteScreen,
-  ShiftScreen,
   EmployeeDetailScreen,
   ApprovalScreen,
   ReportsScreen,
@@ -31,7 +30,7 @@ import {
 type Workspace = 'employee' | 'admin';
 type EmpTab = 'home' | 'history' | 'leave' | 'profile';
 type AdmTab = 'dashboard' | 'team' | 'approval' | 'report';
-type Pushed = 'clockin' | 'clockout' | 'invite' | 'shifts' | 'leaverequest' | 'holidays' | null;
+type Pushed = 'clockin' | 'clockout' | 'invite' | 'leaverequest' | 'holidays' | null;
 
 /**
  * State-based navigator. Two workspaces (employee ⇄ admin), each with a bottom
@@ -106,7 +105,6 @@ export function AppNavigator() {
         onBack={() => setPushed(null)}
         onSwitchMode={(m) => setPushed(m === 'out' ? 'clockout' : 'clockin')}
         name={displayName}
-        shift={profile?.shift}
         clockInTime={clockInTime ?? undefined}
         onConfirm={async ({ time, lat, lng, photoBase64 }) => {
           const photo = photoBase64 ? await uploadClockPhoto(userId, 'out', photoBase64) : null;
@@ -118,10 +116,7 @@ export function AppNavigator() {
     );
   }
   if (pushed === 'invite') {
-    return <InviteScreen onBack={() => setPushed(null)} onManageShifts={() => setPushed('shifts')} />;
-  }
-  if (pushed === 'shifts') {
-    return <ShiftScreen onBack={() => setPushed('invite')} />;
+    return <InviteScreen onBack={() => setPushed(null)} />;
   }
   if (pushed === 'holidays') {
     return <HolidayScreen onBack={() => setPushed(null)} />;
@@ -183,7 +178,6 @@ export function AppNavigator() {
         {empTab === 'home' && (
           <HomeScreen
             name={displayName}
-            shift={profile?.shift}
             onClock={(mode) => setPushed(mode === 'out' ? 'clockout' : 'clockin')}
             onOpenHistory={() => setEmpTab('history')}
             onOpenLeave={(type) => {

@@ -11,7 +11,6 @@ export interface Profile {
   employee_id: string | null;
   department: string | null;
   role: Role;
-  shift: string | null;
   birth_date: string | null;
   join_date: string | null;
   geofence_exempt: boolean;
@@ -38,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadProfile = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name, employee_id, department, role, shift, birth_date, join_date, geofence_exempt')
+      .select('id, full_name, employee_id, department, role, birth_date, join_date, geofence_exempt')
       .eq('id', userId)
       .single();
     setProfile((data as Profile) ?? null);

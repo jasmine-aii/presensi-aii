@@ -21,7 +21,6 @@ export interface AdminMember {
   employeeId: string;
   dept: string; // job title / position (profiles.department)
   role: 'employee' | 'admin'; // access role (profiles.role)
-  shift: string | null;
   st: RosterStatus; // present | late | not | leave
   in: string; // HH:MM or —
   out: string;
@@ -42,7 +41,7 @@ export interface AdminStats {
 export async function fetchTeam(): Promise<AdminMember[]> {
   const today = todayKey();
   const [{ data: profiles }, { data: att }, { data: leave }] = await Promise.all([
-    supabase.from('profiles').select('id, full_name, employee_id, department, role, email, shift, exclude_from_stats, geofence_exempt, birth_date').order('full_name'),
+    supabase.from('profiles').select('id, full_name, employee_id, department, role, email, exclude_from_stats, geofence_exempt, birth_date').order('full_name'),
     supabase.from('attendance').select('user_id, clock_in_at, clock_out_at').eq('work_date', today),
     supabase.from('leave_requests').select('user_id').eq('status', 'approved').lte('start_date', today).gte('end_date', today),
   ]);
@@ -69,7 +68,6 @@ export async function fetchTeam(): Promise<AdminMember[]> {
       employeeId: (p.employee_id as string) ?? '—',
       dept: (p.department as string) ?? '—',
       role: (p.role as 'employee' | 'admin') ?? 'employee',
-      shift: (p.shift as string) ?? null,
       st,
       in: inT ?? '—',
       out: outT ?? '—',
@@ -104,11 +102,6 @@ export async function resetMemberPassword(userId: string, password: string): Pro
 }
 
 /** Assign / change an employee's shift (admin only, enforced by RLS). */
-export async function setMemberShift(userId: string, shift: string | null): Promise<boolean> {
-  const { error } = await supabase.from('profiles').update({ shift }).eq('id', userId);
-  if (error) console.warn('[setMemberShift]', error.message);
-  return !error;
-}
 
 /** Set / clear an employee's date of birth (admin only). '' clears it. */
 export async function setMemberDept(userId: string, dept: string): Promise<boolean> {

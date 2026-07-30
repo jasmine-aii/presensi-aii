@@ -17,7 +17,7 @@ import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
-export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; shift?: string | null; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
+export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
   const { s, lang } = useLang();
   const { profile } = useAuth();
   const firstName = (name ?? s.home.name).trim().split(' ')[0];
@@ -35,7 +35,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
   const clockIn = clockInTime ?? '08:41';
 
   // Net work today (within shift window, minus break) vs the 8h target.
-  const win = parseShiftWindow(shift);
+  const win = parseShiftWindow();
   const toMin = (t: string) => Number(t.split(':')[0]) * 60 + Number(t.split(':')[1]);
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const inMin = clockInTime ? toMin(clockInTime) : win.startMin;

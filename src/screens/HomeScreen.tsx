@@ -26,7 +26,6 @@ const RIWAYAT_INDEX = 5; // opens the History page
 
 export function HomeScreen({
   name,
-  shift,
   onClock,
   onOpenHistory,
   onOpenLeave,
@@ -34,7 +33,6 @@ export function HomeScreen({
   clockOutTime,
 }: {
   name?: string;
-  shift?: string | null;
   onClock?: (mode: 'in' | 'out') => void;
   onOpenHistory?: () => void;
   onOpenLeave?: (type?: LeaveType) => void;
@@ -97,7 +95,7 @@ export function HomeScreen({
   // shift start (arriving early doesn't add hours) and stops at the shift end
   // (overtime past shift end isn't counted in regular hours). Late arrival /
   // early leave still shorten it.
-  const win = parseShiftWindow(shift);
+  const win = parseShiftWindow();
   const toMin = (t: string) => {
     const [hh, mm] = t.split(':').map(Number);
     return hh * 60 + mm;
@@ -112,7 +110,7 @@ export function HomeScreen({
   const holidayToday = useTodayHoliday();
   const isWeekend = now.getDay() === 0 || now.getDay() === 6;
   const isWorkday = !holidayToday && !isWeekend;
-  const rem = useClockReminders(shift, clockInTime, clockOutTime, isWorkday);
+  const rem = useClockReminders(clockInTime, clockOutTime, isWorkday);
 
   // Carousel card width from the measured carousel width (window width would be
   // wrong on mobile). Lone card fills; multiple cards leave a peek of the next.

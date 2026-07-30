@@ -29,7 +29,6 @@ const N: typeof Notification | undefined = typeof window !== 'undefined' && 'Not
  * background push). No-op on platforms without the Notification API.
  */
 export function useClockReminders(
-  shift: string | null | undefined,
   clockInTime: string | null | undefined,
   clockOutTime: string | null | undefined,
   enabled: boolean = true,
@@ -38,7 +37,7 @@ export function useClockReminders(
   const [permission, setPermission] = useState<NotifPermission>(N ? (N.permission as NotifPermission) : 'unsupported');
   const fired = useRef<Set<string>>(new Set());
 
-  const win = parseShiftWindow(shift);
+  const win = parseShiftWindow();
 
   // Clock-out reminder is based on completing 8 *working* hours from the actual
   // clock-in (8h work + 1h break = 9h elapsed), not the fixed shift end — so a

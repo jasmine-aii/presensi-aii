@@ -1,15 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus, Globe } from 'lucide-react-native';
+import { Camera, X, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus, Globe } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, Badge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, TimeField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, saveAttendanceCorrection, deleteAttendanceDay, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
-import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
-import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberGeofenceExempt, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
+import { resetMemberPassword, setExcludeFromStats, setMemberGeofenceExempt, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
 import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
@@ -21,8 +20,6 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
   const [rows, setRows] = useState<HistoryEntry[] | null>(null);
   const [urls, setUrls] = useState<Record<string, string>>({});
   const [sel, setSel] = useState<HistoryEntry | null>(null);
-  const [shifts, setShifts] = useState<Shift[]>([]);
-  const [shiftText, setShiftText] = useState<string | null>(member.shift);
   const [excluded, setExcluded] = useState(member.excludeFromStats);
 
   // Reload key — bumped after an admin correction to refresh the list + stats.
@@ -216,10 +213,6 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     setRpCopied(false);
   };
 
-  useEffect(() => {
-    fetchShifts().then(setShifts);
-  }, []);
-
   const loadBalance = async () => {
     const b = await fetchLeaveBalance(member.id);
     setBalance(b);
@@ -260,15 +253,6 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     setQuotaBusy(false);
     if (ok) flashSaved();
   };
-
-  const onPickShift = (id: string) => {
-    const sh = shifts.find((x) => x.id === id);
-    if (!sh) return;
-    const label = shiftLabel(sh);
-    setShiftText(label); // optimistic
-    setMemberShift(member.id, label);
-  };
-  const currentShiftId = shifts.find((sh) => shiftLabel(sh) === shiftText)?.id ?? '';
 
   useEffect(() => {
     let alive = true;
@@ -361,18 +345,6 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           )}
         </View>
 
-        {/* Assign shift */}
-        {shifts.length > 0 && (
-          <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg }}>
-            <SelectField
-              label={s.adm.fShift}
-              value={currentShiftId}
-              options={shifts.map((sh) => ({ value: sh.id, label: shiftLabel(sh) }))}
-              onChange={onPickShift}
-              icon={Clock}
-            />
-          </View>
-        )}
 
         {/* Job title (position) */}
         <View style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, padding: space.lg, gap: space.md }}>

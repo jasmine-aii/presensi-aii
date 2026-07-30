@@ -9,7 +9,6 @@ export { LeaveRequestScreen } from './LeaveRequestScreen';
 export { HRDashboardScreen } from './HRDashboardScreen';
 export { DirectoryScreen } from './DirectoryScreen';
 export { InviteScreen } from './InviteScreen';
-export { ShiftScreen } from './ShiftScreen';
 export { EmployeeDetailScreen } from './EmployeeDetailScreen';
 export { ApprovalScreen } from './ApprovalScreen';
 export { ReportsScreen } from './ReportsScreen';
