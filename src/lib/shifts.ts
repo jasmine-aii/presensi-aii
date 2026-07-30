@@ -49,33 +49,30 @@ export interface ShiftWindow {
 const fmtMin = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 
 /**
- * Extract the [start, end] window from a shift label like
- * "Reguler · 08:30–17:30". Falls back to the default 08:30–17:30.
+ * The single company shift (flexi time): clock in 08:00–09:00, clock out
+ * 17:00–18:00, 8h net after a 1h break. Work-hours counting starts at 08:00
+ * (arriving earlier isn't credited); clocking in after 09:00 is "late" (see
+ * reports/admin). There is only one shift, so the `label` arg is ignored.
  */
-export function parseShiftWindow(label?: string | null): ShiftWindow {
-  let startMin = 8 * 60 + 30;
-  let endMin = 17 * 60 + 30;
-  const m = label?.match(/(\d{1,2})[.:](\d{2}).*?(\d{1,2})[.:](\d{2})/);
-  if (m) {
-    startMin = Number(m[1]) * 60 + Number(m[2]);
-    endMin = Number(m[3]) * 60 + Number(m[4]);
-  }
+export function parseShiftWindow(_label?: string | null): ShiftWindow {
+  const startMin = 8 * 60; // 08:00 — flexi in-window start & work-hours floor
+  const endMin = 17 * 60; // 17:00 — nominal end (clock-out is flexi up to 18:00)
   return { startMin, endMin, startStr: fmtMin(startMin), endStr: fmtMin(endMin) };
 }
 
 /** Unpaid break deducted from each full workday (minutes). */
 export const BREAK_MIN = 60;
 
-/** Full-day net work target after the break (e.g. 09:00 shift − 1h = 8h). */
+/** Full-day net work target after the break (8h). */
 export const FULL_DAY_MIN = 8 * 60;
 
 /**
- * Net worked minutes within the shift window, minus the unpaid break.
- * Counting starts at the shift start (early arrival not credited) and stops at
- * the shift end (overtime not counted here).
+ * Net worked minutes (flexi): count from max(clock-in, 08:00) — early arrival
+ * isn't credited — to the actual clock-out (no fixed end cap, since clock-out is
+ * flexi), minus the unpaid break. e.g. in 09:00 / out 18:00 → 9h − 1h = 8h.
  */
 export function netWorkedMin(clockInMin: number, endMin: number, win: ShiftWindow): number {
-  const gross = Math.max(0, Math.min(endMin, win.endMin) - Math.max(clockInMin, win.startMin));
+  const gross = Math.max(0, endMin - Math.max(clockInMin, win.startMin));
   return Math.max(0, gross - BREAK_MIN);
 }
 

@@ -40,7 +40,7 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
   const nowMin = now.getHours() * 60 + now.getMinutes();
   const inMin = clockInTime ? toMin(clockInTime) : win.startMin;
   const netMin = netWorkedMin(inMin, nowMin, win);
-  const otMin = Math.max(0, nowMin - win.endMin); // worked past shift end
+  const otMin = Math.max(0, netMin - FULL_DAY_MIN); // net worked beyond the 8h target
   const isEarly = netMin < FULL_DAY_MIN;
 
   const exempt = !!profile?.geofence_exempt;
