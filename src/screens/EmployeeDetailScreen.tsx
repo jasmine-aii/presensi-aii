@@ -65,7 +65,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     }
     setCorrErr(null);
     setCorrBusy(true);
-    const ok = await saveAttendanceCorrection({
+    const err = await saveAttendanceCorrection({
       userId: member.id,
       workDate: corr.workDate,
       clockInAt: timeToISO(corr.workDate, corr.clockIn),
@@ -74,21 +74,25 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
       note: corr.note.trim() || null,
     });
     setCorrBusy(false);
-    if (ok) {
-      setCorr(null);
-      setRefresh((x) => x + 1);
+    if (err) {
+      setCorrErr(err);
+      return;
     }
+    setCorr(null);
+    setRefresh((x) => x + 1);
   };
   const doDeleteCorr = async () => {
     if (!corr || corrBusy) return;
     setCorrBusy(true);
-    const ok = await deleteAttendanceDay(member.id, corr.workDate);
+    const err = await deleteAttendanceDay(member.id, corr.workDate);
     setCorrBusy(false);
     setCorrDelOpen(false);
-    if (ok) {
-      setCorr(null);
-      setRefresh((x) => x + 1);
+    if (err) {
+      setCorrErr(err);
+      return;
     }
+    setCorr(null);
+    setRefresh((x) => x + 1);
   };
 
   // Job title (profiles.department) — editable

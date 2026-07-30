@@ -129,7 +129,7 @@ export async function saveAttendanceCorrection(p: {
   clockOutAt: string | null; // ISO or null
   correctedBy: string;
   note: string | null;
-}): Promise<boolean> {
+}): Promise<string | null> {
   const { error } = await supabase.from('attendance').upsert(
     {
       user_id: p.userId,
@@ -143,12 +143,12 @@ export async function saveAttendanceCorrection(p: {
     { onConflict: 'user_id,work_date' },
   );
   if (error) console.warn('[saveAttendanceCorrection]', error.message);
-  return !error;
+  return error?.message ?? null;
 }
 
-/** Admin: delete an employee's attendance row for a day. */
-export async function deleteAttendanceDay(userId: string, workDate: string): Promise<boolean> {
+/** Admin: delete an employee's attendance row for a day. Returns an error message or null. */
+export async function deleteAttendanceDay(userId: string, workDate: string): Promise<string | null> {
   const { error } = await supabase.from('attendance').delete().eq('user_id', userId).eq('work_date', workDate);
   if (error) console.warn('[deleteAttendanceDay]', error.message);
-  return !error;
+  return error?.message ?? null;
 }
