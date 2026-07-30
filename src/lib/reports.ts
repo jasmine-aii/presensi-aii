@@ -131,10 +131,9 @@ function splitOnTime(rows: Array<{ clock_in_at: string | null }>): { onTime: num
   return { onTime, late };
 }
 
-/** Working days for an employee within [monthStart, end], starting no earlier than join. */
-function employeeWorkingDays(joinDate: string | null, start: string, end: string, holidays: Set<string>): number {
-  const from = joinDate && joinDate > start ? joinDate : start;
-  return from <= end ? weekdaysBetween(from, end, holidays) : 0;
+/** Working days in [monthStart, end] — weekdays minus holidays (not tied to join date). */
+function monthWorkingDays(start: string, end: string, holidays: Set<string>): number {
+  return start <= end ? weekdaysBetween(start, end, holidays) : 0;
 }
 
 export interface EmployeeReport extends EmployeeMonthStats {
@@ -187,7 +186,7 @@ export async function fetchEmployeeReports(year?: number, month0?: number): Prom
 
   return profs.map((p) => {
     const join = (p.join_date as string) ?? null;
-    const workingDays = employeeWorkingDays(join, start, end, holidays);
+    const workingDays = monthWorkingDays(start, end, holidays);
     const { onTime, late } = splitOnTime(attByUser.get(p.id as string) ?? []);
     const present = onTime + late;
     const lv = leaveByUser.get(p.id as string)!;
@@ -212,21 +211,18 @@ export async function fetchEmployeeMonthStats(userId: string, year?: number, mon
   const now = new Date();
   const { start, end } = monthBounds(year ?? now.getFullYear(), month0 ?? now.getMonth());
 
-  const [{ data: prof }, { data: att }, { data: leave }, holidays] = await Promise.all([
-    supabase.from('profiles').select('join_date').eq('id', userId).maybeSingle(),
+  const [{ data: att }, { data: leave }, holidays] = await Promise.all([
     supabase.from('attendance').select('clock_in_at').eq('user_id', userId).gte('work_date', start).lte('work_date', end),
     supabase.from('leave_requests').select('start_date, end_date').eq('user_id', userId).eq('status', 'approved'),
     fetchHolidaySet(),
   ]);
 
-  const join = (prof?.join_date as string) ?? null;
-  const workingDays = employeeWorkingDays(join, start, end, holidays);
+  const workingDays = monthWorkingDays(start, end, holidays);
   const { onTime, late } = splitOnTime((att ?? []) as Array<{ clock_in_at: string | null }>);
   const present = onTime + late;
-  const from0 = join && join > start ? join : start;
   let manDays = 0;
   for (const l of leave ?? []) {
-    const from = (l.start_date as string) > from0 ? (l.start_date as string) : from0;
+    const from = (l.start_date as string) > start ? (l.start_date as string) : start;
     const to = (l.end_date as string) < end ? (l.end_date as string) : end;
     manDays += weekdaysBetween(from, to, holidays);
   }
