@@ -411,7 +411,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             )}
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-            <View style={{ flex: 1 }}>
+            <View style={{ flex: 1, minWidth: 0 }}>
               <DateField value={birthDraft} onChange={setBirthDraft} max={new Date().toISOString().slice(0, 10)} />
             </View>
             <Button
@@ -448,7 +448,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 {s.adm.joinDate}
               </Txt>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, minWidth: 0 }}>
                   <DateField value={joinDraft} onChange={setJoinDraft} />
                 </View>
                 <Button
