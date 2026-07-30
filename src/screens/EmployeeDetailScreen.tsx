@@ -470,7 +470,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             <View style={{ flexDirection: 'row', backgroundColor: color.paper, borderRadius: radius.sm, paddingVertical: space.md }}>
               {(
                 [
-                  [s.adm.accrued, balance.accrued, color.ink],
+                  [s.home.entitle, balance.quota, color.ink],
                   [s.adm.carryOver, balance.carryOver, color.deepNavy],
                   [s.home.taken, balance.taken, color.warning],
                   [s.home.balance, balance.remaining, color.success],
