@@ -34,6 +34,10 @@ create table if not exists public.profiles (
 
 alter table public.profiles add column if not exists email text;
 alter table public.profiles add column if not exists birth_date date;
+-- when true, this employee may clock in/out from anywhere (e.g. field/remote
+-- work): the office geofence is skipped for them, client- and server-side.
+-- Declared early because enforce_attendance_geofence() (below) reads it.
+alter table public.profiles add column if not exists geofence_exempt boolean not null default false;
 
 -- ── attendance ──────────────────────────────────────────────────────────────
 -- One row per employee per calendar day (work_date). Clock-out fills in later.
@@ -113,6 +117,10 @@ declare
 begin
   -- Admin corrections of another employee's row bypass the geofence.
   if public.is_admin() and new.user_id <> auth.uid() then
+    return new;
+  end if;
+  -- Employees flagged geofence_exempt (e.g. field/remote work) can clock anywhere.
+  if (select geofence_exempt from public.profiles where id = new.user_id) then
     return new;
   end if;
   if new.clock_in_at is not null

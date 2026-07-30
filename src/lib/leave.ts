@@ -5,7 +5,10 @@ import { fetchHolidaySet } from './holidays';
 export type LeaveType = 'cuti_tahunan' | 'sakit' | 'unpaid_leave' | 'dinas_luar' | 'izin_khusus';
 export type LeaveStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
-export const LEAVE_TYPES: LeaveType[] = ['cuti_tahunan', 'sakit', 'unpaid_leave', 'dinas_luar', 'izin_khusus'];
+// 'dinas_luar' is intentionally omitted — field/remote work is handled by the
+// per-employee geofence exemption, not a leave type. Kept in LeaveType + labels
+// so any legacy rows still render.
+export const LEAVE_TYPES: LeaveType[] = ['cuti_tahunan', 'sakit', 'unpaid_leave', 'izin_khusus'];
 
 export interface LeaveRequest {
   id: string;

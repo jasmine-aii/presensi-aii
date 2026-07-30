@@ -197,6 +197,7 @@ const id = {
     away: 'dari kantor',
     outsideMsg: 'Anda harus berada dalam 50 m dari kantor untuk absen.',
     lowAccuracy: 'Akurasi GPS rendah — dekati jendela lalu coba lagi.',
+    exempt: 'Akun ini boleh absen dari mana saja.',
     retry: 'Coba lagi',
   },
   dlg: {
@@ -315,6 +316,8 @@ const id = {
     quotaSaved: 'Kuota cuti diperbarui.',
     inStatsLabel: 'Hitung dalam statistik',
     inStatsHint: 'Matikan untuk atasan/founder agar tidak masuk hitungan',
+    geoLabel: 'Absen dari mana saja',
+    geoHint: 'Lewati geofence kantor untuk karyawan ini (mis. kerja lapangan / dinas luar)',
     joinDate: 'Tanggal bergabung',
     accrued: 'Terkumpul',
     carryOver: 'Carry-over',
@@ -558,6 +561,7 @@ const en = {
     away: 'from office',
     outsideMsg: 'You must be within 50 m of the office to clock in/out.',
     lowAccuracy: 'Low GPS accuracy — move near a window and try again.',
+    exempt: 'This account may clock in from anywhere.',
     retry: 'Retry',
   },
   dlg: {
@@ -676,6 +680,8 @@ const en = {
     quotaSaved: 'Leave quota updated.',
     inStatsLabel: 'Count in statistics',
     inStatsHint: 'Turn off for managers/founder to exclude them from the numbers',
+    geoLabel: 'Clock in from anywhere',
+    geoHint: 'Skip the office geofence for this employee (e.g. field work / off-site)',
     joinDate: 'Join date',
     accrued: 'Accrued',
     carryOver: 'Carry-over',

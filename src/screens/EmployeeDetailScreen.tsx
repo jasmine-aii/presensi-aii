@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus } from 'lucide-react-native';
+import { Camera, X, Clock, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus, Globe } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, Badge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, TimeField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -9,7 +9,7 @@ import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, saveAttendanceCorrection, deleteAttendanceDay, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
 import { fetchShifts, shiftLabel, type Shift } from '../lib/shifts';
-import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
+import { setMemberShift, resetMemberPassword, setExcludeFromStats, setMemberGeofenceExempt, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
 import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
@@ -136,6 +136,12 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     setPendingRole(null);
   };
   const pendingRoleLabel = accessOptions.find((o) => o.value === pendingRole)?.label ?? '';
+
+  const [geoExempt, setGeoExempt] = useState(member.geofenceExempt);
+  const toggleGeo = (on: boolean) => {
+    setGeoExempt(on); // optimistic
+    setMemberGeofenceExempt(member.id, on);
+  };
 
   const toggleStats = (countIn: boolean) => {
     setExcluded(!countIn); // optimistic
@@ -541,6 +547,22 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             </Txt>
           </View>
           <Toggle on={!excluded} onChange={toggleStats} label={s.adm.inStatsLabel} />
+        </View>
+
+        {/* Clock in from anywhere (geofence exemption) */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.lg }}>
+          <View style={{ width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.skyTint, alignItems: 'center', justifyContent: 'center' }}>
+            <Globe size={20} color={color.anugrahBlue} strokeWidth={2} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Txt w="semibold" size={14} color={color.ink}>
+              {s.adm.geoLabel}
+            </Txt>
+            <Txt size={12} color={color.muted} style={{ marginTop: 2, lineHeight: 16 }}>
+              {s.adm.geoHint}
+            </Txt>
+          </View>
+          <Toggle on={geoExempt} onChange={toggleGeo} label={s.adm.geoLabel} />
         </View>
 
         {/* Reset password */}

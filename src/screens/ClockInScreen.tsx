@@ -7,6 +7,7 @@ import { color, space, radius } from '../theme';
 import { Txt, Button, Badge, DataTag, TopAppBar, CameraViewfinder, MiniMap, ResultDialog, SelectField, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
@@ -28,9 +29,11 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const confirmedTime = useRef<string>('');
   const holidayToday = useTodayHoliday();
+  const { profile } = useAuth();
+  const exempt = !!profile?.geofence_exempt;
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
-  const canConfirm = loc.inRadius === true && !holidayToday;
+  const canConfirm = (exempt || loc.inRadius === true) && !holidayToday;
 
   const geo: { tone: BadgeTone; label: string } =
     loc.status === 'locating'
@@ -137,6 +140,10 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
           ) : alreadyDone ? (
             <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center' }}>
               {s.in.alreadyDone}
+            </Txt>
+          ) : exempt ? (
+            <Txt w="semibold" size={12} color={color.anugrahBlue} style={{ textAlign: 'center' }}>
+              {s.loc.exempt}
             </Txt>
           ) : loc.status === 'ready' && !loc.inRadius ? (
             <Txt size={12} color={color.danger} style={{ textAlign: 'center' }}>

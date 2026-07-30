@@ -7,6 +7,7 @@ import { color, elevation, space, radius } from '../theme';
 import { Txt, Button, Badge, TopAppBar, CameraViewfinder, ResultDialog, SelectField, Dialog, type ResultKind } from '../components';
 import type { BadgeTone } from '../components/Badge';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
 import { useNow } from '../lib/useNow';
 import { timeStr, timeShort } from '../lib/format';
 import { useLocation } from '../lib/useLocation';
@@ -18,6 +19,7 @@ type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; 
 
 export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, onSwitchMode, alreadyDone }: { onBack?: () => void; onConfirm?: ClockConfirm; clockInTime?: string; name?: string; shift?: string | null; onSwitchMode?: (mode: 'in' | 'out') => void; alreadyDone?: boolean }) {
   const { s, lang } = useLang();
+  const { profile } = useAuth();
   const firstName = (name ?? s.home.name).trim().split(' ')[0];
   const now = useNow(1000);
   const clock = timeStr(now);
@@ -41,8 +43,9 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
   const otMin = Math.max(0, nowMin - win.endMin); // worked past shift end
   const isEarly = netMin < FULL_DAY_MIN;
 
+  const exempt = !!profile?.geofence_exempt;
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
-  const canConfirm = loc.inRadius === true;
+  const canConfirm = exempt || loc.inRadius === true;
 
   const geo: { tone: BadgeTone; label: string } =
     loc.status === 'locating'
@@ -185,6 +188,10 @@ export function ClockOutScreen({ onBack, onConfirm, clockInTime, name, shift, on
         {alreadyDone ? (
           <Txt w="semibold" size={12} color={color.success} style={{ textAlign: 'center', marginTop: space.md, paddingHorizontal: space.sm }}>
             {s.out.alreadyDone}
+          </Txt>
+        ) : exempt ? (
+          <Txt w="semibold" size={12} color={color.anugrahBlue} style={{ textAlign: 'center', marginTop: space.md, paddingHorizontal: space.sm }}>
+            {s.loc.exempt}
           </Txt>
         ) : (
           loc.status === 'ready' && !loc.inRadius && (
