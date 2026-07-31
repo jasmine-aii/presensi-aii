@@ -27,6 +27,7 @@ const id = {
   home: {
     greeting: 'Selamat pagi,',
     greet: { morning: 'Selamat pagi,', noon: 'Selamat siang,', afternoon: 'Selamat sore,', night: 'Selamat malam,' },
+    switchAdmin: 'Tampilan admin',
     name: 'Andi Pratama',
     shift: 'Shift reguler',
     hours: '08:00 – 17:00',
@@ -402,6 +403,7 @@ const en = {
   home: {
     greeting: 'Good morning,',
     greet: { morning: 'Good morning,', noon: 'Good afternoon,', afternoon: 'Good evening,', night: 'Good night,' },
+    switchAdmin: 'Admin view',
     name: 'Andi Pratama',
     shift: 'Regular shift',
     hours: '08:00 – 17:00',

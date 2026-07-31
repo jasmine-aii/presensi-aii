@@ -186,6 +186,11 @@ export function AppNavigator() {
             }}
             clockInTime={clockInTime}
             clockOutTime={clockOutTime}
+            isAdmin={isAdmin}
+            onOpenAdmin={() => {
+              setWorkspace('admin');
+              setAdmTab('dashboard');
+            }}
           />
         )}
         {empTab === 'history' && <HistoryScreen />}

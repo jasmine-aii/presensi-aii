@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, BellRing, BellOff, Check, X, PartyPopper, Clock as ClockIcon, Sparkles, Cake, Palmtree } from 'lucide-react-native';
+import { Bell, BellRing, BellOff, Check, X, PartyPopper, Clock as ClockIcon, Sparkles, Cake, Palmtree, ArrowLeftRight } from 'lucide-react-native';
 import { color, space, radius } from '../theme';
 import { Txt, Button, Avatar, IconTile, LogoMark, GlowCircle, Dialog, StatusBadge } from '../components';
 import { useLang } from '../i18n/LangContext';
@@ -31,6 +31,8 @@ export function HomeScreen({
   onOpenLeave,
   clockInTime,
   clockOutTime,
+  isAdmin,
+  onOpenAdmin,
 }: {
   name?: string;
   onClock?: (mode: 'in' | 'out') => void;
@@ -38,6 +40,8 @@ export function HomeScreen({
   onOpenLeave?: (type?: LeaveType) => void;
   clockInTime?: string | null;
   clockOutTime?: string | null;
+  isAdmin?: boolean;
+  onOpenAdmin?: () => void;
 }) {
   const { s, lang } = useLang();
   const { session } = useAuth();
@@ -151,6 +155,17 @@ export function HomeScreen({
             <Txt w="bold" size={17} color={color.ink}>
               {userName}
             </Txt>
+            {isAdmin && (
+              <Pressable
+                onPress={onOpenAdmin}
+                style={{ flexDirection: 'row', alignSelf: 'flex-start', alignItems: 'center', gap: space.sm, marginTop: space.sm, paddingVertical: space.sm, paddingHorizontal: space.md, borderRadius: radius.pill, backgroundColor: color.skyTint }}
+              >
+                <ArrowLeftRight size={14} color={color.anugrahBlue} strokeWidth={2} />
+                <Txt w="semibold" size={12} color={color.anugrahBlue}>
+                  {s.home.switchAdmin}
+                </Txt>
+              </Pressable>
+            )}
           </View>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
