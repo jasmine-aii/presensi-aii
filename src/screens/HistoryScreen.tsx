@@ -122,6 +122,7 @@ export function HistoryScreen() {
                     [color.warningBg, s.hist.late],
                     [color.dangerBg, s.hist.noRecord],
                     [LEAVE_TINT, s.hist.leave],
+                    ['', s.hist.noClockOut, 'dot'],
                   ]}
                 />
               </>
@@ -296,6 +297,8 @@ function MonthCalendar({
 }) {
   const lead = (new Date(year, month0, 1).getDay() + 6) % 7; // Monday-first leading blanks
   const lastDay = new Date(year, month0 + 1, 0).getDate();
+  const nowD = new Date();
+  const todayIso = `${nowD.getFullYear()}-${pad(nowD.getMonth() + 1)}-${pad(nowD.getDate())}`;
   const cells: (number | null)[] = [...Array(lead).fill(null), ...Array.from({ length: lastDay }, (_, i) => i + 1)];
   const wLabels = lang === 'id' ? ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'] : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   return (
@@ -314,6 +317,8 @@ function MonthCalendar({
           const st = CAL_STYLE[cal[iso] ?? 'future'];
           const row = rows.find((r) => r.date === iso);
           const tappable = !!(row && (row.clockInPhoto || row.clockOutPhoto));
+          // Clocked in but never clocked out on a past day → flag with a red dot.
+          const missingOut = !!(row && row.clockInTime && !row.clockOutTime && iso < todayIso);
           return (
             <View key={i} style={{ width: '14.2857%', padding: 2 }}>
               <Pressable
@@ -324,6 +329,9 @@ function MonthCalendar({
                 <Txt w="semibold" size={13} color={st.fg} tabular>
                   {day}
                 </Txt>
+                {missingOut && (
+                  <View style={{ position: 'absolute', top: 3, right: 3, width: 6, height: 6, borderRadius: 3, backgroundColor: color.danger }} />
+                )}
               </Pressable>
             </View>
           );
@@ -333,12 +341,18 @@ function MonthCalendar({
   );
 }
 
-function CalendarLegend({ items }: { items: [string, string][] }) {
+function CalendarLegend({ items }: { items: Array<[string, string] | [string, string, 'dot']> }) {
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space.md, marginTop: space.lg }}>
-      {items.map(([bg, label]) => (
+      {items.map(([bg, label, marker]) => (
         <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: space.xs }}>
-          <View style={{ width: 14, height: 14, borderRadius: 4, borderWidth: 1, borderColor: color.line, backgroundColor: bg }} />
+          {marker === 'dot' ? (
+            <View style={{ width: 14, height: 14, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: color.danger }} />
+            </View>
+          ) : (
+            <View style={{ width: 14, height: 14, borderRadius: 4, borderWidth: 1, borderColor: color.line, backgroundColor: bg }} />
+          )}
           <Txt size={12} color={color.muted}>
             {label}
           </Txt>
