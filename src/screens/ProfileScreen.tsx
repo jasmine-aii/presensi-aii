@@ -155,7 +155,7 @@ export function ProfileScreen({
           })}
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.lg, paddingHorizontal: space.lg }}>
             <CircleCheck size={20} color={color.success} strokeWidth={2} />
-            <Txt size={13} color={color.muted} style={{ width: 96 }}>
+            <Txt size={13} color={color.muted} style={{ width: 128 }}>
               {s.prof.rate}
             </Txt>
             {att ? (
