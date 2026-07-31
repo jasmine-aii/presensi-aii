@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ScrollView, Pressable, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Globe, Bell, LogOut, ArrowLeftRight, ChevronRight, CircleCheck, KeyRound, Cake, X } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, Toggle, Button, GlowCircle, Dialog } from '../components';
 import { useLang } from '../i18n/LangContext';
+import { useAuth } from '../auth/AuthContext';
 import { supabase } from '../lib/supabase';
 import { rangeStr } from '../lib/format';
 import { profileRows } from '../lib/data';
+import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
 
 export function ProfileScreen({
   onOpenAdmin,
@@ -33,7 +35,21 @@ export function ProfileScreen({
   isAdmin?: boolean;
 }) {
   const { s, lang, langName, toggleLang } = useLang();
+  const { session } = useAuth();
   const [notif, setNotif] = useState(true);
+
+  // Attendance this month (present / working days since join) — same source as
+  // the employee directory, so the two screens always agree.
+  const [att, setAtt] = useState<EmployeeMonthStats | null>(null);
+  useEffect(() => {
+    const uid = session?.user.id;
+    if (!uid) return;
+    let alive = true;
+    fetchEmployeeMonthStats(uid).then((r) => alive && setAtt(r));
+    return () => {
+      alive = false;
+    };
+  }, [session?.user.id]);
   const rows = profileRows(lang, email, joinDate ? rangeStr(joinDate, joinDate, lang) : undefined);
   const userName = name ?? s.home.name;
 
@@ -142,9 +158,19 @@ export function ProfileScreen({
             <Txt size={13} color={color.muted} style={{ width: 96 }}>
               {s.prof.rate}
             </Txt>
-            <Txt w="bold" size={14} color={color.success} tabular style={{ flex: 1, textAlign: 'right' }}>
-              98.6%
-            </Txt>
+            {att ? (
+              <Txt w="bold" size={14} color={color.success} tabular style={{ flex: 1, textAlign: 'right' }}>
+                {att.rate}%
+                <Txt w="semibold" size={12} color={color.muted} tabular>
+                  {'  '}
+                  {att.present}/{att.workingDays}
+                </Txt>
+              </Txt>
+            ) : (
+              <Txt w="bold" size={14} color={color.muted} tabular style={{ flex: 1, textAlign: 'right' }}>
+                —
+              </Txt>
+            )}
           </View>
         </View>
 
