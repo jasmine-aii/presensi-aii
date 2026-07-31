@@ -10,6 +10,7 @@ import {
   fetchPendingLeaves,
   fetchDecidedLeaves,
   reviewLeave,
+  cancelLeave,
   type AdminLeaveRequest,
   type LeaveType,
 } from '../lib/leave';
@@ -38,6 +39,7 @@ export function ApprovalScreen({ onChanged }: ApprovalScreenProps) {
   const [decision, setDecision] = useState<Decision | null>(null);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState<AdminLeaveRequest | null>(null);
   const [attachUrls, setAttachUrls] = useState<Record<string, string>>({});
 
   const load = useCallback(async () => {
@@ -65,6 +67,18 @@ export function ApprovalScreen({ onChanged }: ApprovalScreenProps) {
     const ok = await reviewLeave(decision.req.id, decision.kind, note);
     setBusy(false);
     setDecision(null);
+    if (ok) {
+      await load();
+      onChanged?.();
+    }
+  };
+
+  const confirmCancel = async () => {
+    if (!cancelTarget || busy) return;
+    setBusy(true);
+    const ok = await cancelLeave(cancelTarget.id);
+    setBusy(false);
+    setCancelTarget(null);
     if (ok) {
       await load();
       onChanged?.();
@@ -157,11 +171,40 @@ export function ApprovalScreen({ onChanged }: ApprovalScreenProps) {
                     </View>
                   </View>
                 )}
+
+                {tab === 'done' && r.status === 'approved' && (
+                  <Button label={s.adm.apprCancel} variant="secondary" fullWidth onPress={() => setCancelTarget(r)} />
+                )}
               </View>
             );
           })}
         </ScrollView>
       )}
+
+      {/* Cancel an approved leave (admin) */}
+      <Dialog visible={cancelTarget != null} onClose={() => setCancelTarget(null)} maxWidth={340}>
+        <View style={{ gap: space.md }}>
+          <Txt w="bold" size={16} color={color.ink}>
+            {s.adm.apprCancelTitle}
+          </Txt>
+          {cancelTarget && (
+            <Txt size={13} color={color.muted}>
+              {cancelTarget.employeeName} · {s.leave.kind[cancelTarget.type]} · {rangeStr(cancelTarget.startDate, cancelTarget.endDate, lang)}
+            </Txt>
+          )}
+          <Txt size={14} color={color.ink} style={{ lineHeight: 20 }}>
+            {s.adm.apprCancelMsg}
+          </Txt>
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Button label={s.adm.cancel} variant="secondary" fullWidth onPress={() => setCancelTarget(null)} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button label={busy ? '…' : s.adm.apprCancelYes} variant="danger" fullWidth disabled={busy} onPress={confirmCancel} />
+            </View>
+          </View>
+        </View>
+      </Dialog>
 
       {/* Decision confirmation with optional note */}
       <Dialog visible={decision != null} onClose={() => setDecision(null)}>

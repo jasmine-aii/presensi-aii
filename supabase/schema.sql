@@ -111,7 +111,7 @@ as $$
 declare
   office_lat constant double precision := -6.20361;   -- keep in sync with OFFICE
   office_lng constant double precision := 106.82;
-  radius_m   constant double precision := 50;
+  radius_m   constant double precision := 100;
   earth_r    constant double precision := 6371000;     -- meters
   dist       double precision;
 begin
@@ -370,13 +370,16 @@ begin
       new.reviewed_by := auth.uid();
       new.reviewed_at := now();
     elsif new.status = 'cancelled' then
-      if auth.uid() <> old.user_id then
-        raise exception 'Only the owner can cancel their request';
+      -- The owner may cancel their own request; an admin may cancel anyone's.
+      if auth.uid() <> old.user_id and not public.is_admin() then
+        raise exception 'Only the owner or an admin can cancel this request';
       end if;
       if old.status not in ('pending', 'approved') then
         raise exception 'Only a pending or approved request can be cancelled';
       end if;
-      if old.status = 'approved' and old.start_date <= current_date then
+      -- The owner can only cancel an approved leave before it starts; an admin
+      -- can cancel it any time.
+      if not public.is_admin() and old.status = 'approved' and old.start_date <= current_date then
         raise exception 'An approved leave cannot be cancelled once it has started';
       end if;
     else

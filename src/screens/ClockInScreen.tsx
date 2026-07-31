@@ -14,6 +14,7 @@ import { useLocation } from '../lib/useLocation';
 import { captureSelfie } from '../lib/camera';
 import { OFFICE, formatCoord, formatDistance } from '../lib/office';
 import { useTodayHoliday } from '../lib/useTodayHoliday';
+import { useLeaveToday } from '../lib/useLeaveToday';
 
 type ClockConfirm = (p: { time: string; lat: number | null; lng: number | null; photoBase64: string | null }) => Promise<boolean> | boolean;
 
@@ -29,11 +30,12 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
   const [capturedUri, setCapturedUri] = useState<string | null>(null);
   const confirmedTime = useRef<string>('');
   const holidayToday = useTodayHoliday();
-  const { profile } = useAuth();
+  const { profile, session } = useAuth();
   const exempt = !!profile?.geofence_exempt;
+  const onLeaveToday = useLeaveToday(session?.user.id ?? '');
 
   const coordText = loc.coords ? formatCoord(loc.coords.lat, loc.coords.lng) : '—';
-  const canConfirm = (exempt || loc.inRadius === true) && !holidayToday;
+  const canConfirm = (exempt || loc.inRadius === true) && !holidayToday && !onLeaveToday;
 
   const geo: { tone: BadgeTone; label: string } =
     loc.status === 'locating'
@@ -133,7 +135,11 @@ export function ClockInScreen({ onBack, onConfirm, onSwitchMode, alreadyDone }: 
       <View style={{ paddingHorizontal: space.lg, paddingTop: space.lg, paddingBottom: space.lg + insets.bottom, backgroundColor: color.paper }}>
         <Button variant="primary" size="lg" fullWidth label={s.in.confirm} disabled={!canConfirm || submitting || alreadyDone} onPress={onConfirmPress} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.sm, marginTop: space.md, paddingHorizontal: space.sm }}>
-          {holidayToday ? (
+          {onLeaveToday ? (
+            <Txt w="semibold" size={12} color={color.anugrahBlue} style={{ textAlign: 'center' }}>
+              {s.in.onLeaveMsg}
+            </Txt>
+          ) : holidayToday ? (
             <Txt w="semibold" size={12} color={color.anugrahBlue} style={{ textAlign: 'center' }}>
               {s.in.holidayMsg}
             </Txt>
