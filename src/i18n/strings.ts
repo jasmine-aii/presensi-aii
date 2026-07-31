@@ -107,7 +107,7 @@ const id = {
     earlyMsg: 'Anda belum menyelesaikan 8 jam kerja hari ini. Yakin ingin clock out sekarang?',
     earlyConfirm: 'Ya, clock out',
   },
-  hist: { title: 'Riwayat presensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat presensi.', emptyHint: 'Absensimu akan muncul di sini setelah clock in pertama.', loading: 'Memuat…', photoTitle: 'Foto kehadiran', noPhoto: 'Tidak ada foto', close: 'Tutup', calendar: 'Kalender', list: 'Daftar', noRecord: 'Tanpa keterangan', noClockOut: 'Lupa clock-out' },
+  hist: { title: 'Riwayat presensi', month: 'Mei 2025', present: 'Hadir', late: 'Terlambat', leave: 'Izin', empty: 'Belum ada riwayat presensi.', emptyHint: 'Absensimu akan muncul di sini setelah clock in pertama.', loading: 'Memuat…', photoTitle: 'Foto kehadiran', noPhoto: 'Tidak ada foto', close: 'Tutup', calendar: 'Kalender', list: 'Daftar', noRecord: 'Tanpa keterangan', noClockOut: 'Belum clock-out' },
   prof: {
     title: 'Profil',
     role: 'AI Engineer',
