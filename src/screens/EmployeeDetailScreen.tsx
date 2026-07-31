@@ -624,6 +624,8 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
             const d = parseYmd(r.date);
             const thumb = r.clockInPhoto ? urls[r.clockInPhoto] : undefined;
             const hasPhoto = !!(r.clockInPhoto || r.clockOutPhoto);
+            // Clocked in but never clocked out on a past day → flag it.
+            const missingOut = !!(r.clockInTime && !r.clockOutTime && r.date < todayIso);
             return (
               <View
                 key={r.date}
@@ -657,6 +659,7 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                       {monthYear(d, lang)}
                     </Txt>
                     {r.correctedBy && <Badge tone="warning" variant="soft" label={s.adm.corrEdited} />}
+                    {missingOut && <Badge tone="danger" variant="soft" dot label={s.hist.noClockOut} />}
                   </View>
                 </Pressable>
                 {hasPhoto && (
