@@ -101,6 +101,20 @@ export async function resetMemberPassword(userId: string, password: string): Pro
   return null;
 }
 
+/**
+ * Permanently delete an employee account (admin only, via the create-employee
+ * function). Cascades to their attendance and leave records. Returns an error
+ * message on failure, or null on success.
+ */
+export async function deleteEmployee(userId: string): Promise<string | null> {
+  const { data, error } = await supabase.functions.invoke('create-employee', {
+    body: { action: 'delete', userId },
+  });
+  if (error) return error.message;
+  if (data?.error) return data.error as string;
+  return null;
+}
+
 /** Assign / change an employee's shift (admin only, enforced by RLS). */
 
 /** Set / clear an employee's date of birth (admin only). '' clears it. */

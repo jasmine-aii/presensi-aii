@@ -37,6 +37,17 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const admin = createClient(url, serviceKey);
 
+    // Action: permanently delete an employee account. Cascades to their
+    // profile, attendance and leave rows (FKs are on delete cascade).
+    if (body.action === 'delete') {
+      const { userId } = body;
+      if (!userId) return json({ error: 'userId wajib diisi.' });
+      if (String(userId) === user.id) return json({ error: 'Anda tidak dapat menghapus akun Anda sendiri.' });
+      const { error: dErr } = await admin.auth.admin.deleteUser(String(userId));
+      if (dErr) return json({ error: dErr.message });
+      return json({ ok: true });
+    }
+
     // Action: reset an existing employee's password.
     if (body.action === 'reset-password') {
       const { userId, password } = body;

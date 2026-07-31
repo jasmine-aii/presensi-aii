@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, ActivityIndicator, Image, Pressable, TextInput } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Camera, X, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus, Globe } from 'lucide-react-native';
+import { Camera, X, KeyRound, CircleCheck, Eye, EyeOff, Sparkles, Copy, Check, CalendarClock, ChartColumnBig, Cake, Briefcase, ShieldCheck, AlertTriangle, CalendarCheck, Pencil, Plus, Globe, Trash2 } from 'lucide-react-native';
 import { color, interFamily, space, radius } from '../theme';
 import { Txt, Avatar, AdminStatusBadge, Badge, TopAppBar, SelectField, Button, Dialog, Stepper, DateField, TimeField, Toggle } from '../components';
 import { useLang } from '../i18n/LangContext';
 import { useAuth } from '../auth/AuthContext';
 import { fetchHistory, saveAttendanceCorrection, deleteAttendanceDay, type HistoryEntry } from '../lib/attendance';
 import { signedUrlsFor } from '../lib/storage';
-import { resetMemberPassword, setExcludeFromStats, setMemberGeofenceExempt, setMemberBirthDate, setMemberDept, setMemberRole, type AdminMember } from '../lib/admin';
+import { resetMemberPassword, setExcludeFromStats, setMemberGeofenceExempt, setMemberBirthDate, setMemberDept, setMemberRole, deleteEmployee, type AdminMember } from '../lib/admin';
 import { fetchLeaveBalance, setLeaveJoinDate, setLeaveQuotaAdjust, type LeaveBalance } from '../lib/leave';
 import { fetchEmployeeMonthStats, type EmployeeMonthStats } from '../lib/reports';
 import { parseYmd, weekdayShort, monthYear, dateStr, rangeStr } from '../lib/format';
@@ -215,6 +215,28 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
     setRpSaved('');
     setRpShow(false);
     setRpCopied(false);
+  };
+
+  // Delete-account modal (type the employee id to confirm — irreversible)
+  const [delOpen, setDelOpen] = useState(false);
+  const [delConfirm, setDelConfirm] = useState('');
+  const [delBusy, setDelBusy] = useState(false);
+  const [delErr, setDelErr] = useState<string | null>(null);
+
+  const closeDelete = () => {
+    setDelOpen(false);
+    setDelConfirm('');
+    setDelErr(null);
+  };
+  const doDelete = async () => {
+    if (delBusy || delConfirm.trim() !== member.employeeId) return;
+    setDelErr(null);
+    setDelBusy(true);
+    const err = await deleteEmployee(member.id);
+    setDelBusy(false);
+    if (err) return setDelErr(err);
+    closeDelete();
+    onBack?.(); // back to the directory, which refetches on mount
   };
 
   const loadBalance = async () => {
@@ -560,6 +582,21 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
           </Txt>
         </Pressable>
 
+        {/* Delete account (destructive) — hidden on your own record */}
+        {!isSelf && (
+          <Pressable
+            onPress={() => setDelOpen(true)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: space.md, backgroundColor: color.white, borderWidth: 1, borderColor: color.dangerBg, borderRadius: radius.md, paddingVertical: space.md, paddingHorizontal: space.lg }}
+          >
+            <View style={{ width: 40, height: 40, borderRadius: radius.sm, backgroundColor: color.dangerBg, alignItems: 'center', justifyContent: 'center' }}>
+              <Trash2 size={20} color={color.danger} strokeWidth={2} />
+            </View>
+            <Txt w="semibold" size={14} color={color.danger} style={{ flex: 1 }}>
+              {s.adm.delAcct}
+            </Txt>
+          </Pressable>
+        )}
+
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space.xs }}>
           <Txt w="bold" size={14} color={color.ink}>
             {s.adm.recentAtt}
@@ -720,6 +757,61 @@ export function EmployeeDetailScreen({ member, onBack }: { member: AdminMember; 
                 <Button variant="primary" size="md" fullWidth label={s.prof.save} disabled={rpBusy} onPress={doReset} />
               </View>
             )}
+        </View>
+      </Dialog>
+
+      {/* Delete-account confirmation (type the employee id) */}
+      <Dialog visible={delOpen} onClose={closeDelete} maxWidth={340}>
+        <View style={{ gap: space.md }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.sm }}>
+            <AlertTriangle size={20} color={color.danger} strokeWidth={2} />
+            <Txt w="bold" size={16} color={color.ink} style={{ flex: 1 }}>
+              {s.adm.delAcctTitle}
+            </Txt>
+            <Pressable onPress={closeDelete} hitSlop={10} accessibilityLabel={s.hist.close}>
+              <X size={20} color={color.muted} strokeWidth={2} />
+            </Pressable>
+          </View>
+          <Txt size={12} color={color.muted}>
+            {member.name} · {member.employeeId}
+          </Txt>
+          <Txt size={14} color={color.ink} style={{ lineHeight: 20 }}>
+            {s.adm.delAcctMsg}
+          </Txt>
+          <View>
+            <Txt w="semibold" size={12} color={color.muted} style={{ marginBottom: space.sm }}>
+              {s.adm.delAcctConfirmLabel}
+            </Txt>
+            <TextInput
+              value={delConfirm}
+              onChangeText={setDelConfirm}
+              placeholder={member.employeeId}
+              placeholderTextColor={color.muted}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={{ backgroundColor: color.white, borderWidth: 1, borderColor: color.line, borderRadius: radius.sm, paddingHorizontal: space.md, paddingVertical: space.md, fontFamily: interFamily('regular'), fontSize: 14, color: color.ink }}
+            />
+          </View>
+          {delErr && (
+            <Txt size={12} color={color.danger} style={{ lineHeight: 17 }}>
+              {delErr}
+            </Txt>
+          )}
+          <View style={{ flexDirection: 'row', gap: space.md }}>
+            <View style={{ flex: 1 }}>
+              <Button variant="secondary" size="md" fullWidth label={s.adm.cancel} onPress={closeDelete} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button
+                variant="danger"
+                size="md"
+                fullWidth
+                label={delBusy ? '…' : s.adm.delAcctYes}
+                disabled={delBusy || delConfirm.trim() !== member.employeeId}
+                onPress={doDelete}
+              />
+            </View>
+          </View>
         </View>
       </Dialog>
 
