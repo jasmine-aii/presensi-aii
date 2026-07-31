@@ -146,9 +146,9 @@ export function HomeScreen({
           backgroundColor: color.white,
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space.md }}>
+        <View style={{ flexDirection: 'row', gap: space.md, flex: 1, alignItems: isAdmin ? 'flex-start' : 'center' }}>
           <Avatar name={userName} size={46} ring={color.skyTint} />
-          <View>
+          <View style={{ flex: 1 }}>
             <Txt size={13} color={color.muted}>
               {greeting}
             </Txt>
