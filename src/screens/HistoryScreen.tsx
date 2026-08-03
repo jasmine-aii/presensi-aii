@@ -317,8 +317,8 @@ function MonthCalendar({
           const st = CAL_STYLE[cal[iso] ?? 'future'];
           const row = rows.find((r) => r.date === iso);
           const tappable = !!(row && (row.clockInPhoto || row.clockOutPhoto));
-          // Clocked in but never clocked out on a past day → flag with a red dot.
-          const missingOut = !!(row && row.clockInTime && !row.clockOutTime && iso < todayIso);
+          // Only one of clock-in / clock-out on a past day (incomplete) → red dot.
+          const incomplete = !!(row && !!row.clockInTime !== !!row.clockOutTime && iso < todayIso);
           return (
             <View key={i} style={{ width: '14.2857%', padding: 2 }}>
               <Pressable
@@ -329,7 +329,7 @@ function MonthCalendar({
                 <Txt w="semibold" size={13} color={st.fg} tabular>
                   {day}
                 </Txt>
-                {missingOut && (
+                {incomplete && (
                   <View style={{ position: 'absolute', top: 3, right: 3, width: 6, height: 6, borderRadius: 3, backgroundColor: color.danger }} />
                 )}
               </Pressable>
